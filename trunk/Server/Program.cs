@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace Client
+namespace Server
 {
     static class Program
     {
@@ -15,7 +15,7 @@ namespace Client
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new UIClient());
+            Application.Run(new UIServer());
         }
     }
 }

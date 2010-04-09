@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{3790F912-3C83-4C3C-B053-1F323F21B37A}</ProjectGuid>
+    <ProjectGuid>{97ACBF32-3B9F-423F-9081-C0613DCEAC8D}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Client</RootNamespace>
-    <AssemblyName>Client</AssemblyName>
+    <RootNamespace>Server</RootNamespace>
+    <AssemblyName>Server</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -49,18 +49,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client.cs" />
-    <Compile Include="trash.cs" />
-    <Compile Include="UIClient.cs">
+    <Compile Include="Server.cs" />
+    <Compile Include="UIServer.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UIClient.Designer.cs">
-      <DependentUpon>UIClient.cs</DependentUpon>
+    <Compile Include="UIServer.Designer.cs">
+      <DependentUpon>UIServer.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="UIClient.resx">
-      <DependentUpon>UIClient.cs</DependentUpon>
+    <EmbeddedResource Include="UIServer.resx">
+      <DependentUpon>UIServer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
