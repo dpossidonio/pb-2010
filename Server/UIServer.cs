@@ -15,42 +15,57 @@ namespace Server
 {
     public partial class UIServer : Form
     {
-        private Server Server;
-        private bool Activated;
+        private Server ServerClient;
+        public ServerServer ServerServer;
+        private bool _activated;
         private string _server = "PADIbook - Server";
 
         public UIServer()
         {
             InitializeComponent();
-            Server = new Server(this);
-            Activated = false;
+            ServerClient = new Server(this);
+            ServerServer = new ServerServer(this);
+            _activated = false;
         }
 
         private void ActivateServer()
         {
             TcpChannel channel = new TcpChannel(int.Parse(IPTextBox.Text.Split(':')[1]));
             ChannelServices.RegisterChannel(channel, true);
-            RemotingServices.Marshal(this.Server,
-                "Server",
-                typeof(Server));
+            RemotingServices.Marshal(this.ServerClient,
+                "IServerClient",
+                typeof(IServerClient));
+           
+
+            RemotingServices.Marshal(this.ServerServer,
+                 "IServerServer",
+              typeof(IServerServer));
         }
 
         private void ConnectButton_Click(object sender, EventArgs e)
         {
-            if (Activated)
+            if (_activated)
             {
-                RemotingServices.Disconnect(this.Server);
+                RemotingServices.Disconnect(this.ServerClient);
                 this.Text = _server + " - OFF";
                 ConnectButton.Text = "TurnON";
-                Activated = false;
+                _activated = false;
             }
             else{
                 ActivateServer();
-                Activated = true;
+                _activated = true;
                 this.Text = _server + " - ON";
                 ConnectButton.Text = "TurnOFF";
             }
 
+        }
+
+        public void UpdateLog(string str)
+        {
+            this.Invoke(new Action(delegate()
+            {
+                LogTextBox.Text += "\n\t"+str;
+            }));
         }
     }
 }

@@ -13,13 +13,11 @@ namespace Client
 {
     public class Client : MarshalByRefObject
     {
-        public IServer Server { get; set; }
+        public IServerClient Server { get; set; }
         public Queue<string> ServerAdress { get; set; }
         public UIClient ClientForm;
 
         public Profile Profile { get; set; }
-        public IList<Message> Messages { get; set; }
-        public IList<Profile> Contacts { get; set; }
 
         public Client(UIClient form)
         {
@@ -43,10 +41,9 @@ namespace Client
             ConnectToServer();
 
             try
-            {
-                Messages = Server.Connect(ip);
+            {          
                 Profile = Server.GetProfile();
-                ClientForm.UpdateMessageBox(Messages);
+                ClientForm.UpdateMessageBox(Server.Connect(ip));
                 ClientForm.LoadProfile(Profile);
             }
             catch (SocketException)
@@ -67,9 +64,9 @@ namespace Client
 
         private void ConnectToServer()
         {
-            Server = (IServer)Activator.GetObject(
-                 typeof(IServer),
-                    string.Format("tcp://{0}/Server", ServerAdress.Dequeue()));
+            Server = (IServerClient)Activator.GetObject(
+                 typeof(IServerClient),
+                    string.Format("tcp://{0}/IServerClient", ServerAdress.Dequeue()));
         }
     }
 }

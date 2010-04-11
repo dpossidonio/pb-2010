@@ -72,6 +72,9 @@ namespace Client
             }));
         }
 
+
+
+
         private void UpdateInterests()
         {
             InterestsTextBox.Text = "";
@@ -91,6 +94,11 @@ namespace Client
         private void UpdateProfileButton_Click(object sender, EventArgs e)
         {
             Client.Server.UpdateProfile(Client.Profile);
+        }
+
+        private void SendMessageButton_Click(object sender, EventArgs e)
+        {
+            Client.Server.Post(MessageTextBox.Text);
         }
     }
 }

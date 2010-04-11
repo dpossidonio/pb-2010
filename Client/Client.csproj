@@ -50,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
-    <Compile Include="trash.cs" />
     <Compile Include="UIClient.cs">
       <SubType>Form</SubType>
     </Compile>
