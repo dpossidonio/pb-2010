@@ -4,28 +4,40 @@ using System.Linq;
 using System.Text;
 using CommonTypes;
 using System.IO;
+using System.Threading;
+using System.Net.Sockets;
+using System.Runtime.Remoting.Messaging;
 
 namespace Server
 {
-    public class Server : MarshalByRefObject, IServer
+    public class Server : MarshalByRefObject, IServerClient
     {
         public UIServer ServerForm { get; set; }
+
         public Profile Profile { get; set; }
         public IList<Message> Messages { get; set; }
-        public IList<Profile> Contacts { get; set; }
+        public IList<Contact> Contacts { get; set; }
+        public IList<Contact> FriendRequests { get; set; }
 
         public Server(UIServer Form)
         {
             ServerForm = Form;
             Profile = new Profile();
+            Messages = new List<Message>();
+            Contacts = new List<Contact>();
+            FriendRequests = new List<Contact>();
 
             //Test
             var p = new Profile();
+
             p.UserName = "David";
             p.Age = 25;
             p.Interests.Add(Interest.Movies);
             p.Interests.Add(Interest.Science);
             p.Gender = Gender.Male;
+            var c = new Contact();
+            c.IP = "127.0.0.1:1234";
+            Contacts.Add(c);
             Create(p);
             Init();
         }
@@ -50,7 +62,7 @@ namespace Server
             //...
         }
 
-        #region IServer Members
+        #region IServerClient Members
 
         public void Create(Profile p)
         {
@@ -75,7 +87,7 @@ namespace Server
             return res;
         }
 
-        public IList<Profile> GetContacts()
+        public IList<Contact> GetContacts()
         {
             throw new NotImplementedException();
         }
@@ -87,15 +99,18 @@ namespace Server
 
         public void Post(string message)
         {
-            throw new NotImplementedException();
+            var m = new Message();
+            m.FromUserName = "Xoxas";
+            m.Post = message;
+            ServerForm.ServerServer.Send(m);
         }
 
         public void FriendRequest(string address)
         {
-            throw new NotImplementedException();
+
         }
 
-        public void RespondToFriendRequest(string username)
+        public void RespondToFriendRequest(string username, bool accept)
         {
             throw new NotImplementedException();
         }
@@ -113,6 +128,68 @@ namespace Server
         public Profile GetProfile()
         {
             return Profile;
+        }
+
+        #endregion
+
+
+
+        public delegate void RemoteAsyncDelegate(Message msg);
+
+        // This is the call that the AsyncCallBack delegate will reference.
+        public static void OurRemoteAsyncCallBack(IAsyncResult ar)
+        {
+            // Alternative 1: Use the callback to get the return value
+            RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)ar).AsyncDelegate;
+            Console.WriteLine("Curreu tudo bem pah");
+
+            return;
+        }
+
+        private void Send(Message msg)
+        {
+
+            foreach (var item in Contacts)
+            {
+                var obj = (IServerServer)Activator.GetObject(
+                typeof(IServerServer),
+                string.Format("tcp://{0}/IServerServer",item.IP));
+
+                try
+                {
+                   // obj.SendMessage(new Message());
+                    AsyncCallback RemoteCallback = new AsyncCallback(Server.OurRemoteAsyncCallBack);
+                    RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(obj.SendMessage);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(msg,RemoteCallback,null);
+                }
+                catch (SocketException) { }
+
+            }
+
+        }
+    }
+
+    public class ServerServer : Server, IServerServer
+    {
+        public ServerServer(UIServer ServerForm) :
+            base(ServerForm)
+        {}
+
+        #region IServerServer Members
+
+        public void SendFriendRequest(Contact Request)
+        {
+            FriendRequests.Add(Request);
+            //TODO
+        }
+
+        public void SendMessage(Message msg)
+        {
+            ServerForm.UpdateLog("Recebi:"+msg.Post+"\r\n");
+            lock (Messages)
+            {
+                Messages.Add(msg);
+            }
         }
 
         #endregion

@@ -48,7 +48,7 @@
             this.Server3IPtextBox = new System.Windows.Forms.TextBox();
             this.Server1IPtextBox = new System.Windows.Forms.TextBox();
             this.WallTextBox = new System.Windows.Forms.TextBox();
-            this.MensageTextBox = new System.Windows.Forms.TextBox();
+            this.MessageTextBox = new System.Windows.Forms.TextBox();
             this.IPLabel = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -207,7 +207,7 @@
             this.tabPage1.Controls.Add(this.Server3IPtextBox);
             this.tabPage1.Controls.Add(this.Server1IPtextBox);
             this.tabPage1.Controls.Add(this.WallTextBox);
-            this.tabPage1.Controls.Add(this.MensageTextBox);
+            this.tabPage1.Controls.Add(this.MessageTextBox);
             this.tabPage1.Controls.Add(this.IPLabel);
             this.tabPage1.Controls.Add(this.label5);
             this.tabPage1.Controls.Add(this.label4);
@@ -263,12 +263,12 @@
             this.WallTextBox.Size = new System.Drawing.Size(610, 264);
             this.WallTextBox.TabIndex = 4;
             // 
-            // MensageTextBox
+            // MessageTextBox
             // 
-            this.MensageTextBox.Location = new System.Drawing.Point(171, 70);
-            this.MensageTextBox.Name = "MensageTextBox";
-            this.MensageTextBox.Size = new System.Drawing.Size(366, 20);
-            this.MensageTextBox.TabIndex = 3;
+            this.MessageTextBox.Location = new System.Drawing.Point(171, 70);
+            this.MessageTextBox.Name = "MessageTextBox";
+            this.MessageTextBox.Size = new System.Drawing.Size(366, 20);
+            this.MessageTextBox.TabIndex = 3;
             // 
             // IPLabel
             // 
@@ -324,6 +324,7 @@
             this.SendMessageButton.TabIndex = 8;
             this.SendMessageButton.Text = "Say";
             this.SendMessageButton.UseVisualStyleBackColor = true;
+            this.SendMessageButton.Click += new System.EventHandler(this.SendMessageButton_Click);
             // 
             // ServerLabel
             // 
@@ -403,7 +404,7 @@
         private System.Windows.Forms.TextBox Server3IPtextBox;
         private System.Windows.Forms.TextBox Server1IPtextBox;
         private System.Windows.Forms.TextBox WallTextBox;
-        private System.Windows.Forms.TextBox MensageTextBox;
+        private System.Windows.Forms.TextBox MessageTextBox;
         private System.Windows.Forms.Label IPLabel;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;

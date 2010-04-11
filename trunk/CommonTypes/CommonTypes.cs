@@ -5,19 +5,21 @@ using System.Text;
 
 namespace CommonTypes
 {
-    public interface IServer
+    public interface IServerServer {
+        void SendFriendRequest(Contact Request);
+        void SendMessage(Message msg);
+    }
+    public interface IServerClient
     {
-        void Create(Profile profile);// the same as UPdate?
         IList<Message> Connect(string ip);
-        IList<Profile> GetContacts();
+        IList<Contact> GetContacts();
         Profile GetProfile();
         void Freeze();
 
-        void UpdateProfile(Profile profil);
+        void UpdateProfile(Profile profile);
         void Post(string message);
         void FriendRequest(string address);
-        void RespondToFriendRequest(string username);
-        IList<Message> RefreshView();
+        void RespondToFriendRequest(string username,bool accept);
 
         //Lookup();
     }
@@ -26,6 +28,8 @@ namespace CommonTypes
     {
         //Call by the new coordinator server
         void Coordinator(string IP);
+        void FriendRequest(IList<Contact> FriendRequests);
+        IList<Message> RefreshView();
     }
 
     public enum Interest { Cars=1,Comics,Finance,Games,Hobbies,Jobs,Literature,
@@ -53,5 +57,11 @@ namespace CommonTypes
         public string FromUserName { get; set; }
         public string Post { get; set; }
         public DateTime Time;
+    }
+
+    [Serializable]
+    public class Contact {
+        public string IP { get; set; }
+        public string Username { get; set; }
     }
 }
