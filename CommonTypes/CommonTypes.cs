@@ -6,8 +6,8 @@ using System.Text;
 namespace CommonTypes
 {
     public interface IServerServer {
-        void SendFriendRequest(Contact Request);
-        void SendMessage(Message msg);
+        void ReceiveFriendRequest(Contact Request);
+        void ReceiveMessage(Message msg);
     }
     public interface IServerClient
     {
@@ -61,6 +61,7 @@ namespace CommonTypes
 
     [Serializable]
     public class Contact {
+        public BigInteger LastMsgSeqNumber;
         public string IP { get; set; }
         public string Username { get; set; }
     }
