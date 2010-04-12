@@ -38,6 +38,7 @@ namespace Client
             //                                    "Client",
             //                                    WellKnownObjectMode.Singleton);
             //TODO
+
             ConnectToServer();
 
             try
