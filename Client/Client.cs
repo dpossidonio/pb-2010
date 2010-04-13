@@ -18,6 +18,9 @@ namespace Client
         public UIClient ClientForm;
 
         public Profile Profile { get; set; }
+        public IList<Contact> Friends { get; set; }
+        public IList<Contact> FriendsRequests { get; set; }
+        public IList<Message> Messages { get; set; }
 
         public Client(UIClient form)
         {
@@ -34,18 +37,21 @@ namespace Client
             TcpChannel channel = new TcpChannel(props, null, provider);
             ChannelServices.RegisterChannel(channel, true);
 
-            //RemotingConfiguration.RegisterWellKnownServiceType(typeof(Client),
-            //                                    "Client",
-            //                                    WellKnownObjectMode.Singleton);
-            //TODO
-
             ConnectToServer();
 
             try
             {          
                 Profile = Server.GetProfile();
-                ClientForm.UpdateMessageBox(Server.Connect(ip));
                 ClientForm.LoadProfile(Profile);
+
+                Messages = Server.GetMessages();
+                ClientForm.UpdateMessageBox(Messages);
+
+                Friends = Server.GetFriendsContacts();
+                ClientForm.UpdateFriendsContacts(Friends);
+
+                FriendsRequests = Server.GetFriendsRequestsContacts();
+                ClientForm.UpdateFriendsRequests(FriendsRequests);
             }
             catch (SocketException)
             {

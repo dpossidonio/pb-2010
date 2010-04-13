@@ -5,21 +5,25 @@ using System.Text;
 
 namespace CommonTypes
 {
+
     public interface IServerServer {
-        void ReceiveFriendRequest(Contact Request);
+        void ReceiveFriendRequestOK(Contact c);
+        void ReceiveFriendRequest(Contact c);
         void ReceiveMessage(Message msg);
     }
+
     public interface IServerClient
     {
-        IList<Message> Connect(string ip);
-        IList<Contact> GetContacts();
+        IList<Message> GetMessages();
+        IList<Contact> GetFriendsContacts();
+        IList<Contact> GetFriendsRequestsContacts();
         Profile GetProfile();
-        void Freeze();
 
+        void Freeze();
         void UpdateProfile(Profile profile);
-        void Post(string message);
-        void FriendRequest(string address);
-        void RespondToFriendRequest(string username,bool accept);
+        Message Post(string message);
+        void PostFriendRequest(string username, string address);
+        Message RespondToFriendRequest(Contact c, bool accept);
 
         //Lookup();
     }
@@ -32,9 +36,17 @@ namespace CommonTypes
         IList<Message> RefreshView();
     }
 
-    public enum Interest { Cars=1,Comics,Finance,Games,Hobbies,Jobs,Literature,
-        Life,Medicine,Movies,Music,Nature,Painting,Personal,Politics,Religion,Science,Sports,Travel}
-    public enum Gender { Male = 0, Female }
+    public enum Interest 
+    { 
+        Cars=1,Comics,Finance,Games,Hobbies,Jobs,Literature,Life,Medicine,
+        Movies,Music,Nature,Painting,Personal,Politics,Religion,Science,
+        Sports,Travel
+    }
+
+    public enum Gender 
+    {
+        Male = 0, Female 
+    }
 
     [Serializable]
     public class Profile {
