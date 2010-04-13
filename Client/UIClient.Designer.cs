@@ -60,17 +60,11 @@
             this.Msglabel = new System.Windows.Forms.Label();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.label6 = new System.Windows.Forms.Label();
-            this.friendsTextBox = new System.Windows.Forms.TextBox();
+            this.AddFriendButton = new System.Windows.Forms.Button();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.userTextBox = new System.Windows.Forms.TextBox();
-            this.serverTextBox = new System.Windows.Forms.TextBox();
-            this.sendFriendReqButton = new System.Windows.Forms.Button();
-            this.label10 = new System.Windows.Forms.Label();
-            this.friendsReqComboBox = new System.Windows.Forms.ComboBox();
-            this.acceptButton = new System.Windows.Forms.Button();
-            this.declineButton = new System.Windows.Forms.Button();
+            this.textBox2 = new System.Windows.Forms.TextBox();
             this.tabPage3.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -79,17 +73,11 @@
             // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.declineButton);
-            this.tabPage3.Controls.Add(this.acceptButton);
-            this.tabPage3.Controls.Add(this.friendsReqComboBox);
-            this.tabPage3.Controls.Add(this.label10);
-            this.tabPage3.Controls.Add(this.sendFriendReqButton);
-            this.tabPage3.Controls.Add(this.serverTextBox);
-            this.tabPage3.Controls.Add(this.userTextBox);
-            this.tabPage3.Controls.Add(this.label9);
             this.tabPage3.Controls.Add(this.label8);
+            this.tabPage3.Controls.Add(this.textBox2);
             this.tabPage3.Controls.Add(this.label7);
-            this.tabPage3.Controls.Add(this.friendsTextBox);
+            this.tabPage3.Controls.Add(this.textBox1);
+            this.tabPage3.Controls.Add(this.AddFriendButton);
             this.tabPage3.Controls.Add(this.label6);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
@@ -123,7 +111,7 @@
             // 
             // AddInterestsButton
             // 
-            this.AddInterestsButton.Location = new System.Drawing.Point(314, 207);
+            this.AddInterestsButton.Location = new System.Drawing.Point(301, 273);
             this.AddInterestsButton.Name = "AddInterestsButton";
             this.AddInterestsButton.Size = new System.Drawing.Size(100, 23);
             this.AddInterestsButton.TabIndex = 11;
@@ -134,7 +122,7 @@
             // InterestsComboBox
             // 
             this.InterestsComboBox.FormattingEnabled = true;
-            this.InterestsComboBox.Location = new System.Drawing.Point(173, 207);
+            this.InterestsComboBox.Location = new System.Drawing.Point(161, 275);
             this.InterestsComboBox.Name = "InterestsComboBox";
             this.InterestsComboBox.Size = new System.Drawing.Size(100, 21);
             this.InterestsComboBox.TabIndex = 10;
@@ -142,7 +130,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(71, 207);
+            this.label2.Location = new System.Drawing.Point(71, 278);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(81, 13);
             this.label2.TabIndex = 9;
@@ -150,7 +138,7 @@
             // 
             // InterestsTextBox
             // 
-            this.InterestsTextBox.Location = new System.Drawing.Point(161, 146);
+            this.InterestsTextBox.Location = new System.Drawing.Point(161, 236);
             this.InterestsTextBox.Name = "InterestsTextBox";
             this.InterestsTextBox.ReadOnly = true;
             this.InterestsTextBox.Size = new System.Drawing.Size(356, 20);
@@ -166,7 +154,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(71, 153);
+            this.label1.Location = new System.Drawing.Point(71, 236);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(50, 13);
             this.label1.TabIndex = 7;
@@ -174,9 +162,9 @@
             // 
             // UpdateProfileButton
             // 
-            this.UpdateProfileButton.Location = new System.Drawing.Point(261, 274);
+            this.UpdateProfileButton.Location = new System.Drawing.Point(442, 37);
             this.UpdateProfileButton.Name = "UpdateProfileButton";
-            this.UpdateProfileButton.Size = new System.Drawing.Size(100, 23);
+            this.UpdateProfileButton.Size = new System.Drawing.Size(75, 23);
             this.UpdateProfileButton.TabIndex = 6;
             this.UpdateProfileButton.Text = "Update";
             this.UpdateProfileButton.UseVisualStyleBackColor = true;
@@ -185,7 +173,7 @@
             // AgeComboBox
             // 
             this.AgeComboBox.FormattingEnabled = true;
-            this.AgeComboBox.Location = new System.Drawing.Point(357, 96);
+            this.AgeComboBox.Location = new System.Drawing.Point(161, 136);
             this.AgeComboBox.Name = "AgeComboBox";
             this.AgeComboBox.Size = new System.Drawing.Size(82, 21);
             this.AgeComboBox.TabIndex = 5;
@@ -201,7 +189,7 @@
             // AgeLabel
             // 
             this.AgeLabel.AutoSize = true;
-            this.AgeLabel.Location = new System.Drawing.Point(311, 96);
+            this.AgeLabel.Location = new System.Drawing.Point(92, 136);
             this.AgeLabel.Name = "AgeLabel";
             this.AgeLabel.Size = new System.Drawing.Size(29, 13);
             this.AgeLabel.TabIndex = 3;
@@ -256,42 +244,41 @@
             this.IPtextBox.Name = "IPtextBox";
             this.IPtextBox.Size = new System.Drawing.Size(85, 20);
             this.IPtextBox.TabIndex = 16;
-            this.IPtextBox.Text = "127.0.0.1:8000";
+            this.IPtextBox.Text = "127.0.0.1:6600";
             // 
             // Server2IPtextBox
             // 
-            this.Server2IPtextBox.Location = new System.Drawing.Point(401, 12);
+            this.Server2IPtextBox.Location = new System.Drawing.Point(421, 12);
             this.Server2IPtextBox.Name = "Server2IPtextBox";
             this.Server2IPtextBox.Size = new System.Drawing.Size(104, 20);
             this.Server2IPtextBox.TabIndex = 11;
             // 
             // Server3IPtextBox
             // 
-            this.Server3IPtextBox.Location = new System.Drawing.Point(535, 13);
+            this.Server3IPtextBox.Location = new System.Drawing.Point(277, 38);
             this.Server3IPtextBox.Name = "Server3IPtextBox";
             this.Server3IPtextBox.Size = new System.Drawing.Size(104, 20);
             this.Server3IPtextBox.TabIndex = 10;
             // 
             // Server1IPtextBox
             // 
-            this.Server1IPtextBox.Location = new System.Drawing.Point(265, 12);
+            this.Server1IPtextBox.Location = new System.Drawing.Point(277, 12);
             this.Server1IPtextBox.Name = "Server1IPtextBox";
             this.Server1IPtextBox.Size = new System.Drawing.Size(104, 20);
             this.Server1IPtextBox.TabIndex = 7;
-            this.Server1IPtextBox.Text = "127.0.0.1:8001";
+            this.Server1IPtextBox.Text = "127.0.0.1:7755";
             // 
             // WallTextBox
             // 
             this.WallTextBox.Location = new System.Drawing.Point(20, 101);
             this.WallTextBox.Multiline = true;
             this.WallTextBox.Name = "WallTextBox";
-            this.WallTextBox.ReadOnly = true;
             this.WallTextBox.Size = new System.Drawing.Size(610, 264);
             this.WallTextBox.TabIndex = 4;
             // 
             // MessageTextBox
             // 
-            this.MessageTextBox.Location = new System.Drawing.Point(124, 70);
+            this.MessageTextBox.Location = new System.Drawing.Point(171, 70);
             this.MessageTextBox.Name = "MessageTextBox";
             this.MessageTextBox.Size = new System.Drawing.Size(366, 20);
             this.MessageTextBox.TabIndex = 3;
@@ -308,7 +295,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(375, 16);
+            this.label5.Location = new System.Drawing.Point(395, 17);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(20, 13);
             this.label5.TabIndex = 14;
@@ -317,7 +304,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(509, 16);
+            this.label4.Location = new System.Drawing.Point(251, 45);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(20, 13);
             this.label4.TabIndex = 13;
@@ -326,7 +313,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(239, 15);
+            this.label3.Location = new System.Drawing.Point(251, 15);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(20, 13);
             this.label3.TabIndex = 12;
@@ -334,20 +321,19 @@
             // 
             // RefreshViewButton
             // 
-            this.RefreshViewButton.Location = new System.Drawing.Point(564, 68);
+            this.RefreshViewButton.Location = new System.Drawing.Point(20, 68);
             this.RefreshViewButton.Name = "RefreshViewButton";
-            this.RefreshViewButton.Size = new System.Drawing.Size(62, 23);
+            this.RefreshViewButton.Size = new System.Drawing.Size(54, 23);
             this.RefreshViewButton.TabIndex = 9;
             this.RefreshViewButton.Text = "Refresh";
             this.RefreshViewButton.UseVisualStyleBackColor = true;
-            this.RefreshViewButton.Click += new System.EventHandler(this.RefreshViewButton_Click);
             // 
             // SendMessageButton
             // 
             this.SendMessageButton.Cursor = System.Windows.Forms.Cursors.Default;
-            this.SendMessageButton.Location = new System.Drawing.Point(496, 68);
+            this.SendMessageButton.Location = new System.Drawing.Point(543, 68);
             this.SendMessageButton.Name = "SendMessageButton";
-            this.SendMessageButton.Size = new System.Drawing.Size(62, 23);
+            this.SendMessageButton.Size = new System.Drawing.Size(75, 23);
             this.SendMessageButton.TabIndex = 8;
             this.SendMessageButton.Text = "Say";
             this.SendMessageButton.UseVisualStyleBackColor = true;
@@ -356,7 +342,7 @@
             // ServerLabel
             // 
             this.ServerLabel.AutoSize = true;
-            this.ServerLabel.Location = new System.Drawing.Point(187, 15);
+            this.ServerLabel.Location = new System.Drawing.Point(199, 15);
             this.ServerLabel.Name = "ServerLabel";
             this.ServerLabel.Size = new System.Drawing.Size(46, 13);
             this.ServerLabel.TabIndex = 6;
@@ -364,7 +350,7 @@
             // 
             // ConnectButton
             // 
-            this.ConnectButton.Location = new System.Drawing.Point(190, 38);
+            this.ConnectButton.Location = new System.Drawing.Point(543, 10);
             this.ConnectButton.Name = "ConnectButton";
             this.ConnectButton.Size = new System.Drawing.Size(75, 23);
             this.ConnectButton.TabIndex = 5;
@@ -375,7 +361,7 @@
             // Msglabel
             // 
             this.Msglabel.AutoSize = true;
-            this.Msglabel.Location = new System.Drawing.Point(17, 73);
+            this.Msglabel.Location = new System.Drawing.Point(75, 72);
             this.Msglabel.Name = "Msglabel";
             this.Msglabel.Size = new System.Drawing.Size(90, 13);
             this.Msglabel.TabIndex = 2;
@@ -395,108 +381,53 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(122, 26);
+            this.label6.Location = new System.Drawing.Point(54, 42);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(41, 13);
+            this.label6.Size = new System.Drawing.Size(70, 13);
             this.label6.TabIndex = 0;
-            this.label6.Text = "Friends";
+            this.label6.Text = "Add a Friend:";
             // 
-            // friendsTextBox
+            // AddFriendButton
             // 
-            this.friendsTextBox.Location = new System.Drawing.Point(25, 55);
-            this.friendsTextBox.Multiline = true;
-            this.friendsTextBox.Name = "friendsTextBox";
-            this.friendsTextBox.ReadOnly = true;
-            this.friendsTextBox.Size = new System.Drawing.Size(250, 296);
-            this.friendsTextBox.TabIndex = 1;
+            this.AddFriendButton.Location = new System.Drawing.Point(57, 129);
+            this.AddFriendButton.Name = "AddFriendButton";
+            this.AddFriendButton.Size = new System.Drawing.Size(75, 23);
+            this.AddFriendButton.TabIndex = 1;
+            this.AddFriendButton.Text = "Add";
+            this.AddFriendButton.UseVisualStyleBackColor = true;
+            this.AddFriendButton.Click += new System.EventHandler(this.AddFriendButton_Click);
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(122, 90);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(127, 20);
+            this.textBox1.TabIndex = 2;
             // 
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(440, 55);
+            this.label7.Location = new System.Drawing.Point(64, 93);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(79, 13);
-            this.label7.TabIndex = 2;
-            this.label7.Text = "Friend Request";
+            this.label7.Size = new System.Drawing.Size(48, 13);
+            this.label7.TabIndex = 3;
+            this.label7.Text = "Address:";
             // 
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(342, 79);
+            this.label8.Location = new System.Drawing.Point(54, 67);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(55, 13);
-            this.label8.TabIndex = 3;
-            this.label8.Text = "Username";
+            this.label8.Size = new System.Drawing.Size(58, 13);
+            this.label8.TabIndex = 5;
+            this.label8.Text = "Username:";
             // 
-            // label9
+            // textBox2
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(342, 108);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(38, 13);
-            this.label9.TabIndex = 4;
-            this.label9.Text = "Server";
-            // 
-            // userTextBox
-            // 
-            this.userTextBox.Location = new System.Drawing.Point(419, 79);
-            this.userTextBox.Name = "userTextBox";
-            this.userTextBox.Size = new System.Drawing.Size(185, 20);
-            this.userTextBox.TabIndex = 5;
-            // 
-            // serverTextBox
-            // 
-            this.serverTextBox.Location = new System.Drawing.Point(419, 105);
-            this.serverTextBox.Name = "serverTextBox";
-            this.serverTextBox.Size = new System.Drawing.Size(185, 20);
-            this.serverTextBox.TabIndex = 6;
-            // 
-            // sendFriendReqButton
-            // 
-            this.sendFriendReqButton.Location = new System.Drawing.Point(419, 141);
-            this.sendFriendReqButton.Name = "sendFriendReqButton";
-            this.sendFriendReqButton.Size = new System.Drawing.Size(133, 23);
-            this.sendFriendReqButton.TabIndex = 8;
-            this.sendFriendReqButton.Text = "Send Request";
-            this.sendFriendReqButton.UseVisualStyleBackColor = true;
-            this.sendFriendReqButton.Click += new System.EventHandler(this.sendFriendReqButton_Click);
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(434, 228);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(85, 13);
-            this.label10.TabIndex = 9;
-            this.label10.Text = "Active Requests";
-            // 
-            // friendsReqComboBox
-            // 
-            this.friendsReqComboBox.FormattingEnabled = true;
-            this.friendsReqComboBox.Location = new System.Drawing.Point(345, 266);
-            this.friendsReqComboBox.Name = "friendsReqComboBox";
-            this.friendsReqComboBox.Size = new System.Drawing.Size(259, 21);
-            this.friendsReqComboBox.TabIndex = 10;
-            // 
-            // acceptButton
-            // 
-            this.acceptButton.Location = new System.Drawing.Point(381, 328);
-            this.acceptButton.Name = "acceptButton";
-            this.acceptButton.Size = new System.Drawing.Size(75, 23);
-            this.acceptButton.TabIndex = 11;
-            this.acceptButton.Text = "Accept";
-            this.acceptButton.UseVisualStyleBackColor = true;
-            this.acceptButton.Click += new System.EventHandler(this.acceptButton_Click);
-            // 
-            // declineButton
-            // 
-            this.declineButton.Location = new System.Drawing.Point(495, 328);
-            this.declineButton.Name = "declineButton";
-            this.declineButton.Size = new System.Drawing.Size(75, 23);
-            this.declineButton.TabIndex = 12;
-            this.declineButton.Text = "Decline";
-            this.declineButton.UseVisualStyleBackColor = true;
-            this.declineButton.Click += new System.EventHandler(this.declineButton_Click);
+            this.textBox2.Location = new System.Drawing.Point(122, 64);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(127, 20);
+            this.textBox2.TabIndex = 4;
             // 
             // UIClient
             // 
@@ -550,18 +481,12 @@
         private System.Windows.Forms.Button ConnectButton;
         private System.Windows.Forms.Label Msglabel;
         private System.Windows.Forms.TabControl tabControl;
-        private System.Windows.Forms.TextBox friendsTextBox;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Button sendFriendReqButton;
-        private System.Windows.Forms.TextBox serverTextBox;
-        private System.Windows.Forms.TextBox userTextBox;
-        private System.Windows.Forms.Button declineButton;
-        private System.Windows.Forms.Button acceptButton;
-        private System.Windows.Forms.ComboBox friendsReqComboBox;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Button AddFriendButton;
 
 
 

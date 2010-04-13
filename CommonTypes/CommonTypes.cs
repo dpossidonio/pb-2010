@@ -14,6 +14,7 @@ namespace CommonTypes
 
     public interface IServerClient
     {
+        void Connect(string ip);
         IList<Message> GetMessages();
         IList<Contact> GetFriendsContacts();
         IList<Contact> GetFriendsRequestsContacts();
@@ -25,6 +26,8 @@ namespace CommonTypes
         void PostFriendRequest(string username, string address);
         Message RespondToFriendRequest(Contact c, bool accept);
 
+        IList<Message> RefreshView();
+
         //Lookup();
     }
 
@@ -33,7 +36,7 @@ namespace CommonTypes
         //Call by the new coordinator server
         void Coordinator(string IP);
         void FriendRequest(IList<Contact> FriendRequests);
-        IList<Message> RefreshView();
+        void UpdatePosts(IList<Message> NewPosts);
     }
 
     public enum Interest 
@@ -56,10 +59,12 @@ namespace CommonTypes
         public Gender Gender { get; set; }
         public int Age { get; set; }
         public List<Interest> Interests { get; set; }
+        public BigInteger PostSeqNumber;
 
         public Profile()
         {
             Interests = new List<Interest>();
+            PostSeqNumber = new BigInteger(0);
         }
     }
 

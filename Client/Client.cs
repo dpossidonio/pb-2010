@@ -11,24 +11,46 @@ using System.Collections;
 
 namespace Client
 {
-    public class Client : MarshalByRefObject
+    public class Client : MarshalByRefObject , IClient
     {
         public IServerClient Server { get; set; }
         public Queue<string> ServerAdress { get; set; }
         public UIClient ClientForm;
-
         public Profile Profile { get; set; }
-        public IList<Contact> Friends { get; set; }
-        public IList<Contact> FriendsRequests { get; set; }
-        public IList<Message> Messages { get; set; }
+        private bool InitChannel;
 
         public Client(UIClient form)
         {
             ClientForm = form;
             ServerAdress = new Queue<string>();
+            InitChannel = false;
         }
 
         public void Connect(string ip)
+        {
+            if (!InitChannel)
+                ConnectToServer(ip);
+
+            Server = (IServerClient)Activator.GetObject(
+                    typeof(IServerClient),
+                    string.Format("tcp://{0}/IServerClient", ServerAdress.Dequeue()));
+            Profile = Server.GetProfile();
+            ClientForm.UpdateMessageBox(Server.Connect(ip));
+            ClientForm.LoadProfile(Profile);
+        }
+
+        public void GetServersAdress(string srv1, string srv2, string srv3)
+        {
+            ServerAdress.Clear();
+            if (!srv1.Equals(""))
+                ServerAdress.Enqueue(srv1.ToString());
+            if (!srv2.Equals(""))
+                ServerAdress.Enqueue(srv2);
+            if (!srv3.Equals(""))
+                ServerAdress.Enqueue(srv3);
+        }
+
+        private void ConnectToServer(string ip)
         {
             BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
             IDictionary props = new Hashtable();
@@ -36,44 +58,29 @@ namespace Client
             props["timeout"] = 1000; // in miliseconds
             TcpChannel channel = new TcpChannel(props, null, provider);
             ChannelServices.RegisterChannel(channel, true);
+            InitChannel = true;
 
-            ConnectToServer();
-
-            try
-            {          
-                Profile = Server.GetProfile();
-                ClientForm.LoadProfile(Profile);
-
-                Messages = Server.GetMessages();
-                ClientForm.UpdateMessageBox(Messages);
-
-                Friends = Server.GetFriendsContacts();
-                ClientForm.UpdateFriendsContacts(Friends);
-
-                FriendsRequests = Server.GetFriendsRequestsContacts();
-                ClientForm.UpdateFriendsRequests(FriendsRequests);
-            }
-            catch (SocketException)
-            {
-                System.Windows.Forms.MessageBox.Show("Could not locate server");
-            }
+            RemotingServices.Marshal(this, "IClient", typeof(IClient));
         }
 
-        public void GetServersAdress(string srv1, string srv2, string srv3)
+
+        #region IClient Members
+
+        void IClient.Coordinator(string IP)
         {
-            if (srv1 != null)
-                ServerAdress.Enqueue(srv1.ToString());
-            if (srv2 != null)
-                ServerAdress.Enqueue(srv2);
-            if (srv3 != null)
-                ServerAdress.Enqueue(srv3);
+            throw new NotImplementedException();
         }
 
-        private void ConnectToServer()
+        void IClient.FriendRequest(IList<Contact> FriendRequests)
         {
-            Server = (IServerClient)Activator.GetObject(
-                 typeof(IServerClient),
-                    string.Format("tcp://{0}/IServerClient", ServerAdress.Dequeue()));
+            throw new NotImplementedException();
         }
+
+        void IClient.UpdatePosts(IList<Message> NewPosts)
+        {
+            ClientForm.UpdateMessageBox(NewPosts);
+        }
+
+        #endregion
     }
 }
