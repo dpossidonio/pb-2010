@@ -37,6 +37,8 @@ namespace Client
             }
         }
 
+        #region Home
+
         private void ConnectButton_Click(object sender, EventArgs e)
         {
             if (Server1IPtextBox.Text.Equals(""))
@@ -48,25 +50,51 @@ namespace Client
                 {
                     Client.Connect(IPtextBox.Text);
                     ConnectButton.Visible = false;
+                    Connected = true;
                     this.Text = _client + " - Connected";
                 }
-                catch (SocketException)
-                {
-                    System.Windows.Forms.MessageBox.Show("Could not locate server");
+                catch (SocketException) {
+                    MessageBox.Show("Could not locate server.");
                 }
             }
         }
 
-        public void UpdateMessageBox(IList<CommonTypes.Message> messages)
+        public void UpdateMessageBox(IList<CommonTypes.Message> m)
         {
             this.Invoke(new Action(delegate()
             {
-                foreach (var item in messages)
+                foreach (var item in m)
                 {
-                    WallTextBox.Text += "\r\n" + DateTime.Now.ToShortTimeString() + " From:" + item.FromUserName + " - " + item.Post;
+                    WallTextBox.Text += item.Time + " - From: " + item.FromUserName + " - " + item.Post + "\r\n";
                 }
             }));
         }
+
+       
+        private void SendMessageButton_Click(object sender, EventArgs e)
+        {
+            if (Connected)
+            {
+                //ao mandar uma msg ele retorna a msg k mandou que é adicionada à lista de msg local e publicada na wall
+                var m = Client.Server.Post(MessageTextBox.Text);
+                MessageTextBox.Text = "";
+                Client.Messages.Add(m);
+                WallTextBox.Text += "\r\n" + m.Time + " From: " + m.FromUserName + " - " + m.Post;
+            }
+           
+        }
+
+        private void RefreshViewButton_Click(object sender, EventArgs e)
+        {
+            if (Connected) { 
+            //TODO
+            }
+
+        }
+
+        #endregion
+
+        #region Profile
 
         public void LoadProfile(Profile p)
         {
@@ -79,9 +107,6 @@ namespace Client
                 InterestsComboBox.DataSource = Enum.GetNames(typeof(CommonTypes.Interest));
             }));
         }
-
-
-
 
         private void UpdateInterests()
         {
@@ -101,35 +126,88 @@ namespace Client
 
         private void UpdateProfileButton_Click(object sender, EventArgs e)
         {
-            if (!ConnectButton.Visible)
+            if (Connected)
             {
                 Client.Profile.Age = AgeComboBox.SelectedIndex + 1;
-                Client.Profile.Gender = (Gender)Enum.Parse(typeof(Gender),(string)GenderComboBox.SelectedValue);
+                Client.Profile.Gender = (Gender)Enum.Parse(typeof(Gender), (string)GenderComboBox.SelectedValue);
                 Client.Server.UpdateProfile(Client.Profile);
             }
         }
 
-        private void SendMessageButton_Click(object sender, EventArgs e)
-        {
-            if (!ConnectButton.Visible)
-            {
-                Client.Server.Post(MessageTextBox.Text);
+        #endregion
 
-                var ml = new List<CommonTypes.Message>();
-                var m = new CommonTypes.Message();
-                m.Post = MessageTextBox.Text;
-                m.FromUserName = Client.Profile.UserName;
-                m.SeqNumber = Client.Profile.PostSeqNumber++;
-                m.Time = DateTime.Now;
-                ml.Add(m);
-                UpdateMessageBox(ml);
+        #region Friends
+
+        public void UpdateFriendsContacts(IList<Contact> c)
+        {
+            this.Invoke(new Action(delegate()
+            {
+                friendsTextBox.Text = "   Friend Server      -         Friend Username\r\n";
+
+                foreach (var item in c)
+                {
+                    friendsTextBox.Text += "\r\n " + item.IP + "     -     " + item.Username;
+                }    
+            }));
+        }
+
+        public void UpdateFriendsRequests(IList<Contact> c)
+        {
+            this.Invoke(new Action(delegate()
+            {
+                foreach (var item in c)
+                {
+                    friendsReqComboBox.Items.Add(item.Username.ToString() + " , " + item.IP.ToString() );
+                }
+            }));
+        }
+
+        private void sendFriendReqButton_Click(object sender, EventArgs e)
+        {
+            if (userTextBox.Text == null || serverTextBox.Text == null)
+                MessageBox.Show("Fill out all the fields!!");
+            else
+                Client.Server.PostFriendRequest(userTextBox.Text, serverTextBox.Text);
+        }
+
+        private Contact MakeContact()
+        {
+            //new friend contact
+            var friend = new Contact();
+
+            string[] words = friendsReqComboBox.SelectedItem.ToString().Split(',');
+            friend.Username = words[0];
+            friend.IP = words[1];
+
+            //remover entrada da caixa de pedidos local
+            friendsReqComboBox.Items.Remove(friendsReqComboBox.SelectedItem);
+            friendsReqComboBox.Text = "";
+
+            return friend;
+        }
+
+        private void acceptButton_Click(object sender, EventArgs e)
+        {
+            if (friendsReqComboBox.SelectedItem != null)
+            {
+                var friend = MakeContact();
+                var m = Client.Server.RespondToFriendRequest(friend, true);
+                friendsTextBox.Text += "\r\n" + friend.IP + "     -     " + friend.Username;
+                WallTextBox.Text += "\r\n" + m.Time + " From: " + m.FromUserName + " - " + m.Post;
             }
         }
 
-        private void AddFriendButton_Click(object sender, EventArgs e)
+        private void declineButton_Click(object sender, EventArgs e)
         {
-
+            if (friendsReqComboBox.SelectedItem != null)
+            {
+                var friend = MakeContact();
+                Client.Server.RespondToFriendRequest(friend, false);
+            }
         }
 
+        #endregion        
+
+        
     }
 }
