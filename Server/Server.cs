@@ -116,6 +116,7 @@ namespace Server
             {
                 var c = new Contact();
                 c.IP = ip + i;
+                c.Username = "A" + i;
                 Server.State.Contacts.Add(c);
             }
             Server.State.Profile = p;
