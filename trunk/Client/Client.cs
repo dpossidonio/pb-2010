@@ -16,8 +16,12 @@ namespace Client
         public IServerClient Server { get; set; }
         public Queue<string> ServerAdress { get; set; }
         public UIClient ClientForm;
-        public Profile Profile { get; set; }
         private bool InitChannel;
+
+        public Profile Profile { get; set; }
+        public IList<Contact> Friends { get; set; }
+        public IList<Contact> FriendsRequests { get; set; }
+        public IList<Message> Messages { get; set; }
 
         public Client(UIClient form)
         {
@@ -34,9 +38,19 @@ namespace Client
             Server = (IServerClient)Activator.GetObject(
                     typeof(IServerClient),
                     string.Format("tcp://{0}/IServerClient", ServerAdress.Dequeue()));
+
+            Server.Connect(ip);
             Profile = Server.GetProfile();
-            ClientForm.UpdateMessageBox(Server.Connect(ip));
             ClientForm.LoadProfile(Profile);
+
+            Messages = Server.GetMessages();
+            ClientForm.UpdateMessageBox(Messages);
+
+            Friends = Server.GetFriendsContacts();
+            ClientForm.UpdateFriendsContacts(Friends);
+
+            FriendsRequests = Server.GetFriendsRequestsContacts();
+            ClientForm.UpdateFriendsRequests(FriendsRequests);
         }
 
         public void GetServersAdress(string srv1, string srv2, string srv3)
