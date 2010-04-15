@@ -61,13 +61,17 @@ namespace Client
             }
         }
 
+        public void UpdateMessageBox(CommonTypes.Message m) {
+            WallTextBox.Text += m.Time + " - From: " + m.FromUserName + " - " + m.Post + "\r\n";
+        }
+
         public void UpdateMessageBox(IList<CommonTypes.Message> m)
         {
             this.Invoke(new Action(delegate()
             {
                 foreach (var item in m)
                 {
-                    WallTextBox.Text += item.Time + " - From: " + item.FromUserName + " - " + item.Post + "\r\n";
+                    UpdateMessageBox(item); 
                 }
             }));
         }
@@ -144,13 +148,16 @@ namespace Client
 
         #region Friends
 
+        public void UpdateFriendsContacts(Contact c) {
+            friendsTextBox.Text += "\r\n " + c.IP + "     -     " + c.Username;
+        }
         public void UpdateFriendsContacts(IList<Contact> c)
         {
             this.Invoke(new Action(delegate()
             {
                 foreach (var item in c)
                 {
-                    friendsTextBox.Text += "\r\n " + item.IP + "     -     " + item.Username;
+                    UpdateFriendsContacts(item);   
                 }    
             }));
         }
@@ -161,7 +168,7 @@ namespace Client
             {
                 foreach (var item in c)
                 {
-                    friendsReqComboBox.Items.Add(item.Username.ToString() + " , " + item.IP.ToString() );
+                    friendsReqComboBox.Items.Add(item);
                 }
             }));
         }
@@ -170,47 +177,36 @@ namespace Client
         // implementar isto na classe Client?
         private void SendFriendReqButton_Click(object sender, EventArgs e)
         {
-            if (userTextBox.Text.Equals("") || serverTextBox.Text.Equals("") || Client.Profile.UserName.Equals(""))
-                MessageBox.Show("Fill out all the fields!!");
-            else
+            if (Connected)
             {
-                try
+                if (userTextBox.Text.Equals("") || serverTextBox.Text.Equals("") || Client.Profile.UserName.Equals(""))
+                    MessageBox.Show("Fill out all the fields!!");
+                else
                 {
-                    Client.Server.PostFriendRequest(userTextBox.Text, serverTextBox.Text);
-                    userTextBox.Text = "";
-                    serverTextBox.Text = "";
-                }catch(SocketException){
-                // E AGORA???
+                    try
+                    {
+                        Client.Server.PostFriendRequest(userTextBox.Text, serverTextBox.Text);
+                        userTextBox.Text = "";
+                        serverTextBox.Text = "";
+                    }
+                    catch (SocketException)
+                    {
+                        // E AGORA???
+                    }
                 }
             }
-        }
-
-        private Contact MakeContact()
-        {
-            //new friend contact
-            var friend = new Contact();
-            //HA UMA MELHOR MANEIRA DE FAZER ISTO...
-            string[] words = friendsReqComboBox.SelectedItem.ToString().Split(',');
-            friend.Username = words[0];
-            friend.IP = words[1];
-
-            //remover entrada da caixa de pedidos local
-            friendsReqComboBox.Items.Remove(friendsReqComboBox.SelectedItem);
-            friendsReqComboBox.Text = "";
-
-            return friend;
         }
 
         private void AcceptButton_Click(object sender, EventArgs e)
         {
             if (friendsReqComboBox.SelectedItem != null)
             {
-                var friend = MakeContact();
-                var m = Client.Server.RespondToFriendRequest(friend, true);
-
-                //CODIGO REPETIDO??
-                friendsTextBox.Text += "\r\n" + friend.IP + "     -     " + friend.Username;
-                WallTextBox.Text += m.Time + " From: " + m.FromUserName + " - " + m.Post + "\r\n";
+                var c = (Contact)friendsReqComboBox.SelectedItem; 
+                var m = Client.Server.RespondToFriendRequest(c, true);
+                UpdateFriendsContacts(c);
+                UpdateMessageBox(m);
+                friendsReqComboBox.Items.Remove(friendsReqComboBox.SelectedItem);
+                friendsReqComboBox.Text = "";
             }
         }
 
@@ -218,13 +214,14 @@ namespace Client
         {
             if (friendsReqComboBox.SelectedItem != null)
             {
-                var friend = MakeContact();
-                Client.Server.RespondToFriendRequest(friend, false);
+                var c = (Contact)friendsReqComboBox.SelectedItem;
+                friendsReqComboBox.Items.Remove(friendsReqComboBox.SelectedItem);
+                friendsReqComboBox.Text = "";
+                Client.Server.RespondToFriendRequest(c, false);
             }
         }
 
         #endregion        
-
         
     }
 }

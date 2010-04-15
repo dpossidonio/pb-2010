@@ -1,6 +1,5 @@
 ﻿Falta Fazer:
-olha po codigo e tentar melhorar akela merda
-Falta pa parte de serializaer
-por uma thread a meter os pedidos de mensags
-Fazer a parte do pedido que +e a mesma merda
-o Actualizar a tua view quando recebes uma mensagem.
+- Persistência 
+
+Dúvidas:
+- Depois de confirmar a amizade devemos receber mensagens antigaS do novo amigo?
