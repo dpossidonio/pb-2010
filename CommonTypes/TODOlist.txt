@@ -1,5 +1,5 @@
 ﻿Falta Fazer:
-- Persistência 
+- Persistência (Ta quase... :P )
 
 Dúvidas:
 - Depois de confirmar a amizade devemos receber mensagens antigaS do novo amigo?
