@@ -138,13 +138,15 @@ namespace Server
         public void UpdateProfile(Profile profile)
         {
             Console.WriteLine("Client: Update Profile");
+            Server.State.SerializeObject(profile);
             Server.State.Profile = profile;
         }
 
         public Profile GetProfile()
         {
             Console.WriteLine("Client: Get Profile");
-            return Server.State.Profile;
+            Profile p = (Profile)Server.State.DeserializeObject(Server.State.Profile);
+            return p;
         }
 
         public IList<Contact> GetFriendsContacts()
