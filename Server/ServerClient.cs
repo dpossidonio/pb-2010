@@ -16,7 +16,7 @@ namespace Server
         {
             ServerServer = new ServerServer(this);
             Registration();
-            test();
+            //test();
         }
 
         private void Registration()
