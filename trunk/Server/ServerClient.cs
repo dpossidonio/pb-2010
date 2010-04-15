@@ -85,6 +85,9 @@ namespace Server
         {
             var m = Server.State.MakeMessage(message);
             Server.State.Messages.Add(m);
+            //Serializa as mensagens
+            Server.State.SerializeObject(Server.State.Messages);
+
             ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.SendMessage(m));
             return m;
         }
@@ -146,7 +149,8 @@ namespace Server
         {
             Console.WriteLine("Client: Get Profile");
             Profile p = (Profile)Server.State.DeserializeObject(Server.State.Profile);
-            return p;
+            Server.State.Profile = p;
+            return Server.State.Profile;
         }
 
         public IList<Contact> GetFriendsContacts()
@@ -164,6 +168,8 @@ namespace Server
         public IList<Message> GetMessages()
         {
             Console.WriteLine("Client: Messages");
+            IList<Message> p = (IList<Message>)Server.State.DeserializeObject(Server.State.Messages);
+            Server.State.Messages = p;
             return Server.State.Messages;
         }
 

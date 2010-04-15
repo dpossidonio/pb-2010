@@ -485,9 +485,9 @@
             this.Msglabel.AutoSize = true;
             this.Msglabel.Location = new System.Drawing.Point(17, 73);
             this.Msglabel.Name = "Msglabel";
-            this.Msglabel.Size = new System.Drawing.Size(90, 13);
+            this.Msglabel.Size = new System.Drawing.Size(94, 13);
             this.Msglabel.TabIndex = 2;
-            this.Msglabel.Text = "What do you fell?";
+            this.Msglabel.Text = "What do you feel?";
             // 
             // tabControl
             // 
