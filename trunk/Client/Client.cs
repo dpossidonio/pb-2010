@@ -81,18 +81,25 @@ namespace Client
         #region IClient Members
 
         void IClient.Coordinator(string IP)
-        {
-            throw new NotImplementedException();
+        { //is this right?
+            ConnectToServer(IP);
         }
 
-        void IClient.FriendRequest(IList<Contact> FriendRequests)
+        void IClient.UpdateFriendRequest(IList<Contact> FriendRequests)
         {
-            throw new NotImplementedException();
+            ClientForm.UpdateFriendsRequests(FriendRequests);
         }
 
         void IClient.UpdatePosts(IList<Message> NewPosts)
         {
             ClientForm.UpdateMessageBox(NewPosts);
+        }
+
+        void IClient.UpdateFriends(Contact Friend)
+        {
+            var lc = new List<Contact>();
+            lc.Add(Friend);
+            ClientForm.UpdateFriendsContacts(lc);
         }
 
         #endregion

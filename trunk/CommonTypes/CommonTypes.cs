@@ -35,8 +35,9 @@ namespace CommonTypes
     {
         //Call by the new coordinator server
         void Coordinator(string IP);
-        void FriendRequest(IList<Contact> FriendRequests);
+        void UpdateFriendRequest(IList<Contact> FriendRequests);
         void UpdatePosts(IList<Message> NewPosts);
+        void UpdateFriends(Contact Friend);
     }
 
     public enum Interest 
