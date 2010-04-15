@@ -97,9 +97,7 @@ namespace Client
 
         void IClient.UpdateFriends(Contact Friend)
         {
-            var lc = new List<Contact>();
-            lc.Add(Friend);
-            ClientForm.UpdateFriendsContacts(lc);
+            ClientForm.UpdateFriendsContacts(Friend);
         }
 
         #endregion

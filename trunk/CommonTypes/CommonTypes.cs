@@ -66,6 +66,7 @@ namespace CommonTypes
         {
             Interests = new List<Interest>();
             PostSeqNumber = new BigInteger(0);
+            UserName = "";
         }
     }
 
@@ -82,5 +83,9 @@ namespace CommonTypes
         public BigInteger LastMsgSeqNumber;
         public string IP { get; set; }
         public string Username { get; set; }
+
+        public override string ToString() {
+            return string.Format("{0}  ,  {1}", Username, IP);
+        }
     }
 }
