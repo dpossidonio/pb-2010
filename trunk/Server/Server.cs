@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CommonTypes;
+using System.IO;
 
 namespace Server
 {
@@ -40,6 +41,7 @@ namespace Server
         public IList<Message> Messages { get; set; }
         public IList<Contact> Contacts { get; set; }
         public IList<Contact> FriendRequests { get; set; }
+        System.Xml.Serialization.XmlSerializer x;
 
         public ServerState(string ip)
         {
@@ -61,6 +63,35 @@ namespace Server
         }
 
         //TODO - serializar a class
+        public void SerializeObject(Object obj)
+        {
+            var port = ServerIP.Split(':');
+            TextWriter tw = new StreamWriter(@"c:\" + port[1] + obj + ".xml");
+            x = new System.Xml.Serialization.XmlSerializer(obj.GetType());
+            x.Serialize(tw, obj);
+            Console.WriteLine(obj + " written to file on path: c:\\" + obj + ".xml");
+            tw.Close();
+        }
+
+        public Object DeserializeObject(Object obj)
+        {
+            try
+            {
+                var port = ServerIP.Split(':');
+                TextReader tr = new StreamReader(@"c:\" + port[1] + obj + ".xml");
+                x = new System.Xml.Serialization.XmlSerializer(obj.GetType());
+                var fileP = x.Deserialize(tr);
+                tr.Close();
+                return fileP;
+            }
+            catch (FileNotFoundException)
+            {
+
+                SerializeObject(obj);
+                Object o = DeserializeObject(obj);
+                return o;
+            }
+        }
     }
 
     #endregion
