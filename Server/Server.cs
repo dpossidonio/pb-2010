@@ -30,8 +30,8 @@ namespace Server
             var porto = Console.ReadLine();
             var ip = string.Format(localIP + porto);
             Console.WriteLine("Running Server on: " + ip);
-            State = new ServerState();
-            var sc = new ServerClient(ip);
+            State = new ServerState(ip);
+            var sc = new ServerClient();
 
             while (true)
             {
@@ -44,13 +44,15 @@ namespace Server
 
     public class ServerState
     {
+        public string ServerIP { get; set; }
         public Profile Profile { get; set; }
         public IList<Message> Messages { get; set; }
         public IList<Contact> Contacts { get; set; }
         public IList<Contact> FriendRequests { get; set; }
 
-        public ServerState()
+        public ServerState(string ip)
         {
+            ServerIP = ip;
             Profile = new Profile();
             Messages = new List<Message>();
             Contacts = new List<Contact>();
@@ -77,16 +79,16 @@ namespace Server
     {
         public ServerServer ServerServer;
         public IClient Client;
-        public ServerClient(string ip)
+        public ServerClient()
         {
             ServerServer = new ServerServer(this);
-            Registration(ip);
-            test(ip);
+            Registration();
+        //    test();
         }
 
-        private void Registration(string ip)
+        private void Registration()
         {
-            TcpChannel channel = new TcpChannel(int.Parse(ip.Split(':')[1]));
+            TcpChannel channel = new TcpChannel(int.Parse(Server.State.ServerIP.Split(':')[1]));
             ChannelServices.RegisterChannel(channel, true);
 
             RemotingServices.Marshal(this, "IServerClient", typeof(IServerClient));
@@ -100,7 +102,7 @@ namespace Server
         }
 
         //Metodo exclusivamente para testes
-        public void test(string IP)
+        public void test()
         {
             //Test
             var p = new Profile();
@@ -112,7 +114,7 @@ namespace Server
             p.Gender = Gender.Male;
 
             var ip = "127.0.0.1:123";
-            for (int i = 1; i < 7; i++)
+            for (int i = 0; i < 4; i++)
             {
                 var c = new Contact();
                 c.IP = ip + i;
@@ -158,7 +160,8 @@ namespace Server
 
             var c = new Contact();
             c.Username = Server.State.Profile.UserName;
-            c.IP = Server.State.Profile.IP;
+            //o ip a enviar é o ip do Servidor
+            c.IP = Server.State.ServerIP;
             ServerServer.SendFriendRequest(c, address);
         }
 
@@ -173,16 +176,19 @@ namespace Server
                 //ATENÇÃO É NECESSÁRIO VER SE ESTA É A MELHOR ORDEM DE FAZER ISTO
                 //difundir nova amizade por todos os amigos
                 msg = Server.State.MakeMessage(s);
-                Server.State.Messages.Add(msg);
-                ServerServer.SendMessage(Server.State.MakeMessage(s));
 
-                //adicionar novo amigo aos contactos e informa-lo da aceitação 
-                Server.State.Contacts.Add(c);
-                var myContact = new Contact();
-                myContact.IP = Server.State.Profile.IP;
-                myContact.Username = Server.State.Profile.UserName;
-                ServerServer.SendFriendRequestConfirmation(myContact, c.IP.Trim());
+                ThreadPool.QueueUserWorkItem((object o) =>
+                {
+                    Server.State.Messages.Add(msg);
+                    ServerServer.SendMessage(Server.State.MakeMessage(s));
 
+                    //adicionar novo amigo aos contactos e informa-lo da aceitação 
+                    Server.State.Contacts.Add(c);
+                    var myContact = new Contact();
+                    myContact.IP = Server.State.ServerIP;
+                    myContact.Username = Server.State.Profile.UserName;
+                    ServerServer.SendFriendRequestConfirmation(myContact, c.IP.Trim());
+                });
             }
 
             Server.State.FriendRequests.Remove(c);
@@ -193,31 +199,37 @@ namespace Server
 
         public void UpdateProfile(Profile profile)
         {
+            Console.WriteLine("Client: Update Profile");
             Server.State.Profile = profile;
         }
 
         public Profile GetProfile()
         {
+            Console.WriteLine("Client: Get Profile");
             return Server.State.Profile;
         }
 
         public IList<Contact> GetFriendsContacts()
         {
+            Console.WriteLine("Client: Get Friends");
             return Server.State.Contacts;
         }
 
         public IList<Contact> GetFriendsRequestsContacts()
         {
+            Console.WriteLine("Client: Get Friends Requests");
             return Server.State.FriendRequests;
         }
 
         public IList<Message> GetMessages()
         {
+            Console.WriteLine("Client: Messages");
             return Server.State.Messages;
         }
 
         public void Connect(string ip)
         {
+            Console.WriteLine("Client: Connect IP:"+ip);
             Server.State.Profile.IP = ip;
             ConnectClient();
         }
@@ -317,14 +329,14 @@ namespace Server
             var obj = (IServerServer)Activator.GetObject(
                    typeof(IServerServer),
                    string.Format("tcp://{0}/IServerServer", IP));
-
             try
             {
                 AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackContact);
                 RemoteAsyncDelegateContact RemoteDel = new RemoteAsyncDelegateContact(obj.ReceiveFriendRequestOK);
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(c, RemoteCallback, null);
             }
-            catch (SocketException) {
+            catch (SocketException)
+            {
                 Console.WriteLine("-->The Server with the address {0} does not respond.", IP);
             }
 
@@ -341,24 +353,36 @@ namespace Server
             {
                 Server.State.FriendRequests.Add(c);
             }
+            var lc = new List<Contact>();
+            lc.Add(c);
+            ServerClient.Client.UpdateFriendRequest(lc);
         }
-
         public void ReceiveFriendRequestOK(Contact c)
         {
             Console.WriteLine("<--Recebi confirmação do pedido de amizade de: " + c.Username + " com o endereço: " + c.IP);
 
-            var s = "YUPI " + c.Username + "(" + c.IP.Trim() + ")" + " is now friend of " + Server.State.Profile.UserName + ".";
-            var msg = Server.State.MakeMessage(s);
-            Server.State.Messages.Add(msg);
-            SendMessage(msg);
+            ThreadPool.QueueUserWorkItem((object o) =>
+            {
+                var s = "YUPI " + c.Username + "(" + c.IP.Trim() + ")" + " is now friend of " + Server.State.Profile.UserName + ".";
+                var msg = Server.State.MakeMessage(s);
+                Server.State.Messages.Add(msg);
+                SendMessage(msg);
 
-            lock (Server.State.Contacts) { Server.State.Contacts.Add(c); }
+                lock (Server.State.Contacts)
+                {
+                    Server.State.Contacts.Add(c);
+                }
+                var lm = new List<Message>();
+                lm.Add(msg);
+                ServerClient.Client.UpdatePosts(lm);
+                ServerClient.Client.UpdateFriends(c);
+            });
 
         }
 
         public void ReceiveMessage(Message msg)
         {
-            Console.WriteLine("<--Received post from:{0} Post:{1}",msg.FromUserName,msg.Post);
+            Console.WriteLine("<--Received post from:{0} Post:{1}", msg.FromUserName, msg.Post);
             lock (Server.State.Messages)
             {
                 Server.State.Messages.Add(msg);
@@ -366,6 +390,11 @@ namespace Server
             var lm = new List<Message>();
             lm.Add(msg);
             ServerClient.Client.UpdatePosts(lm);
+        }
+
+        public override object InitializeLifetimeService()
+        {
+            return null;
         }
 
         #endregion

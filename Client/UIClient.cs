@@ -35,6 +35,8 @@ namespace Client
             {
                 AgeComboBox.Items.Add(i);
             }
+            //Friends tab
+            friendsTextBox.Text = "   Friend Server      -         Friend Username\r\n";
         }
 
         #region Home
@@ -46,7 +48,7 @@ namespace Client
             else
             {
                 Client.GetServersAdress(Server1IPtextBox.Text, Server2IPtextBox.Text, Server3IPtextBox.Text);
-                try
+                try   //ISTO DEVIA SER FEITO NA CLASSE CLIENT
                 {
                     Client.Connect(IPtextBox.Text);
                     ConnectButton.Visible = false;
@@ -69,7 +71,6 @@ namespace Client
                 }
             }));
         }
-
        
         private void SendMessageButton_Click(object sender, EventArgs e)
         {
@@ -79,9 +80,12 @@ namespace Client
                 var m = Client.Server.Post(MessageTextBox.Text);
                 MessageTextBox.Text = "";
                 Client.Messages.Add(m);
-                WallTextBox.Text += "\r\n" + m.Time + " From: " + m.FromUserName + " - " + m.Post;
+                var lm = new List<CommonTypes.Message>();
+                lm.Add(m);
+                UpdateMessageBox(lm);
+
+                //WallTextBox.Text += "\r\n" + m.Time + " From: " + m.FromUserName + " - " + m.Post;
             }
-           
         }
 
         private void RefreshViewButton_Click(object sender, EventArgs e)
@@ -89,7 +93,6 @@ namespace Client
             if (Connected) { 
             //TODO
             }
-
         }
 
         #endregion
@@ -128,6 +131,9 @@ namespace Client
         {
             if (Connected)
             {
+                //Eliminar se o nome for único e inalteravel
+                Client.Profile.UserName = UserNameTextBox.Text;
+                //
                 Client.Profile.Age = AgeComboBox.SelectedIndex + 1;
                 Client.Profile.Gender = (Gender)Enum.Parse(typeof(Gender), (string)GenderComboBox.SelectedValue);
                 Client.Server.UpdateProfile(Client.Profile);
@@ -142,8 +148,6 @@ namespace Client
         {
             this.Invoke(new Action(delegate()
             {
-                friendsTextBox.Text = "   Friend Server      -         Friend Username\r\n";
-
                 foreach (var item in c)
                 {
                     friendsTextBox.Text += "\r\n " + item.IP + "     -     " + item.Username;
@@ -162,19 +166,30 @@ namespace Client
             }));
         }
 
-        private void sendFriendReqButton_Click(object sender, EventArgs e)
+        // FALTA TRATAR A EXcepção quando o FRiend nao esta disponivel e guardar o pedido
+        // implementar isto na classe Client?
+        private void SendFriendReqButton_Click(object sender, EventArgs e)
         {
-            if (userTextBox.Text == null || serverTextBox.Text == null)
+            if (userTextBox.Text.Equals("") || serverTextBox.Text.Equals("") || Client.Profile.UserName.Equals(""))
                 MessageBox.Show("Fill out all the fields!!");
             else
-                Client.Server.PostFriendRequest(userTextBox.Text, serverTextBox.Text);
+            {
+                try
+                {
+                    Client.Server.PostFriendRequest(userTextBox.Text, serverTextBox.Text);
+                    userTextBox.Text = "";
+                    serverTextBox.Text = "";
+                }catch(SocketException){
+                // E AGORA???
+                }
+            }
         }
 
         private Contact MakeContact()
         {
             //new friend contact
             var friend = new Contact();
-
+            //HA UMA MELHOR MANEIRA DE FAZER ISTO...
             string[] words = friendsReqComboBox.SelectedItem.ToString().Split(',');
             friend.Username = words[0];
             friend.IP = words[1];
@@ -186,14 +201,16 @@ namespace Client
             return friend;
         }
 
-        private void acceptButton_Click(object sender, EventArgs e)
+        private void AcceptButton_Click(object sender, EventArgs e)
         {
             if (friendsReqComboBox.SelectedItem != null)
             {
                 var friend = MakeContact();
                 var m = Client.Server.RespondToFriendRequest(friend, true);
+
+                //CODIGO REPETIDO??
                 friendsTextBox.Text += "\r\n" + friend.IP + "     -     " + friend.Username;
-                WallTextBox.Text += "\r\n" + m.Time + " From: " + m.FromUserName + " - " + m.Post;
+                WallTextBox.Text += m.Time + " From: " + m.FromUserName + " - " + m.Post + "\r\n";
             }
         }
 

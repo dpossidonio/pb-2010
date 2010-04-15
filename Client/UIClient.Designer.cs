@@ -459,7 +459,7 @@
             this.sendFriendReqButton.TabIndex = 8;
             this.sendFriendReqButton.Text = "Send Request";
             this.sendFriendReqButton.UseVisualStyleBackColor = true;
-            this.sendFriendReqButton.Click += new System.EventHandler(this.sendFriendReqButton_Click);
+            this.sendFriendReqButton.Click += new System.EventHandler(this.SendFriendReqButton_Click);
             // 
             // label10
             // 
@@ -486,7 +486,7 @@
             this.acceptButton.TabIndex = 11;
             this.acceptButton.Text = "Accept";
             this.acceptButton.UseVisualStyleBackColor = true;
-            this.acceptButton.Click += new System.EventHandler(this.acceptButton_Click);
+            this.acceptButton.Click += new System.EventHandler(this.AcceptButton_Click);
             // 
             // declineButton
             // 
