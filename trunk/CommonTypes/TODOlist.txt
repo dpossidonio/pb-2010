@@ -1,5 +1,16 @@
 ﻿Falta Fazer:
 - Persistência (Ta quase... :P )
+- Persistir todas as acçoes do utilizador
+
+- Enviar os pedidos para todos os outros servidores
+
+
+Estou fazendo:
+- Alterar o friend request para receber o endereço do client, e só quando este vai
+enviar mensagens para o amigo , troca o porto por 1,2,3
+
+- Alterar metodo que actualiza a caixa de mensagens para ordenar sempre pelo timestamp
+
 
 Dúvidas:
 - Depois de confirmar a amizade devemos receber mensagens antigaS do novo amigo?
