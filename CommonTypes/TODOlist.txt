@@ -4,6 +4,8 @@
 
 - Enviar os pedidos para todos os outros servidores
 
+- Quando é feito o pedido de um friend request é enviado o respectivo contacto(Emissor) com o campo
+  LastMsgSeqNumber a null, quando eles ficam amigos como é tratado este caso?
 
 Estou fazendo:
 - Alterar o friend request para receber o endereço do client, e só quando este vai
