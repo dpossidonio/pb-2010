@@ -62,11 +62,6 @@ namespace Client
             }
         }
 
-        public void UpdateMessageBox(CommonTypes.Message m)
-        {
-
-        }
-
         public void UpdateMessageBox()
         {
             this.Invoke(new Action(delegate()
@@ -205,8 +200,10 @@ namespace Client
             {
                 var c = (Contact)friendsReqComboBox.SelectedItem;
                 var m = Client.Server.RespondToFriendRequest(c, true);
+                Client.Friends.Add(c);
+                Client.Messages.Add(m);
                 UpdateFriendsContacts(c);
-                UpdateMessageBox(m);
+                UpdateMessageBox();
                 friendsReqComboBox.Items.Remove(friendsReqComboBox.SelectedItem);
                 friendsReqComboBox.Text = "";
             }

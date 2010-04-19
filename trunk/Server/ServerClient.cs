@@ -95,14 +95,12 @@ namespace Server
             lock (Server.State.Messages)
             {
                 Server.State.Messages.Add(m);
+                //Serializa as mensagens
+                Server.State.SerializeObject(Server.State.Messages);
+                //Actualiza no profile o numero de sequencia dos seus posts
+                Server.State.SerializeObject(Server.State.Profile);
             }
-            //Serializa as mensagens
-            Server.State.SerializeObject(Server.State.Messages);
-            //Actualiza no profile o numero de sequencia dos seus posts
-            Server.State.SerializeObject(Server.State.Profile);
-
-
-            ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
+           ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
             return m;
         }
 

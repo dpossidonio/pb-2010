@@ -73,6 +73,7 @@ namespace Client
                      typeof(IServerClient),
                      string.Format("tcp://{0}/IServerClient", ConnectedToServer));
                     Server.Connect(ip);
+                    break;
                 }
                 catch (SocketException)
                 {

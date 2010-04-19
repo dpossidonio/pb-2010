@@ -351,6 +351,7 @@
             this.Server2IPtextBox.Name = "Server2IPtextBox";
             this.Server2IPtextBox.Size = new System.Drawing.Size(104, 20);
             this.Server2IPtextBox.TabIndex = 11;
+            this.Server2IPtextBox.Text = "127.0.0.1:8002";
             // 
             // Server3IPtextBox
             // 
@@ -358,6 +359,7 @@
             this.Server3IPtextBox.Name = "Server3IPtextBox";
             this.Server3IPtextBox.Size = new System.Drawing.Size(104, 20);
             this.Server3IPtextBox.TabIndex = 10;
+            this.Server3IPtextBox.Text = "127.0.0.1:8003";
             // 
             // Server1IPtextBox
             // 
