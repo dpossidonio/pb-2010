@@ -100,7 +100,7 @@ namespace Server
                 //Actualiza no profile o numero de sequencia dos seus posts
                 Server.State.SerializeObject(Server.State.Profile);
             }
-           ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
+            ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
             return m;
         }
 
@@ -111,7 +111,7 @@ namespace Server
             var c = new Contact();
             c.Username = Server.State.Profile.UserName;
             c.IP = Server.State.ServerIP;
-            //c.LastMsgSeqNumber ??
+            c.LastMsgSeqNumber = Server.State.Profile.PostSeqNumber;
             ThreadPool.QueueUserWorkItem((object o) => ServerServer.SendFriendRequest(c, address));
         }
 
@@ -121,7 +121,7 @@ namespace Server
             //adicionar amigo
             if (accept)
             {
-                var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";        
+                var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";
                 //ATENÇÃO É NECESSÁRIO VER SE ESTA É A MELHOR ORDEM DE FAZER ISTO
                 //difundir nova amizade por todos os amigos
                 msg = Server.State.MakeMessage(s);
@@ -130,15 +130,19 @@ namespace Server
                 {
                     ServerServer.SendFriendRequestConfirmation(Server.State.MakeContact(), c.IP.Trim());
 
-                    lock(Server.State.Messages){
+                    lock (Server.State.Messages)
+                    {
                         Server.State.Messages.Add(msg);
                     }
-                    ServerServer.BroadCastMessage(Server.State.MakeMessage(s));
+                    ServerServer.BroadCastMessage(msg);
 
-                    //adicionar novo amigo aos contactos e informa-o da aceitação 
-                    Server.State.Contacts.Add(c);
-                    //serializa os contactos
-                       Server.State.SerializeObject(Server.State.Contacts);
+                    lock (Server.State.Contacts)
+                    {
+                        //adicionar novo amigo aos contactos e informa-o da aceitação 
+                        Server.State.Contacts.Add(c);
+                        //serializa os contactos
+                        Server.State.SerializeObject(Server.State.Contacts);
+                    }
                 });
             }
 
@@ -146,7 +150,18 @@ namespace Server
             return msg;
         }
 
-        public IList<Message> RefreshView() { return null; }
+        public void RefreshView()
+        {
+            ThreadPool.QueueUserWorkItem((object o) =>
+            {
+                Console.WriteLine("Server: Refresh View");
+                foreach (var item in Server.State.Contacts)
+                {
+                    var aux = ServerServer.SendRequestMessages(item.IP, item.LastMsgSeqNumber);
+                    ServerServer.RefreshLocalMessages(aux, item);
+                }
+            });
+        }
 
         public void UpdateProfile(Profile profile)
         {
@@ -174,7 +189,7 @@ namespace Server
         }
 
         public IList<Message> GetMessages()
-        {                      
+        {
             Console.WriteLine("Client: Messages");
             return Server.State.Messages;
         }
@@ -185,6 +200,12 @@ namespace Server
             Server.State.Profile.IP = ip;
             ConnectClient();
         }
+
+        public override object InitializeLifetimeService()
+        {
+            return null;
+        }
+
 
         #endregion
     }

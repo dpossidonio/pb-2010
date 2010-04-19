@@ -63,11 +63,14 @@ namespace Server
         }
 
         //Esta função faz sempre a mesma coisa - Singleton?
-        public Contact MakeContact() {
+        public Contact MakeContact()
+        {
             var myContact = new Contact();
             //Conhece apenas o endereço do servidor do client
             myContact.IP = Server.State.ServerIP;
             myContact.Username = Server.State.Profile.UserName;
+            //Enviar o numero de sequencia da ultima mensagem? ou 0 para o amigo pedir todas os post's
+            myContact.LastMsgSeqNumber = Server.State.Profile.PostSeqNumber;
             return myContact;
         }
 
@@ -79,7 +82,6 @@ namespace Server
             x = new System.Xml.Serialization.XmlSerializer(obj.GetType());
             x.Serialize(tw, obj);
             //Console.WriteLine(obj + " written to file: " + obj.GetType() + ".xml");
-            Console.WriteLine("Server: event saved to file.");
             tw.Close();
         }
 
@@ -103,8 +105,5 @@ namespace Server
             }
         }
     }
-
     #endregion
-
-
 }

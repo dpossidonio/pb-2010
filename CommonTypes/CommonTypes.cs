@@ -10,6 +10,7 @@ namespace CommonTypes
         void ReceiveFriendRequestOK(Contact c);
         void ReceiveFriendRequest(Contact c);
         void ReceiveMessage(Message msg);
+        IList<Message> RequestMessages(int lastSeqNumber);
     }
 
     public interface IServerClient
@@ -26,7 +27,7 @@ namespace CommonTypes
         void PostFriendRequest(string address);
         Message RespondToFriendRequest(Contact c, bool accept);
 
-        IList<Message> RefreshView();
+        void RefreshView();
 
         //Lookup();
     }
@@ -60,19 +61,19 @@ namespace CommonTypes
         public Gender Gender { get; set; }
         public int Age { get; set; }
         public List<Interest> Interests { get; set; }
-        public BigInteger PostSeqNumber;
+        public int PostSeqNumber;
 
         public Profile()
         {
             Interests = new List<Interest>();
-            PostSeqNumber = new BigInteger(0);
+            PostSeqNumber = 0;
             UserName = "";
         }
     }
 
     [Serializable]
     public class Message {
-        public BigInteger SeqNumber;
+        public int SeqNumber;
         public string FromUserName { get; set; }
         public string Post { get; set; }
         public DateTime Time;
@@ -80,7 +81,7 @@ namespace CommonTypes
 
     [Serializable]
     public class Contact {
-        public BigInteger LastMsgSeqNumber;
+        public int LastMsgSeqNumber;
         public string IP { get; set; }
         public string Username { get; set; }
 

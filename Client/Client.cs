@@ -123,6 +123,11 @@ namespace Client
             ClientForm.UpdateFriendsContacts(Friend);
         }
 
+        public override object InitializeLifetimeService()
+        {
+            return null;
+        }
+
         #endregion
     }
 }
