@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CommonTypes;
 using System.Runtime.Remoting.Messaging;
 using System.Net.Sockets;
+using System.Linq;
 using System.Threading;
 
 namespace Server
@@ -42,12 +43,12 @@ namespace Server
 
         public void BroadCastMessage(Message msg)
         {
-            Console.WriteLine("#Start Sending Messages");
+            Console.WriteLine("#Start BroadCasting Message with SeqNumber:" + msg.SeqNumber);
             foreach (var item in Server.State.Contacts)
             {
                 //TODO: Servidor do Cliente??
                 //var friend_server_ip = item.IP.Substring(0, item.IP.Length - 1) + "1";
-                
+
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer),
                 string.Format("tcp://{0}/IServerServer", item.IP.Trim()));
@@ -58,13 +59,15 @@ namespace Server
                     RemoteAsyncDelegateMessage RemoteDel = new RemoteAsyncDelegateMessage(obj.ReceiveMessage);
                     IAsyncResult RemAr = RemoteDel.BeginInvoke(msg, RemoteCallback, null);
                 }
-                catch (SocketException)
+                catch (Exception)
                 {
                     Console.WriteLine("-->The Server with the address {0} does not respond.", item.IP);
 
                 }
+
+
             }
-            Console.WriteLine("#End Sending Messages");
+            Console.WriteLine("#End BroadCasting Message");
 
         }
 
@@ -87,6 +90,27 @@ namespace Server
             }
         }
 
+        public IList<Message> SendRequestMessages(string IP, int lastSeqNumber)
+        {
+            Console.WriteLine("-->Sending Request Messages to:{0} with SeqNumber > {1}", IP, lastSeqNumber);
+
+            var obj = (IServerServer)Activator.GetObject(
+               typeof(IServerServer),
+               string.Format("tcp://{0}/IServerServer", IP));
+
+            IList<Message> res = new List<Message>();
+           
+            try
+            {
+                res = (List<Message>)obj.RequestMessages(lastSeqNumber);
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("-->The Server with the address {0} does not respond.", IP);
+            }
+            return res;
+        }
+
         public void SendFriendRequestConfirmation(Contact c, string IP)
         {
             Console.WriteLine("-->Sending Confirmation to Friend Request.");
@@ -107,16 +131,24 @@ namespace Server
 
         }
 
+        public IList<Message> RequestMessages(int lastSeqNumber)
+        {
+            var res = Server.State.Messages.Where(x => x.FromUserName.Equals(Server.State.Profile.UserName) && x.SeqNumber > lastSeqNumber).ToList();
+            Console.WriteLine("Server: Sending missing Messages.");
+            return res;
+        }
+
         #endregion
 
         #region INBOUND - IServerServer Members
 
         public void ReceiveFriendRequest(Contact c)
         {
-            Console.WriteLine("<--Received friend request from: " + c.Username + " with the address: " + c.IP);
+            Console.WriteLine("<--Received FR from: " + c.Username + ",address: " + c.IP+", SeqNumber:"+c.LastMsgSeqNumber);
             lock (Server.State.FriendRequests)
             {
                 Server.State.FriendRequests.Add(c);
+                Server.State.SerializeObject(Server.State.Contacts);
             }
             var lc = new List<Contact>();
             lc.Add(c);
@@ -127,7 +159,7 @@ namespace Server
         }
         public void ReceiveFriendRequestOK(Contact c)
         {
-            Console.WriteLine("<--Received confirmation of a friend request send to: " + c.Username + " with address: " + c.IP);
+            Console.WriteLine("<--Received confirmation of a FR send to:" + c.Username + ",address:" + c.IP+",SeqNumber:"+c.LastMsgSeqNumber);
 
             ThreadPool.QueueUserWorkItem((object o) =>
             {
@@ -148,29 +180,46 @@ namespace Server
                 {
                     Server.State.Contacts.Add(c);
                     Server.State.SerializeObject(Server.State.Contacts);
-                }               
+                }
             });
         }
 
         public void ReceiveMessage(Message msg)
         {
-            Console.WriteLine("<--Received post from:{0} SeqNumber:{1} Post:{2}", msg.FromUserName, msg.SeqNumber,msg.Post);
-            lock (Server.State.Messages)
-            {
-                Server.State.Messages.Add(msg);
-                Server.State.SerializeObject(Server.State.Messages);
-            }
+            Console.WriteLine("<--Received post from:{0} SeqNumber:{1} Post:{2}", msg.FromUserName, msg.SeqNumber, msg.Post);
 
-            var lm = new List<Message>();
-            lm.Add(msg);
+            Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
 
-            try
+            if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
             {
-                if(ServerClient.Client != null)
-                ServerClient.Client.UpdatePosts(lm);
+                lock (Server.State.Messages)
+                {
+                    Server.State.Messages.Add(msg);
+                    Server.State.SerializeObject(Server.State.Messages);
+                }
+
+                lock (Server.State.Contacts)
+                {
+                    c.LastMsgSeqNumber = msg.SeqNumber;
+                    Server.State.SerializeObject(Server.State.Contacts);
+                }
+                var lm = new List<Message>();
+                lm.Add(msg);
+
+                try
+                {
+                    if (ServerClient.Client != null)
+                        ServerClient.Client.UpdatePosts(lm);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Server: Client is not reachable!");
+                }
             }
-            catch (Exception) {
-                Console.WriteLine("Server: Client is not reachable!");
+            else
+            {
+                var aux = SendRequestMessages(c.IP,c.LastMsgSeqNumber);
+                RefreshLocalMessages(aux, c);
             }
         }
 
@@ -180,5 +229,29 @@ namespace Server
         }
 
         #endregion
+
+        public void RefreshLocalMessages(IList<Message> msgs,Contact c)
+        {
+            if (msgs != null && msgs.Count > 0)
+            {
+                lock (Server.State.Messages)
+                {
+                    foreach (var item in msgs)
+                    {
+                        Server.State.Messages.Add(item);
+                        Server.State.SerializeObject(Server.State.Messages);
+                    }
+                }
+                lock (Server.State.Contacts)
+                {
+                    c.LastMsgSeqNumber = msgs.Max(x => x.SeqNumber);
+                    Server.State.SerializeObject(Server.State.Contacts);
+
+                }
+                //pedreiro
+                if(ServerClient.Client != null)
+                ServerClient.Client.UpdatePosts(msgs);
+            }
+        }
     }
 }

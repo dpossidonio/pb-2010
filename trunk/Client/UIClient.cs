@@ -67,6 +67,7 @@ namespace Client
             this.Invoke(new Action(delegate()
             {
             WallTextBox.Clear();
+                //Client.Friends.
             foreach (var m in Client.Messages.OrderBy(x => x.Time))
             {
                     WallTextBox.Text += m.Time.ToShortTimeString() + " - From: " + m.FromUserName + " - " + m.Post + "\r\n";
@@ -90,7 +91,7 @@ namespace Client
         {
             if (Connected)
             {
-                //TODO
+                Client.Server.RefreshView();   
             }
         }
 

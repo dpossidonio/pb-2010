@@ -1,11 +1,8 @@
 ﻿Falta Fazer:
-- Persistência (Ta quase... :P )
-- Persistir todas as acçoes do utilizador DE FORMA INCREMENTAL?
 
 - Enviar os pedidos para todos os outros servidores locais
 
-- Quando é feito o pedido de um friend request é enviado o respectivo contacto(Emissor) com o campo
-  LastMsgSeqNumber a null, quando eles ficam amigos como é tratado este caso? vao pedir quantas mensagens?
+-  quando eles ficam amigos como é tratado este caso? vao pedir quantas mensagens?
   
 -  FALTA TRATAR A EXcepção quando o FRiend nao esta disponivel e guardar o pedido
 
