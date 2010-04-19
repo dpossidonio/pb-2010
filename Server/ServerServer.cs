@@ -147,8 +147,8 @@ namespace Server
                 lock (Server.State.Contacts)
                 {
                     Server.State.Contacts.Add(c);
-                }
-                Server.State.SerializeObject(Server.State.Contacts);
+                    Server.State.SerializeObject(Server.State.Contacts);
+                }               
             });
         }
 
@@ -158,9 +158,8 @@ namespace Server
             lock (Server.State.Messages)
             {
                 Server.State.Messages.Add(msg);
+                Server.State.SerializeObject(Server.State.Messages);
             }
-            
-            Server.State.SerializeObject(Server.State.Messages);
 
             var lm = new List<Message>();
             lm.Add(msg);
