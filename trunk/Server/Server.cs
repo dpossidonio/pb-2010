@@ -62,14 +62,24 @@ namespace Server
             return m;
         }
 
+        //Esta função faz sempre a mesma coisa - Singleton?
+        public Contact MakeContact() {
+            var myContact = new Contact();
+            //Conhece apenas o endereço do servidor do client
+            myContact.IP = Server.State.ServerIP;
+            myContact.Username = Server.State.Profile.UserName;
+            return myContact;
+        }
+
         //TODO - serializar a class
         public void SerializeObject(Object obj)
         {
             var port = ServerIP.Split(':');
-            TextWriter tw = new StreamWriter(@"c:\" + port[1] + obj + ".xml");
+            TextWriter tw = new StreamWriter(port[1] + obj + ".xml");
             x = new System.Xml.Serialization.XmlSerializer(obj.GetType());
             x.Serialize(tw, obj);
-            Console.WriteLine(obj + " written to file on path: c:\\" + obj + ".xml");
+            //Console.WriteLine(obj + " written to file: " + obj.GetType() + ".xml");
+            Console.WriteLine("Server: event saved to file.");
             tw.Close();
         }
 
@@ -78,7 +88,7 @@ namespace Server
             try
             {
                 var port = ServerIP.Split(':');
-                TextReader tr = new StreamReader(@"c:\" + port[1] + obj + ".xml");
+                TextReader tr = new StreamReader(port[1] + obj + ".xml");
                 x = new System.Xml.Serialization.XmlSerializer(obj.GetType());
                 var fileP = x.Deserialize(tr);
                 tr.Close();

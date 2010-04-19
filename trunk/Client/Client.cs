@@ -11,9 +11,10 @@ using System.Collections;
 
 namespace Client
 {
-    public class Client : MarshalByRefObject , IClient
+    public class Client : MarshalByRefObject, IClient
     {
         public IServerClient Server { get; set; }
+        public string ConnectedToServer { get; set; }
         public Queue<string> ServerAdress { get; set; }
         public UIClient ClientForm;
         private bool InitChannel;
@@ -33,19 +34,16 @@ namespace Client
         public void Connect(string ip)
         {
             if (!InitChannel)
-                ConnectToServer(ip);
+                RegChannel(ip);
 
-            Server = (IServerClient)Activator.GetObject(
-                    typeof(IServerClient),
-                    string.Format("tcp://{0}/IServerClient", ServerAdress.Dequeue()));
+            ConnectToServer(ip);
 
-            Server.Connect(ip);
             Profile = Server.GetProfile();
             ClientForm.LoadProfile(Profile);
 
             Messages = Server.GetMessages();
-            ClientForm.UpdateMessageBox(Messages);
-
+            ClientForm.UpdateMessageBox();
+            
             Friends = Server.GetFriendsContacts();
             ClientForm.UpdateFriendsContacts(Friends);
 
@@ -57,7 +55,7 @@ namespace Client
         {
             ServerAdress.Clear();
             if (!srv1.Equals(""))
-                ServerAdress.Enqueue(srv1.ToString());
+                ServerAdress.Enqueue(srv1);
             if (!srv2.Equals(""))
                 ServerAdress.Enqueue(srv2);
             if (!srv3.Equals(""))
@@ -65,6 +63,26 @@ namespace Client
         }
 
         private void ConnectToServer(string ip)
+        {
+            while (ServerAdress.Count != 0)
+            {
+                ConnectedToServer = ServerAdress.Dequeue();
+                try
+                {
+                    Server = (IServerClient)Activator.GetObject(
+                     typeof(IServerClient),
+                     string.Format("tcp://{0}/IServerClient", ConnectedToServer));
+                    Server.Connect(ip);
+                }
+                catch (SocketException)
+                {
+                    Console.WriteLine();
+                }
+            }
+
+        }
+
+        private void RegChannel(string ip)
         {
             BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
             IDictionary props = new Hashtable();
@@ -82,7 +100,7 @@ namespace Client
 
         void IClient.Coordinator(string IP)
         { //is this right?
-            ConnectToServer(IP);
+            //TODO
         }
 
         void IClient.UpdateFriendRequest(IList<Contact> FriendRequests)
@@ -92,7 +110,11 @@ namespace Client
 
         void IClient.UpdatePosts(IList<Message> NewPosts)
         {
-            ClientForm.UpdateMessageBox(NewPosts);
+            foreach (var item in NewPosts)
+            {
+                Messages.Add(item);
+            }
+            ClientForm.UpdateMessageBox();
         }
 
         void IClient.UpdateFriends(Contact Friend)

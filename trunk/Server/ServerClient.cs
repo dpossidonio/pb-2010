@@ -16,6 +16,11 @@ namespace Server
         {
             ServerServer = new ServerServer(this);
             Registration();
+
+            Server.State.Contacts = (IList<Contact>)Server.State.DeserializeObject(Server.State.Contacts);
+            Server.State.Messages = (IList<Message>)Server.State.DeserializeObject(Server.State.Messages);
+            Server.State.Profile = (Profile)Server.State.DeserializeObject(Server.State.Profile);
+
             //test();
         }
 
@@ -64,7 +69,10 @@ namespace Server
                 msg.Post = string.Format("Post#{0}", i);
                 msg.Time = DateTime.Now;
 
-                Server.State.Messages.Add(msg);
+                lock (Server.State.Messages)
+                {
+                    Server.State.Messages.Add(msg);
+                }
             }
 
             //TextWriter tw = new StreamWriter("PADIdatabase.xml");
@@ -84,22 +92,28 @@ namespace Server
         public Message Post(string message)
         {
             var m = Server.State.MakeMessage(message);
-            Server.State.Messages.Add(m);
+            lock (Server.State.Messages)
+            {
+                Server.State.Messages.Add(m);
+            }
             //Serializa as mensagens
             Server.State.SerializeObject(Server.State.Messages);
+            //Actualiza no profile o numero de sequencia dos seus posts
+            Server.State.SerializeObject(Server.State.Profile);
 
-            ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.SendMessage(m));
+
+            ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
             return m;
         }
 
-        public void PostFriendRequest(string username, string address)
+        public void PostFriendRequest(string address)
         {
             //o username é desnecessário, só com o endereço do server dá para fazer o pedido
 
             var c = new Contact();
             c.Username = Server.State.Profile.UserName;
-            //o ip a enviar é o ip do Servidor
             c.IP = Server.State.ServerIP;
+            //c.LastMsgSeqNumber ??
             ThreadPool.QueueUserWorkItem((object o) => ServerServer.SendFriendRequest(c, address));
         }
 
@@ -109,26 +123,24 @@ namespace Server
             //adicionar amigo
             if (accept)
             {
-                var s = "YUPI " + c.Username + "(" + c.IP.Trim() + ")" + " is now friend of " + Server.State.Profile.UserName + ".";
-
+                var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";        
                 //ATENÇÃO É NECESSÁRIO VER SE ESTA É A MELHOR ORDEM DE FAZER ISTO
                 //difundir nova amizade por todos os amigos
                 msg = Server.State.MakeMessage(s);
 
                 ThreadPool.QueueUserWorkItem((object o) =>
                 {
-                    var myContact = new Contact();
-                    //Conhece apenas o endereço do servidor do client
-                    myContact.IP = Server.State.ServerIP;
-                    myContact.Username = Server.State.Profile.UserName;
-                    ServerServer.SendFriendRequestConfirmation(myContact, c.IP.Trim());
+                    ServerServer.SendFriendRequestConfirmation(Server.State.MakeContact(), c.IP.Trim());
 
-                    Server.State.Messages.Add(msg);
-                    ServerServer.SendMessage(Server.State.MakeMessage(s));
+                    lock(Server.State.Messages){
+                        Server.State.Messages.Add(msg);
+                    }
+                    ServerServer.BroadCastMessage(Server.State.MakeMessage(s));
 
-                    //adicionar novo amigo aos contactos e informa-lo da aceitação 
+                    //adicionar novo amigo aos contactos e informa-o da aceitação 
                     Server.State.Contacts.Add(c);
-                   
+                    //serializa os contactos
+                       Server.State.SerializeObject(Server.State.Contacts);
                 });
             }
 
@@ -148,8 +160,6 @@ namespace Server
         public Profile GetProfile()
         {
             Console.WriteLine("Client: Get Profile");
-            Profile p = (Profile)Server.State.DeserializeObject(Server.State.Profile);
-            Server.State.Profile = p;
             return Server.State.Profile;
         }
 
@@ -166,10 +176,8 @@ namespace Server
         }
 
         public IList<Message> GetMessages()
-        {
+        {                      
             Console.WriteLine("Client: Messages");
-            IList<Message> p = (IList<Message>)Server.State.DeserializeObject(Server.State.Messages);
-            Server.State.Messages = p;
             return Server.State.Messages;
         }
 
