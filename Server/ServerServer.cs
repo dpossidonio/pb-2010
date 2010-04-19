@@ -40,11 +40,14 @@ namespace Server
 
         #endregion
 
-        public void SendMessage(Message msg)
+        public void BroadCastMessage(Message msg)
         {
             Console.WriteLine("#Start Sending Messages");
             foreach (var item in Server.State.Contacts)
             {
+                //TODO: Servidor do Cliente??
+                //var friend_server_ip = item.IP.Substring(0, item.IP.Length - 1) + "1";
+                
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer),
                 string.Format("tcp://{0}/IServerServer", item.IP.Trim()));
@@ -110,7 +113,7 @@ namespace Server
 
         public void ReceiveFriendRequest(Contact c)
         {
-            Console.WriteLine("<--Recebi pedido de amizade de: " + c.Username + " com o endereço: " + c.IP);
+            Console.WriteLine("<--Received friend request from: " + c.Username + " with the address: " + c.IP);
             lock (Server.State.FriendRequests)
             {
                 Server.State.FriendRequests.Add(c);
@@ -124,40 +127,52 @@ namespace Server
         }
         public void ReceiveFriendRequestOK(Contact c)
         {
-            Console.WriteLine("<--Recebi confirmação do pedido de amizade de: " + c.Username + " com o endereço: " + c.IP);
+            Console.WriteLine("<--Received confirmation of a friend request send to: " + c.Username + " with address: " + c.IP);
 
             ThreadPool.QueueUserWorkItem((object o) =>
             {
-                var s = "YUPI " + c.Username + "(" + c.IP.Trim() + ")" + " is now friend of " + Server.State.Profile.UserName + ".";
+                var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";
                 var msg = Server.State.MakeMessage(s);
-                Server.State.Messages.Add(msg);
+                lock (Server.State.Messages)
+                {
+                    Server.State.Messages.Add(msg);
+                }
 
                 var lm = new List<Message>();
                 lm.Add(msg);
                 ServerClient.Client.UpdatePosts(lm);
                 ServerClient.Client.UpdateFriends(c);
-
-                SendMessage(msg);
+                BroadCastMessage(msg);
 
                 lock (Server.State.Contacts)
                 {
                     Server.State.Contacts.Add(c);
                 }
+                Server.State.SerializeObject(Server.State.Contacts);
             });
-
         }
 
-        //FALTA: verificar msgs antigas que possa ter chegado
         public void ReceiveMessage(Message msg)
         {
-            Console.WriteLine("<--Received post from:{0} Post:{1}", msg.FromUserName, msg.Post);
+            Console.WriteLine("<--Received post from:{0} SeqNumber:{1} Post:{2}", msg.FromUserName, msg.SeqNumber,msg.Post);
             lock (Server.State.Messages)
             {
                 Server.State.Messages.Add(msg);
             }
+            
+            Server.State.SerializeObject(Server.State.Messages);
+
             var lm = new List<Message>();
             lm.Add(msg);
-            ServerClient.Client.UpdatePosts(lm);
+
+            try
+            {
+                if(ServerClient.Client != null)
+                ServerClient.Client.UpdatePosts(lm);
+            }
+            catch (Exception) {
+                Console.WriteLine("Server: Client is not reachable!");
+            }
         }
 
         public override object InitializeLifetimeService()

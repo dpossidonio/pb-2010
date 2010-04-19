@@ -23,7 +23,7 @@ namespace CommonTypes
         void Freeze();
         void UpdateProfile(Profile profile);
         Message Post(string message);
-        void PostFriendRequest(string username, string address);
+        void PostFriendRequest(string address);
         Message RespondToFriendRequest(Contact c, bool accept);
 
         IList<Message> RefreshView();

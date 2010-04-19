@@ -35,9 +35,7 @@
             this.label10 = new System.Windows.Forms.Label();
             this.sendFriendReqButton = new System.Windows.Forms.Button();
             this.serverTextBox = new System.Windows.Forms.TextBox();
-            this.userTextBox = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.friendsTextBox = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
@@ -85,9 +83,7 @@
             this.tabPage3.Controls.Add(this.label10);
             this.tabPage3.Controls.Add(this.sendFriendReqButton);
             this.tabPage3.Controls.Add(this.serverTextBox);
-            this.tabPage3.Controls.Add(this.userTextBox);
             this.tabPage3.Controls.Add(this.label9);
-            this.tabPage3.Controls.Add(this.label8);
             this.tabPage3.Controls.Add(this.label7);
             this.tabPage3.Controls.Add(this.friendsTextBox);
             this.tabPage3.Controls.Add(this.label6);
@@ -148,37 +144,20 @@
             // 
             // serverTextBox
             // 
-            this.serverTextBox.Location = new System.Drawing.Point(419, 105);
+            this.serverTextBox.Location = new System.Drawing.Point(419, 91);
             this.serverTextBox.Name = "serverTextBox";
             this.serverTextBox.Size = new System.Drawing.Size(185, 20);
             this.serverTextBox.TabIndex = 6;
             this.serverTextBox.Text = "127.0.0.1:";
             // 
-            // userTextBox
-            // 
-            this.userTextBox.Location = new System.Drawing.Point(419, 79);
-            this.userTextBox.Name = "userTextBox";
-            this.userTextBox.Size = new System.Drawing.Size(185, 20);
-            this.userTextBox.TabIndex = 5;
-            this.userTextBox.Text = "xoxas";
-            // 
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(342, 108);
+            this.label9.Location = new System.Drawing.Point(342, 91);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(38, 13);
+            this.label9.Size = new System.Drawing.Size(79, 13);
             this.label9.TabIndex = 4;
-            this.label9.Text = "Server";
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(342, 79);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(55, 13);
-            this.label8.TabIndex = 3;
-            this.label8.Text = "Username";
+            this.label9.Text = "Server Address";
             // 
             // label7
             // 
@@ -394,6 +373,7 @@
             this.WallTextBox.Multiline = true;
             this.WallTextBox.Name = "WallTextBox";
             this.WallTextBox.ReadOnly = true;
+            this.WallTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.WallTextBox.Size = new System.Drawing.Size(610, 264);
             this.WallTextBox.TabIndex = 4;
             // 
@@ -502,6 +482,7 @@
             // 
             // UIClient
             // 
+            this.AcceptButton = this.SendMessageButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(674, 426);
@@ -555,12 +536,10 @@
         private System.Windows.Forms.TextBox friendsTextBox;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Button sendFriendReqButton;
         private System.Windows.Forms.TextBox serverTextBox;
-        private System.Windows.Forms.TextBox userTextBox;
         private System.Windows.Forms.Button declineButton;
         private System.Windows.Forms.Button acceptButton;
         private System.Windows.Forms.ComboBox friendsReqComboBox;

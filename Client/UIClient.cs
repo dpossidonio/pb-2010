@@ -48,34 +48,37 @@ namespace Client
             else
             {
                 Client.GetServersAdress(Server1IPtextBox.Text, Server2IPtextBox.Text, Server3IPtextBox.Text);
-                try   //ISTO DEVIA SER FEITO NA CLASSE CLIENT
+                try   
                 {
                     Client.Connect(IPtextBox.Text);
                     ConnectButton.Visible = false;
                     Connected = true;
-                    this.Text = _client + " - Connected";
+                    this.Text = _client + " - Connected - Server :"+ Client.ConnectedToServer;
                 }
-                catch (SocketException) {
+                catch (SocketException)
+                {
                     MessageBox.Show("Could not locate server.");
                 }
             }
         }
 
-        public void UpdateMessageBox(CommonTypes.Message m) {
-            WallTextBox.Text += m.Time + " - From: " + m.FromUserName + " - " + m.Post + "\r\n";
+        public void UpdateMessageBox(CommonTypes.Message m)
+        {
+
         }
 
-        public void UpdateMessageBox(IList<CommonTypes.Message> m)
+        public void UpdateMessageBox()
         {
             this.Invoke(new Action(delegate()
             {
-                foreach (var item in m)
-                {
-                    UpdateMessageBox(item); 
-                }
-            }));
+            WallTextBox.Clear();
+            foreach (var m in Client.Messages.OrderBy(x => x.Time))
+            {
+                    WallTextBox.Text += m.Time.ToShortTimeString() + " - From: " + m.FromUserName + " - " + m.Post + "\r\n";
+            }
+           }));
         }
-       
+
         private void SendMessageButton_Click(object sender, EventArgs e)
         {
             if (Connected)
@@ -84,18 +87,15 @@ namespace Client
                 var m = Client.Server.Post(MessageTextBox.Text);
                 MessageTextBox.Text = "";
                 Client.Messages.Add(m);
-                var lm = new List<CommonTypes.Message>();
-                lm.Add(m);
-                UpdateMessageBox(lm);
-
-                //WallTextBox.Text += "\r\n" + m.Time + " From: " + m.FromUserName + " - " + m.Post;
+                UpdateMessageBox();
             }
         }
 
         private void RefreshViewButton_Click(object sender, EventArgs e)
         {
-            if (Connected) { 
-            //TODO
+            if (Connected)
+            {
+                //TODO
             }
         }
 
@@ -126,9 +126,12 @@ namespace Client
 
         private void AddInterestsButton_Click(object sender, EventArgs e)
         {
-            var a = Enum.Parse(typeof(CommonTypes.Interest), InterestsComboBox.SelectedItem.ToString());
-            Client.Profile.Interests.Add((Interest)a);
-            UpdateInterests();
+            if (Connected)
+            {
+                var a = Enum.Parse(typeof(CommonTypes.Interest), InterestsComboBox.SelectedItem.ToString());
+                Client.Profile.Interests.Add((Interest)a);
+                UpdateInterests();
+            }
         }
 
         private void UpdateProfileButton_Click(object sender, EventArgs e)
@@ -148,18 +151,20 @@ namespace Client
 
         #region Friends
 
-        public void UpdateFriendsContacts(Contact c) {
-            friendsTextBox.Text += "\r\n " + c.IP + "     -     " + c.Username;
+        public void UpdateFriendsContacts(Contact c)
+        {
+            this.Invoke(new Action(delegate()
+           {
+               friendsTextBox.Text += "\r\n " + c.IP + "     -     " + c.Username;
+           }));
+
         }
         public void UpdateFriendsContacts(IList<Contact> c)
         {
-            this.Invoke(new Action(delegate()
+            foreach (var item in c)
             {
-                foreach (var item in c)
-                {
-                    UpdateFriendsContacts(item);   
-                }    
-            }));
+                UpdateFriendsContacts(item);
+            }
         }
 
         public void UpdateFriendsRequests(IList<Contact> c)
@@ -173,21 +178,18 @@ namespace Client
             }));
         }
 
-        // FALTA TRATAR A EXcepção quando o FRiend nao esta disponivel e guardar o pedido
-        // implementar isto na classe Client?
         private void SendFriendReqButton_Click(object sender, EventArgs e)
         {
             if (Connected)
             {
-                if (userTextBox.Text.Equals("") || serverTextBox.Text.Equals("") || Client.Profile.UserName.Equals(""))
+                if (serverTextBox.Text.Equals("") || Client.Profile.UserName.Equals(""))
                     MessageBox.Show("Fill out all the fields!!");
                 else
                 {
                     try
                     {
-                        Client.Server.PostFriendRequest(userTextBox.Text, serverTextBox.Text);
-                        userTextBox.Text = "";
-                        serverTextBox.Text = "";
+                        Client.Server.PostFriendRequest(serverTextBox.Text);
+                        serverTextBox.Text = "127.0.0.1:";
                     }
                     catch (SocketException)
                     {
@@ -201,7 +203,7 @@ namespace Client
         {
             if (friendsReqComboBox.SelectedItem != null)
             {
-                var c = (Contact)friendsReqComboBox.SelectedItem; 
+                var c = (Contact)friendsReqComboBox.SelectedItem;
                 var m = Client.Server.RespondToFriendRequest(c, true);
                 UpdateFriendsContacts(c);
                 UpdateMessageBox(m);
@@ -221,7 +223,7 @@ namespace Client
             }
         }
 
-        #endregion        
-        
+        #endregion
+
     }
 }

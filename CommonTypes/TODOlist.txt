@@ -1,19 +1,32 @@
 ﻿Falta Fazer:
 - Persistência (Ta quase... :P )
-- Persistir todas as acçoes do utilizador
+- Persistir todas as acçoes do utilizador DE FORMA INCREMENTAL?
 
-- Enviar os pedidos para todos os outros servidores
+- Enviar os pedidos para todos os outros servidores locais
 
 - Quando é feito o pedido de um friend request é enviado o respectivo contacto(Emissor) com o campo
-  LastMsgSeqNumber a null, quando eles ficam amigos como é tratado este caso?
+  LastMsgSeqNumber a null, quando eles ficam amigos como é tratado este caso? vao pedir quantas mensagens?
+  
+-  FALTA TRATAR A EXcepção quando o FRiend nao esta disponivel e guardar o pedido
 
-Estou fazendo:
-- Alterar o friend request para receber o endereço do client, e só quando este vai
-enviar mensagens para o amigo , troca o porto por 1,2,3
+- Falta fazer o Refreshview que pede aos seus amigos (até 100 amigos por exemplo) se lhe enviaram mensagens enquando este esteve indisponivel.
 
-- Alterar metodo que actualiza a caixa de mensagens para ordenar sempre pelo timestamp
+
+
+
+Alterar?
+ 
+ Paulo-> Quando respondo positivamente a um friend request respondo ao emissor, caso contario nao digo nada?
+ 
+ - Alterar o friend request para receber o endereço do client, e só quando este vai
+enviar mensagens para o amigo , troca o porto por 1,2,3 (nao percebi ainda isto)
+
+
 
 
 Dúvidas:
 - Depois de confirmar a amizade devemos receber mensagens antigaS do novo amigo?
 R.Nuno: Acho que isso fica ao nosso critério e sinceramente não faz muito sentido.
+
+- Para um Friend Request é usado o endereço do servidor do destinatário ou do seu servidor?
+- Quando é que é necessário usar o endereço do cliente ao qual queremos comunicar, ou quando é necessário usar o endereço do seu servidor?
