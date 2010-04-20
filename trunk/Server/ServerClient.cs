@@ -37,6 +37,9 @@ namespace Server
         {
             Client = (IClient)Activator.GetObject(typeof(IClient),
                         string.Format("tcp://{0}/IClient", Server.State.Profile.IP));
+            //REPLICAÇÂO
+            Server.ReplicaState.ChangeState();
+            Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages, Server.State.Contacts);
         }
 
         //Metodo exclusivamente para testes
@@ -91,7 +94,12 @@ namespace Server
 
         public Message Post(string message)
         {
+            
             var m = Server.State.MakeMessage(message);
+            
+            //REPLICAÇÂO
+            Server.ReplicaState.RegisterMessage(m);
+
             lock (Server.State.Messages)
             {
                 Server.State.Messages.Add(m);

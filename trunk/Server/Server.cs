@@ -8,6 +8,8 @@ namespace Server
     public class Server
     {
         public static ServerState State;
+        public static StateContext ReplicaState;
+        public static ServerClient sc;
 
         static void Main(string[] args)
         {
@@ -16,18 +18,30 @@ namespace Server
             //forma de obter o endereço ip da máquina sem ser hardcoded :P
             //System.Net.IPAddress[] a = System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName());
             //Console.WriteLine(a[2].ToString());
-
+            
+            //REPLICAÇÂO
+            Console.Write("Do you know replicas? Insert there addresses if so: ");
+            var know = Console.ReadLine();
+            
             var localIP = "127.0.0.1:";
             Console.Write("Enter Port to run: ");
             var porto = Console.ReadLine();
             var ip = string.Format(localIP + porto);
             Console.WriteLine("Running Server on: " + ip);
-            State = new ServerState(ip);
-            var sc = new ServerClient();
 
+            State = new ServerState(ip);
+            sc = new ServerClient();
+
+            //REPLICAÇÂO
+            ReplicaState = new StateContext(new SlaveState());
+            if(!know.Equals(""))
+                State.KnownServers.Add(know);
+            
             while (true)
             {
-                Console.ReadLine();
+                var input = Console.ReadLine();
+                if (input.Equals("info"))
+                    ReplicaState.RequestStateInfo();
             }
         }
     }
@@ -41,6 +55,9 @@ namespace Server
         public IList<Message> Messages { get; set; }
         public IList<Contact> Contacts { get; set; }
         public IList<Contact> FriendRequests { get; set; }
+        //REPLICAÇÂO
+        public List<string> KnownServers { get; set; }
+
         System.Xml.Serialization.XmlSerializer x;
 
         public ServerState(string ip)
@@ -50,6 +67,7 @@ namespace Server
             Messages = new List<Message>();
             Contacts = new List<Contact>();
             FriendRequests = new List<Contact>();
+            KnownServers = new List<string>();
         }
 
         public Message MakeMessage(string msg)
