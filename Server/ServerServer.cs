@@ -12,7 +12,8 @@ namespace Server
     public class ServerServer : MarshalByRefObject, IServerServer
     {
         public ServerClient ServerClient;
-
+        
+        //construtor
         public ServerServer(ServerClient sc)
         {
             ServerClient = sc;
@@ -35,6 +36,14 @@ namespace Server
         private static void OurRemoteAsyncCallBackContact(IAsyncResult ar)
         {
             RemoteAsyncDelegateContact del = (RemoteAsyncDelegateContact)((AsyncResult)ar).AsyncDelegate;
+            del.EndInvoke(ar);
+            return;
+        }
+
+        private delegate void RemoteAsyncDelegateAll(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c);
+        private static void OurRemoteAsyncCallBackAll(IAsyncResult ar)
+        {
+            RemoteAsyncDelegateAll del = (RemoteAsyncDelegateAll)((AsyncResult)ar).AsyncDelegate;
             del.EndInvoke(ar);
             return;
         }
@@ -71,6 +80,55 @@ namespace Server
 
         }
 
+        //REPLICAÇÂO
+        public void ReplicateMessage(List<string> replicas, Message msg)
+        {
+            Console.WriteLine("#Start Replicate Message with SeqNumber:" + msg.SeqNumber);
+            foreach (var item in replicas)
+            {
+                var obj = (IServerServer)Activator.GetObject(
+                typeof(IServerServer),string.Format("tcp://{0}/IServerServer", item));
+
+                try
+                {
+                    AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackMessage);
+                    RemoteAsyncDelegateMessage RemoteDel = new RemoteAsyncDelegateMessage(obj.ReceiveMessage);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(msg, RemoteCallback, null);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                }
+            }
+            Console.WriteLine("#End Replicate Message");
+        }
+
+        public void SetSlave(List<string> replicas, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c)
+        {
+            Console.WriteLine("#Start Replicas Setup ");
+            foreach (var item in replicas)
+            {
+                var obj = (IServerServer)Activator.GetObject(
+                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
+
+                try
+                {
+                    AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
+                    RemoteAsyncDelegateAll RemoteDel = new RemoteAsyncDelegateAll(obj.UpdateSlave);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(p,m,c, RemoteCallback, null);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+
+                }
+
+
+            }
+            Console.WriteLine("#End Replicas Setup");
+
+        }
+        //FIM REPLICAÇÂO
         public void SendFriendRequest(Contact c, string IP)
         {
             Console.WriteLine("-->Sending Friend Request.");
@@ -157,6 +215,7 @@ namespace Server
             if (ServerClient.Client != null)
                 ServerClient.Client.UpdateFriendRequest(lc);
         }
+
         public void ReceiveFriendRequestOK(Contact c)
         {
             Console.WriteLine("<--Received confirmation of a FR send to:" + c.Username + ",address:" + c.IP+",SeqNumber:"+c.LastMsgSeqNumber);
@@ -187,39 +246,44 @@ namespace Server
         public void ReceiveMessage(Message msg)
         {
             Console.WriteLine("<--Received post from:{0} SeqNumber:{1} Post:{2}", msg.FromUserName, msg.SeqNumber, msg.Post);
-
-            Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
-
-            if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
+            
+            //PAIVA - Se não tiver contactos  ta a rebentar na replicação
+            Server.ReplicaState.RegisterMessage(msg);
+            if (Server.State.Contacts.Count != 0)
             {
-                lock (Server.State.Messages)
-                {
-                    Server.State.Messages.Add(msg);
-                    Server.State.SerializeObject(Server.State.Messages);
-                }
+                Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
 
-                lock (Server.State.Contacts)
+                if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
                 {
-                    c.LastMsgSeqNumber = msg.SeqNumber;
-                    Server.State.SerializeObject(Server.State.Contacts);
-                }
-                var lm = new List<Message>();
-                lm.Add(msg);
+                    lock (Server.State.Messages)
+                    {
+                        Server.State.Messages.Add(msg);
+                        Server.State.SerializeObject(Server.State.Messages);
+                    }
 
-                try
-                {
-                    if (ServerClient.Client != null)
-                        ServerClient.Client.UpdatePosts(lm);
+                    lock (Server.State.Contacts)
+                    {
+                        c.LastMsgSeqNumber = msg.SeqNumber;
+                        Server.State.SerializeObject(Server.State.Contacts);
+                    }
+                    var lm = new List<Message>();
+                    lm.Add(msg);
+
+                    try
+                    {
+                        if (ServerClient.Client != null)
+                            ServerClient.Client.UpdatePosts(lm);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Server: Client is not reachable!");
+                    }
                 }
-                catch (Exception)
+                else
                 {
-                    Console.WriteLine("Server: Client is not reachable!");
+                    var aux = SendRequestMessages(c.IP, c.LastMsgSeqNumber);
+                    RefreshLocalMessages(aux, c);
                 }
-            }
-            else
-            {
-                var aux = SendRequestMessages(c.IP,c.LastMsgSeqNumber);
-                RefreshLocalMessages(aux, c);
             }
         }
 
@@ -228,6 +292,32 @@ namespace Server
             return null;
         }
 
+        //REPLICAÇÂO
+        public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c)
+        {
+            Console.WriteLine("<--#START FULL Updating Slave");
+
+            lock (Server.State.Profile)
+            {
+                Server.State.Profile = p;
+                Server.State.SerializeObject(Server.State.Profile);
+            }   
+
+            lock (Server.State.Messages)
+            {
+                Server.State.Messages = m;
+                Server.State.SerializeObject(Server.State.Messages);
+            }
+
+            lock (Server.State.Contacts)
+            {
+                Server.State.Contacts = c;
+                Server.State.SerializeObject(Server.State.Contacts);
+            }
+
+             Console.WriteLine("<--#END FULL Updating Slave");
+        }
+        //FIM REPLICAÇÂO
         #endregion
 
         public void RefreshLocalMessages(IList<Message> msgs,Contact c)

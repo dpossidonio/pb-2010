@@ -11,6 +11,9 @@ namespace CommonTypes
         void ReceiveFriendRequest(Contact c);
         void ReceiveMessage(Message msg);
         IList<Message> RequestMessages(int lastSeqNumber);
+
+        //REPLICAÇÂO
+        void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c);
     }
 
     public interface IServerClient
