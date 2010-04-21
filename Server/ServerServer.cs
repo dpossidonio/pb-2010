@@ -261,7 +261,7 @@ namespace Server
             Server.State.AddMessage(msg);
             if (msg.FromUserName == Server.State.Profile.UserName) 
                 Server.State.Profile.PostSeqNumber = msg.SeqNumber;                
-            else 
+            else //Se der excepção aki é porque os Contactos ainda n foram actualizados
                 Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName)).LastMsgSeqNumber = msg.SeqNumber;
         }
 

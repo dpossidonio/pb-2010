@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using CommonTypes;
 using System.IO;
+using System.Threading;
 
 namespace Server
 {
@@ -124,9 +125,10 @@ namespace Server
             {
                 Messages.Add(m);
                 SerializeObject(Messages);
-                //Replicação
-                Server.ReplicaState.RegisterMessage(m);
             }
+                //Replicação
+                ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterMessage(m));
+            
         }
 
         public void AddContact(Contact c)
