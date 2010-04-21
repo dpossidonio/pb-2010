@@ -90,7 +90,7 @@ namespace Server
         {          
             var m = Server.State.MakeMessage(message);           
             //REPLICAÇÂO - DaVID- isto pode ir para a mesma classe ServerServer?
-            Server.ReplicaState.RegisterMessage(m);
+            //Server.ReplicaState.RegisterMessage(m);
 
             Server.State.AddMessage(m);
 

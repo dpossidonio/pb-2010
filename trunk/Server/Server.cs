@@ -118,13 +118,14 @@ namespace Server
             KnownServers = new List<string>();
         }
 
-        //Fazer para todos?
         public void AddMessage(Message m)
         {
             lock (Messages)
             {
                 Messages.Add(m);
                 SerializeObject(Messages);
+                //Replicação
+                Server.ReplicaState.RegisterMessage(m);
             }
         }
 
