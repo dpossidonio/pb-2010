@@ -7,7 +7,7 @@
 -  FALTA TRATAR A EXcepção quando o FRiend nao esta disponivel e guardar o pedido
 
 - Falta fazer o Refreshview que pede aos seus amigos (até 100 amigos por exemplo) se lhe enviaram mensagens enquando este esteve indisponivel.
-
+(ta kuase feito)
 
 
 
