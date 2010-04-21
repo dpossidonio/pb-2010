@@ -13,7 +13,7 @@ namespace Server
     {
         public ServerClient ServerClient;
         
-        //construtor
+        //construtor - a sério?
         public ServerServer(ServerClient sc)
         {
             ServerClient = sc;
@@ -31,7 +31,7 @@ namespace Server
             return;
         }
 
-        //pode-se melhorar isto se der para passar qualquer coisa void* para o RemoteAsyncDelegate
+        //pode-se melhorar isto se der para passar qualquer coisa void*(o VOID* em liguagem OO é Object) para o RemoteAsyncDelegate
         private delegate void RemoteAsyncDelegateContact(Contact c);
         private static void OurRemoteAsyncCallBackContact(IAsyncResult ar)
         {
@@ -55,13 +55,11 @@ namespace Server
             Console.WriteLine("#Start BroadCasting Message with SeqNumber:" + msg.SeqNumber);
             foreach (var item in Server.State.Contacts)
             {
-                //TODO: Servidor do Cliente??
+                //TODO: IP do Servidor do Cliente ou IP do Clente??
                 //var friend_server_ip = item.IP.Substring(0, item.IP.Length - 1) + "1";
-
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer),
                 string.Format("tcp://{0}/IServerServer", item.IP.Trim()));
-
                 try
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackMessage);
@@ -71,13 +69,9 @@ namespace Server
                 catch (Exception)
                 {
                     Console.WriteLine("-->The Server with the address {0} does not respond.", item.IP);
-
                 }
-
-
             }
             Console.WriteLine("#End BroadCasting Message");
-
         }
 
         //REPLICAÇÂO
@@ -110,7 +104,6 @@ namespace Server
             {
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
-
                 try
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
@@ -120,19 +113,14 @@ namespace Server
                 catch (Exception)
                 {
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
-
                 }
-
-
             }
             Console.WriteLine("#End Replicas Setup");
-
         }
         //FIM REPLICAÇÂO
         public void SendFriendRequest(Contact c, string IP)
         {
             Console.WriteLine("-->Sending Friend Request.");
-
             var obj = (IServerServer)Activator.GetObject(
                typeof(IServerServer),
                string.Format("tcp://{0}/IServerServer", IP));
@@ -151,13 +139,10 @@ namespace Server
         public IList<Message> SendRequestMessages(string IP, int lastSeqNumber)
         {
             Console.WriteLine("-->Sending Request Messages to:{0} with SeqNumber > {1}", IP, lastSeqNumber);
-
             var obj = (IServerServer)Activator.GetObject(
                typeof(IServerServer),
                string.Format("tcp://{0}/IServerServer", IP));
-
-            IList<Message> res = new List<Message>();
-           
+            var res = new List<Message>();    
             try
             {
                 res = (List<Message>)obj.RequestMessages(lastSeqNumber);
@@ -172,7 +157,6 @@ namespace Server
         public void SendFriendRequestConfirmation(Contact c, string IP)
         {
             Console.WriteLine("-->Sending Confirmation to Friend Request.");
-
             var obj = (IServerServer)Activator.GetObject(
                    typeof(IServerServer),
                    string.Format("tcp://{0}/IServerServer", IP));
@@ -186,7 +170,6 @@ namespace Server
             {
                 Console.WriteLine("-->The Server with the address {0} does not respond.", IP);
             }
-
         }
 
         public IList<Message> RequestMessages(int lastSeqNumber)
@@ -195,8 +178,8 @@ namespace Server
             Console.WriteLine("Server: Sending missing Messages.");
             return res;
         }
-
         #endregion
+
 
         #region INBOUND - IServerServer Members
 
@@ -211,7 +194,7 @@ namespace Server
             var lc = new List<Contact>();
             lc.Add(c);
 
-            //verifica se esta um cliente ligado, para actualizar a sua interface
+            //Pedreiro -verifica se esta um cliente ligado, para actualizar a sua interface
             if (ServerClient.Client != null)
                 ServerClient.Client.UpdateFriendRequest(lc);
         }
@@ -219,16 +202,16 @@ namespace Server
         public void ReceiveFriendRequestOK(Contact c)
         {
             Console.WriteLine("<--Received confirmation of a FR send to:" + c.Username + ",address:" + c.IP+",SeqNumber:"+c.LastMsgSeqNumber);
-
             ThreadPool.QueueUserWorkItem((object o) =>
             {
                 var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";
                 var msg = Server.State.MakeMessage(s);
-                lock (Server.State.Messages)
-                {
-                    Server.State.Messages.Add(msg);
-                }
-
+                //lock (Server.State.Messages)
+                //{
+                //    Server.State.Messages.Add(msg);
+                //}
+                Server.State.AddMessage(msg);
+                //
                 var lm = new List<Message>();
                 lm.Add(msg);
                 ServerClient.Client.UpdatePosts(lm);
@@ -246,13 +229,12 @@ namespace Server
         public void ReceiveMessage(Message msg)
         {
             Console.WriteLine("<--Received post from:{0} SeqNumber:{1} Post:{2}", msg.FromUserName, msg.SeqNumber, msg.Post);
-            
             //PAIVA - Se não tiver contactos  ta a rebentar na replicação
+            //DAVID - ou entao quando envia a mensagem para si e verifica que ele próprio nao esta na sua lista de contactos
             Server.ReplicaState.RegisterMessage(msg);
             if (Server.State.Contacts.Count != 0)
             {
                 Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
-
                 if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
                 {
                     lock (Server.State.Messages)
@@ -268,7 +250,6 @@ namespace Server
                     }
                     var lm = new List<Message>();
                     lm.Add(msg);
-
                     try
                     {
                         if (ServerClient.Client != null)

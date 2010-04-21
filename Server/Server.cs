@@ -20,7 +20,7 @@ namespace Server
             //Console.WriteLine(a[2].ToString());
             
             //REPLICAÇÂO
-            Console.Write("Do you know replicas? Insert there addresses if so: ");
+            Console.Write("Do you know replicas? Insert there addresses if so: 127.0.0.1:");
             var know = Console.ReadLine();
             
             var localIP = "127.0.0.1:";
@@ -34,8 +34,8 @@ namespace Server
 
             //REPLICAÇÂO
             ReplicaState = new StateContext(new SlaveState());
-            if(!know.Equals(""))
-                State.KnownServers.Add(know);
+            if (!know.Equals(localIP))
+                State.KnownServers.Add(string.Format(localIP + know));
             
             while (true)
             {
@@ -70,6 +70,14 @@ namespace Server
             KnownServers = new List<string>();
         }
 
+        //Fazer para todos?
+        public void AddMessage(Message m){
+            lock (Messages)
+            {
+                Messages.Add(m);
+                SerializeObject(Messages);
+            }
+        }
         public Message MakeMessage(string msg)
         {
             var m = new Message();

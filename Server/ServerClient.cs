@@ -37,11 +37,13 @@ namespace Server
         {
             Client = (IClient)Activator.GetObject(typeof(IClient),
                         string.Format("tcp://{0}/IClient", Server.State.Profile.IP));
-            //REPLICAÇÂO
-            Server.ReplicaState.ChangeState();
-            Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages, Server.State.Contacts);
+            //REPLICAÇÂO -isto tb pode ir para a mesma classe ServerServer?
+            ThreadPool.QueueUserWorkItem((object o) =>
+            {
+                Server.ReplicaState.ChangeState();
+                Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages, Server.State.Contacts);
+            });
         }
-
         //Metodo exclusivamente para testes
         public void test()
         {
@@ -87,17 +89,14 @@ namespace Server
             //end Test
         }
 
-
         #region IServerClient Members
 
         public void Freeze() { }
 
         public Message Post(string message)
-        {
-            
-            var m = Server.State.MakeMessage(message);
-            
-            //REPLICAÇÂO
+        {          
+            var m = Server.State.MakeMessage(message);           
+            //REPLICAÇÂO - DaVID- isto pode ir para a mesma classe ServerServer?
             Server.ReplicaState.RegisterMessage(m);
 
             lock (Server.State.Messages)
@@ -114,8 +113,6 @@ namespace Server
 
         public void PostFriendRequest(string address)
         {
-            //o username é desnecessário, só com o endereço do server dá para fazer o pedido
-
             var c = new Contact();
             c.Username = Server.State.Profile.UserName;
             c.IP = Server.State.ServerIP;
@@ -125,25 +122,20 @@ namespace Server
 
         public Message RespondToFriendRequest(Contact c, bool accept)
         {
-            Message msg = new Message();
-            //adicionar amigo
+            var msg = new Message();
             if (accept)
             {
                 var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";
-                //ATENÇÃO É NECESSÁRIO VER SE ESTA É A MELHOR ORDEM DE FAZER ISTO
-                //difundir nova amizade por todos os amigos
                 msg = Server.State.MakeMessage(s);
 
                 ThreadPool.QueueUserWorkItem((object o) =>
                 {
                     ServerServer.SendFriendRequestConfirmation(Server.State.MakeContact(), c.IP.Trim());
-
                     lock (Server.State.Messages)
                     {
                         Server.State.Messages.Add(msg);
                     }
                     ServerServer.BroadCastMessage(msg);
-
                     lock (Server.State.Contacts)
                     {
                         //adicionar novo amigo aos contactos e informa-o da aceitação 
@@ -153,7 +145,6 @@ namespace Server
                     }
                 });
             }
-
             Server.State.FriendRequests.Remove(c);
             return msg;
         }
