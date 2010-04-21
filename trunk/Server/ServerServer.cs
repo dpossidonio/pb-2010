@@ -12,7 +12,7 @@ namespace Server
     public class ServerServer : MarshalByRefObject, IServerServer
     {
         public ServerClient ServerClient;
-        
+
         //construtor - a sério?
         public ServerServer(ServerClient sc)
         {
@@ -81,7 +81,7 @@ namespace Server
             foreach (var item in replicas)
             {
                 var obj = (IServerServer)Activator.GetObject(
-                typeof(IServerServer),string.Format("tcp://{0}/IServerServer", item));
+                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
 
                 try
                 {
@@ -108,7 +108,7 @@ namespace Server
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
                     RemoteAsyncDelegateAll RemoteDel = new RemoteAsyncDelegateAll(obj.UpdateSlave);
-                    IAsyncResult RemAr = RemoteDel.BeginInvoke(p,m,c, RemoteCallback, null);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(p, m, c, RemoteCallback, null);
                 }
                 catch (Exception)
                 {
@@ -142,7 +142,7 @@ namespace Server
             var obj = (IServerServer)Activator.GetObject(
                typeof(IServerServer),
                string.Format("tcp://{0}/IServerServer", IP));
-            var res = new List<Message>();    
+            var res = new List<Message>();
             try
             {
                 res = (List<Message>)obj.RequestMessages(lastSeqNumber);
@@ -185,12 +185,9 @@ namespace Server
 
         public void ReceiveFriendRequest(Contact c)
         {
-            Console.WriteLine("<--Received FR from: " + c.Username + ",address: " + c.IP+", SeqNumber:"+c.LastMsgSeqNumber);
-            lock (Server.State.FriendRequests)
-            {
-                Server.State.FriendRequests.Add(c);
-                Server.State.SerializeObject(Server.State.Contacts);
-            }
+            Console.WriteLine("<--Received FR from: " + c.Username + ",address: " + c.IP + ", SeqNumber:" + c.LastMsgSeqNumber);
+
+            Server.State.AddFriendRequest(c);
             var lc = new List<Contact>();
             lc.Add(c);
 
@@ -201,28 +198,21 @@ namespace Server
 
         public void ReceiveFriendRequestOK(Contact c)
         {
-            Console.WriteLine("<--Received confirmation of a FR send to:" + c.Username + ",address:" + c.IP+",SeqNumber:"+c.LastMsgSeqNumber);
+            Console.WriteLine("<--Received confirmation of a FR send to:" + c.Username + ",address:" + c.IP + ",SeqNumber:" + c.LastMsgSeqNumber);
             ThreadPool.QueueUserWorkItem((object o) =>
             {
                 var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";
                 var msg = Server.State.MakeMessage(s);
-                //lock (Server.State.Messages)
-                //{
-                //    Server.State.Messages.Add(msg);
-                //}
+
                 Server.State.AddMessage(msg);
-                //
+
                 var lm = new List<Message>();
                 lm.Add(msg);
                 ServerClient.Client.UpdatePosts(lm);
                 ServerClient.Client.UpdateFriends(c);
                 BroadCastMessage(msg);
 
-                lock (Server.State.Contacts)
-                {
-                    Server.State.Contacts.Add(c);
-                    Server.State.SerializeObject(Server.State.Contacts);
-                }
+                Server.State.AddContact(c);
             });
         }
 
@@ -237,17 +227,9 @@ namespace Server
                 Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
                 if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
                 {
-                    lock (Server.State.Messages)
-                    {
-                        Server.State.Messages.Add(msg);
-                        Server.State.SerializeObject(Server.State.Messages);
-                    }
+                    Server.State.AddMessage(msg);
 
-                    lock (Server.State.Contacts)
-                    {
-                        c.LastMsgSeqNumber = msg.SeqNumber;
-                        Server.State.SerializeObject(Server.State.Contacts);
-                    }
+                    Server.State.UpdateSeqNumber(c, msg.SeqNumber);
                     var lm = new List<Message>();
                     lm.Add(msg);
                     try
@@ -277,51 +259,27 @@ namespace Server
         public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c)
         {
             Console.WriteLine("<--#START FULL Updating Slave");
-
-            lock (Server.State.Profile)
-            {
-                Server.State.Profile = p;
-                Server.State.SerializeObject(Server.State.Profile);
-            }   
-
-            lock (Server.State.Messages)
-            {
-                Server.State.Messages = m;
-                Server.State.SerializeObject(Server.State.Messages);
-            }
-
-            lock (Server.State.Contacts)
-            {
-                Server.State.Contacts = c;
-                Server.State.SerializeObject(Server.State.Contacts);
-            }
-
-             Console.WriteLine("<--#END FULL Updating Slave");
+            Server.State.Profile = p;
+            Server.State.Messages = m;
+            Server.State.Contacts = c;
+            Console.WriteLine("<--#END FULL Updating Slave");
         }
         //FIM REPLICAÇÂO
         #endregion
 
-        public void RefreshLocalMessages(IList<Message> msgs,Contact c)
+        public void RefreshLocalMessages(IList<Message> msgs, Contact c)
         {
             if (msgs != null && msgs.Count > 0)
             {
-                lock (Server.State.Messages)
+                foreach (var item in msgs)
                 {
-                    foreach (var item in msgs)
-                    {
-                        Server.State.Messages.Add(item);
-                        Server.State.SerializeObject(Server.State.Messages);
-                    }
+                    Server.State.AddMessage(item); ;
                 }
-                lock (Server.State.Contacts)
-                {
-                    c.LastMsgSeqNumber = msgs.Max(x => x.SeqNumber);
-                    Server.State.SerializeObject(Server.State.Contacts);
+                Server.State.UpdateSeqNumber(c, msgs.Max(x => x.SeqNumber));
 
-                }
                 //pedreiro
-                if(ServerClient.Client != null)
-                ServerClient.Client.UpdatePosts(msgs);
+                if (ServerClient.Client != null)
+                    ServerClient.Client.UpdatePosts(msgs);
             }
         }
     }

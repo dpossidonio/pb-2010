@@ -12,15 +12,12 @@ namespace Server
     {
         public ServerServer ServerServer;
         public IClient Client;
+
         public ServerClient()
         {
             ServerServer = new ServerServer(this);
             Registration();
-
-            Server.State.Contacts = (IList<Contact>)Server.State.DeserializeObject(Server.State.Contacts);
-            Server.State.Messages = (IList<Message>)Server.State.DeserializeObject(Server.State.Messages);
-            Server.State.Profile = (Profile)Server.State.DeserializeObject(Server.State.Profile);
-
+            Server.State.DeserializeState();        
             //test();
         }
 
@@ -62,7 +59,7 @@ namespace Server
                 var c = new Contact();
                 c.IP = ip + i;
                 c.Username = "A" + i;
-                Server.State.Contacts.Add(c);
+                Server.State.AddContact(c);
             }
 
             Server.State.Profile = p;
@@ -73,11 +70,7 @@ namespace Server
                 msg.FromUserName = "David";
                 msg.Post = string.Format("Post#{0}", i);
                 msg.Time = DateTime.Now;
-
-                lock (Server.State.Messages)
-                {
-                    Server.State.Messages.Add(msg);
-                }
+                Server.State.AddMessage(msg);
             }
 
             //TextWriter tw = new StreamWriter("PADIdatabase.xml");
@@ -99,14 +92,11 @@ namespace Server
             //REPLICAÇÂO - DaVID- isto pode ir para a mesma classe ServerServer?
             Server.ReplicaState.RegisterMessage(m);
 
-            lock (Server.State.Messages)
-            {
-                Server.State.Messages.Add(m);
-                //Serializa as mensagens
-                Server.State.SerializeObject(Server.State.Messages);
+            Server.State.AddMessage(m);
+
                 //Actualiza no profile o numero de sequencia dos seus posts
-                Server.State.SerializeObject(Server.State.Profile);
-            }
+                Server.State.Profile = Server.State.Profile;
+            
             ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
             return m;
         }
@@ -131,18 +121,9 @@ namespace Server
                 ThreadPool.QueueUserWorkItem((object o) =>
                 {
                     ServerServer.SendFriendRequestConfirmation(Server.State.MakeContact(), c.IP.Trim());
-                    lock (Server.State.Messages)
-                    {
-                        Server.State.Messages.Add(msg);
-                    }
                     ServerServer.BroadCastMessage(msg);
-                    lock (Server.State.Contacts)
-                    {
-                        //adicionar novo amigo aos contactos e informa-o da aceitação 
-                        Server.State.Contacts.Add(c);
-                        //serializa os contactos
-                        Server.State.SerializeObject(Server.State.Contacts);
-                    }
+                    Server.State.AddMessage(msg);
+                    Server.State.AddContact(c);
                 });
             }
             Server.State.FriendRequests.Remove(c);
@@ -165,7 +146,6 @@ namespace Server
         public void UpdateProfile(Profile profile)
         {
             Console.WriteLine("Client: Update Profile");
-            Server.State.SerializeObject(profile);
             Server.State.Profile = profile;
         }
 
