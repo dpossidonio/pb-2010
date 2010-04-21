@@ -14,6 +14,9 @@ namespace CommonTypes
 
         //REPLICAÇÂO
         void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c);
+        void UpdateMessages(Message msg);
+        void UpdateContacts(Contact c);
+        void UpdateFriendRequest(Contact c);
     }
 
     public interface IServerClient

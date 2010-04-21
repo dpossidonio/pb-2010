@@ -78,12 +78,12 @@ namespace Server
             Console.WriteLine("SLAVE: ADDING THIS MSG: " + msg.Post);
 
 
-                Server.State.Profile.PostSeqNumber = msg.SeqNumber;
-                //Serializa as mensagens
-                Server.State.AddMessage(msg);
-                                     
-                //Actualiza no profile o numero de sequencia dos seus posts
-                Server.State.Profile = Server.State.Profile;
+            //Server.State.Profile.PostSeqNumber = msg.SeqNumber;
+            ////Serializa as mensagens
+            //Server.State.AddMessage(msg);
+
+            ////Actualiza no profile o numero de sequencia dos seus posts
+            //Server.State.Profile = Server.State.Profile;
             
         }
 

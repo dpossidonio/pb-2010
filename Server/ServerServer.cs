@@ -13,7 +13,6 @@ namespace Server
     {
         public ServerClient ServerClient;
 
-        //construtor - a sério?
         public ServerServer(ServerClient sc)
         {
             ServerClient = sc;
@@ -75,10 +74,10 @@ namespace Server
         }
 
         //REPLICAÇÂO
-        public void ReplicateMessage(List<string> replicas, Message msg)
+        public void ReplicateMessage(List<string> destinations, Message msg)
         {
             Console.WriteLine("#Start Replicate Message with SeqNumber:" + msg.SeqNumber);
-            foreach (var item in replicas)
+            foreach (var item in destinations)
             {
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
@@ -86,7 +85,7 @@ namespace Server
                 try
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackMessage);
-                    RemoteAsyncDelegateMessage RemoteDel = new RemoteAsyncDelegateMessage(obj.ReceiveMessage);
+                    RemoteAsyncDelegateMessage RemoteDel = new RemoteAsyncDelegateMessage(obj.UpdateMessages);
                     IAsyncResult RemAr = RemoteDel.BeginInvoke(msg, RemoteCallback, null);
                 }
                 catch (Exception)
@@ -117,6 +116,7 @@ namespace Server
             }
             Console.WriteLine("#End Replicas Setup");
         }
+
         //FIM REPLICAÇÂO
         public void SendFriendRequest(Contact c, string IP)
         {
@@ -219,16 +219,10 @@ namespace Server
         public void ReceiveMessage(Message msg)
         {
             Console.WriteLine("<--Received post from:{0} SeqNumber:{1} Post:{2}", msg.FromUserName, msg.SeqNumber, msg.Post);
-            //PAIVA - Se não tiver contactos  ta a rebentar na replicação
-            //DAVID - ou entao quando envia a mensagem para si e verifica que ele próprio nao esta na sua lista de contactos
-            Server.ReplicaState.RegisterMessage(msg);
-            if (Server.State.Contacts.Count != 0)
-            {
                 Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
                 if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
                 {
                     Server.State.AddMessage(msg);
-
                     Server.State.UpdateSeqNumber(c, msg.SeqNumber);
                     var lm = new List<Message>();
                     lm.Add(msg);
@@ -243,17 +237,13 @@ namespace Server
                     }
                 }
                 else
-                {
+                {//isto nunca pode ser executado por um secundário - (Pedir mensagens em falta)
                     var aux = SendRequestMessages(c.IP, c.LastMsgSeqNumber);
                     RefreshLocalMessages(aux, c);
                 }
-            }
         }
 
-        public override object InitializeLifetimeService()
-        {
-            return null;
-        }
+        public override object InitializeLifetimeService() { return null; }
 
         //REPLICAÇÂO
         public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c)
@@ -264,6 +254,27 @@ namespace Server
             Server.State.Contacts = c;
             Console.WriteLine("<--#END FULL Updating Slave");
         }
+
+
+        public void UpdateMessages(Message msg)
+        {
+            Server.State.AddMessage(msg);
+            if (msg.FromUserName == Server.State.Profile.UserName) 
+                Server.State.Profile.PostSeqNumber = msg.SeqNumber;                
+            else 
+                Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName)).LastMsgSeqNumber = msg.SeqNumber;
+        }
+
+        public void UpdateContacts(Contact c)
+        {
+            Server.State.AddContact(c);
+        }
+
+        public void UpdateFriendRequest(Contact c)
+        {
+            Server.State.AddFriendRequest(c);   
+        }
+
         //FIM REPLICAÇÂO
         #endregion
 
@@ -273,7 +284,7 @@ namespace Server
             {
                 foreach (var item in msgs)
                 {
-                    Server.State.AddMessage(item); ;
+                    Server.State.AddMessage(item);
                 }
                 Server.State.UpdateSeqNumber(c, msgs.Max(x => x.SeqNumber));
 
