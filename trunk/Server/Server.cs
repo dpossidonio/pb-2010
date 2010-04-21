@@ -34,7 +34,7 @@ namespace Server
 
             //REPLICAÇÂO
             ReplicaState = new StateContext(new SlaveState());
-            if (!know.Equals(localIP))
+            if (!know.Equals(""))
                 State.KnownServers.Add(string.Format(localIP + know));
             
             while (true)
