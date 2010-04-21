@@ -64,7 +64,7 @@ namespace CommonTypes
         public Gender Gender { get; set; }
         public int Age { get; set; }
         public List<Interest> Interests { get; set; }
-        public int PostSeqNumber;
+        public int PostSeqNumber { get; set; }
 
         public Profile()
         {
@@ -76,7 +76,7 @@ namespace CommonTypes
 
     [Serializable]
     public class Message {
-        public int SeqNumber;
+        public int SeqNumber { get; set; }
         public string FromUserName { get; set; }
         public string Post { get; set; }
         public DateTime Time;
@@ -84,7 +84,7 @@ namespace CommonTypes
 
     [Serializable]
     public class Contact {
-        public int LastMsgSeqNumber;
+        public int LastMsgSeqNumber { get; set; }
         public string IP { get; set; }
         public string Username { get; set; }
 

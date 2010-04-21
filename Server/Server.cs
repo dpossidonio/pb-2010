@@ -18,11 +18,11 @@ namespace Server
             //forma de obter o endereço ip da máquina sem ser hardcoded :P
             //System.Net.IPAddress[] a = System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName());
             //Console.WriteLine(a[2].ToString());
-            
+
             //REPLICAÇÂO
             Console.Write("Do you know replicas? Insert there addresses if so: 127.0.0.1:");
             var know = Console.ReadLine();
-            
+
             var localIP = "127.0.0.1:";
             Console.Write("Enter Port to run: ");
             var porto = Console.ReadLine();
@@ -36,7 +36,7 @@ namespace Server
             ReplicaState = new StateContext(new SlaveState());
             if (!know.Equals(""))
                 State.KnownServers.Add(string.Format(localIP + know));
-            
+
             while (true)
             {
                 var input = Console.ReadLine();
@@ -50,34 +50,120 @@ namespace Server
 
     public class ServerState
     {
+        private Profile _profile;
+        private IList<Message> _messages;
+        private IList<Contact> _contacts;
+        private IList<Contact> _friendRequests;
+        public Profile Profile
+        {
+            get { return _profile; }
+            set
+            {
+                lock (Profile)
+                {
+                    _profile = value;
+                    SerializeObject(Profile);
+                }
+            }
+        }
+        public IList<Message> Messages
+        {
+            get { return _messages; }
+            set
+            {
+                lock (Messages)
+                {
+                    _messages = value;
+                    SerializeObject(Messages);
+                }
+            }
+        }
+        public IList<Contact> Contacts
+        {
+            get { return _contacts; }
+            set
+            {
+                lock (Contacts)
+                {
+                    _contacts = value;
+                    SerializeObject(Contacts);
+                }
+            }
+        }
+        public IList<Contact> FriendRequests
+        {
+            get { return _friendRequests; }
+            set
+            {
+                lock (FriendRequests)
+                {
+                    _friendRequests = value;
+                    SerializeObject(FriendRequests);
+                }
+            }
+        }
         public string ServerIP { get; set; }
-        public Profile Profile { get; set; }
-        public IList<Message> Messages { get; set; }
-        public IList<Contact> Contacts { get; set; }
-        public IList<Contact> FriendRequests { get; set; }
         //REPLICAÇÂO
         public List<string> KnownServers { get; set; }
 
-        System.Xml.Serialization.XmlSerializer x;
+        System.Xml.Serialization.XmlSerializer Serializer;
 
         public ServerState(string ip)
         {
             ServerIP = ip;
-            Profile = new Profile();
-            Messages = new List<Message>();
-            Contacts = new List<Contact>();
-            FriendRequests = new List<Contact>();
+            _profile = new Profile();
+            _messages = new List<Message>();
+            _contacts = new List<Contact>();
+            _friendRequests = new List<Contact>();
             KnownServers = new List<string>();
         }
 
         //Fazer para todos?
-        public void AddMessage(Message m){
+        public void AddMessage(Message m)
+        {
             lock (Messages)
             {
                 Messages.Add(m);
                 SerializeObject(Messages);
             }
         }
+
+        public void AddContact(Contact c)
+        {
+            lock (Contacts)
+            {
+                Contacts.Add(c);
+                SerializeObject(Contacts);
+            }
+        }
+
+        public void AddFriendRequest(Contact c)
+        {
+            lock (FriendRequests)
+            {
+                FriendRequests.Add(c);
+                SerializeObject(FriendRequests);
+            }
+        }
+
+        public void RemoveFriendRequest(Contact c)
+        {
+            lock (FriendRequests)
+            {
+                FriendRequests.Remove(c);
+                SerializeObject(FriendRequests);
+            }
+        }
+
+        public void UpdateSeqNumber(Contact c, int seqNumber)
+        {
+            lock (Contacts)
+            {
+                c.LastMsgSeqNumber = seqNumber;
+                SerializeObject(Contacts);
+            }
+        }
+
         public Message MakeMessage(string msg)
         {
             var m = new Message();
@@ -88,7 +174,6 @@ namespace Server
             return m;
         }
 
-        //Esta função faz sempre a mesma coisa - Singleton?
         public Contact MakeContact()
         {
             var myContact = new Contact();
@@ -100,25 +185,31 @@ namespace Server
             return myContact;
         }
 
-        //TODO - serializar a class
-        public void SerializeObject(Object obj)
+        public void DeserializeState()
+        {
+            Server.State.Contacts = (IList<Contact>)Server.State.DeserializeObject(Server.State.Contacts);
+            Server.State.Messages = (IList<Message>)Server.State.DeserializeObject(Server.State.Messages);
+            Server.State.Profile = (Profile)Server.State.DeserializeObject(Server.State.Profile);
+        }
+
+        private void SerializeObject(Object obj)
         {
             var port = ServerIP.Split(':');
             TextWriter tw = new StreamWriter(port[1] + obj + ".xml");
-            x = new System.Xml.Serialization.XmlSerializer(obj.GetType());
-            x.Serialize(tw, obj);
+            Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
+            Serializer.Serialize(tw, obj);
             //Console.WriteLine(obj + " written to file: " + obj.GetType() + ".xml");
             tw.Close();
         }
 
-        public Object DeserializeObject(Object obj)
+        private Object DeserializeObject(Object obj)
         {
             try
             {
                 var port = ServerIP.Split(':');
                 TextReader tr = new StreamReader(port[1] + obj + ".xml");
-                x = new System.Xml.Serialization.XmlSerializer(obj.GetType());
-                var fileP = x.Deserialize(tr);
+                Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
+                var fileP = Serializer.Deserialize(tr);
                 tr.Close();
                 return fileP;
             }

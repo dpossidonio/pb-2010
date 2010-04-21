@@ -46,13 +46,13 @@ namespace Server
 
         public void AddMessage(StateContext stateContext, CommonTypes.Message msg)
         {
-            Console.WriteLine("IM MASTER AND IM UPDATING THE MESSAGES IN SLAVES");
+            Console.WriteLine("MASTER: UPDATING THE MESSAGES IN SLAVES");
             Server.sc.ServerServer.ReplicateMessage(Server.State.KnownServers, msg);
         }
 
         public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c)
         {
-            Console.WriteLine("IM MASTER AND IM UPDATING ALL SLAVES CONTENT");
+            Console.WriteLine("MASTER: UPDATING ALL SLAVES CONTENT");
             Server.sc.ServerServer.SetSlave(Server.State.KnownServers, p, m, c);
         }
     }
@@ -71,18 +71,20 @@ namespace Server
             context.State = new MasterState(); 
         }
 
+        //cada vez que esta funcção é chamada esta a meter no profile do cliente o numero de seq da mensagem em kestão? 
+        //a mensagem pode nao ter origem nele?
         public void AddMessage(StateContext stateContext, CommonTypes.Message msg)
         {
-            Console.WriteLine("IM A SLAVE, SO IM ADDING THIS MSG: " + msg.Post);
-            lock (Server.State.Messages)
-            {
-                Server.State.Messages.Add(msg);
+            Console.WriteLine("SLAVE: ADDING THIS MSG: " + msg.Post);
+
+
                 Server.State.Profile.PostSeqNumber = msg.SeqNumber;
                 //Serializa as mensagens
-                Server.State.SerializeObject(Server.State.Messages);
+                Server.State.AddMessage(msg);
+                                     
                 //Actualiza no profile o numero de sequencia dos seus posts
-                Server.State.SerializeObject(Server.State.Profile);
-            }
+                Server.State.Profile = Server.State.Profile;
+            
         }
 
         public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c) { }
