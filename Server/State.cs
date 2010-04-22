@@ -13,6 +13,9 @@ namespace Server
         void Change(StateContext context);
         //adicionar mensagem
         void AddMessage(StateContext context, CommonTypes.Message msg);
+        //regista profile
+        void ReplicateProfile(StateContext context, CommonTypes.Profile profile);
+        void ReplicateContacts(StateContext context, CommonTypes.Contact contact);
         //fazer o set do slave
         void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c);
     }
@@ -28,15 +31,21 @@ namespace Server
         public void RequestStateInfo() { State.Info(this); }
         public void ChangeState() { State.Change(this); }
         public void RegisterMessage(CommonTypes.Message msg) { State.AddMessage(this, msg); }
+        public void RegisterProfile(CommonTypes.Profile profile) { State.ReplicateProfile(this, profile); }
+        public void RegisterContact(CommonTypes.Contact contact) { State.ReplicateContacts(this, contact); }
         public void InitReplica(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c) { State.SetReplica(this, p, m, c); }
     }
 
     //Implementação do estado concreto Master
     public class MasterState : IState
     {
+        #region IStateMembers
+
         public void Info(StateContext context)
         {
             Console.WriteLine("IM IN MASTER STATE");
+            Server.State.PrintInfo();
+           
         }
 
         public void Change(StateContext context)
@@ -55,14 +64,30 @@ namespace Server
             Console.WriteLine("MASTER: UPDATING ALL SLAVES CONTENT");
             Server.sc.ServerServer.SetSlave(Server.State.KnownServers, p, m, c);
         }
+
+        public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
+        {
+            Server.sc.ServerServer.SetProfile(Server.State.KnownServers, profile);
+            
+        }
+
+        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact)
+        {
+            Server.sc.ServerServer.SetContact(Server.State.KnownServers, contact);
+        }
+
+        #endregion
     }
 
     //Implementação do estado concreto Slave
     public class SlaveState : IState
     {
+        #region IState Members
+
         public void Info(StateContext context) 
         {
             Console.WriteLine("IM IN SLAVE STATE");
+            Server.State.PrintInfo();
         }
 
         public void Change(StateContext context)
@@ -89,5 +114,18 @@ namespace Server
 
         public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c) { }
 
+
+        public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
+        {
+            //Server.State.UpdateProfile(Server.State.Profile);         
+            Console.WriteLine("SLAVE: Saving Profile: ");
+        }
+
+        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact)
+        {
+            Console.WriteLine("SLAVE: Adding Contact: ");
+        }
+
+        #endregion
     }
 }

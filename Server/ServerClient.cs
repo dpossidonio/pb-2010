@@ -62,7 +62,7 @@ namespace Server
                 Server.State.AddContact(c);
             }
 
-            Server.State.Profile = p;
+            Server.State.UpdateProfile(p);
 
             for (int i = 0; i < 4; i++)
             {
@@ -95,7 +95,7 @@ namespace Server
             Server.State.AddMessage(m);
 
                 //Actualiza no profile o numero de sequencia dos seus posts
-                Server.State.Profile = Server.State.Profile;
+                Server.State.UpdateProfile(Server.State.Profile);
             
             ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
             return m;
@@ -146,7 +146,7 @@ namespace Server
         public void UpdateProfile(Profile profile)
         {
             Console.WriteLine("Client: Update Profile");
-            Server.State.Profile = profile;
+            Server.State.UpdateProfile(profile);
         }
 
         public Profile GetProfile()

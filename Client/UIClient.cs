@@ -87,6 +87,20 @@ namespace Client
             }
         }
 
+        private void listContacts_Click(object sender, EventArgs e)
+        {
+            string contacts = "My Contacts:\n\n";
+
+            foreach (var item in Client.Friends)
+            {
+                contacts = contacts + "\r\n" + item.ToString();
+            }
+            var m = Client.Server.Post(contacts);
+            MessageTextBox.Text = "";
+            Client.Messages.Add(m);
+            UpdateMessageBox();
+        }
+
         private void RefreshViewButton_Click(object sender, EventArgs e)
         {
             if (Connected)
@@ -222,6 +236,8 @@ namespace Client
         }
 
         #endregion
+
+
 
     }
 }

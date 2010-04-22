@@ -30,13 +30,15 @@ namespace Server
             var ip = string.Format(localIP + porto);
             Console.WriteLine("Running Server on: " + ip);
 
+                //REPLICAÇÂO
+            ReplicaState = new StateContext(new SlaveState());
+            
             State = new ServerState(ip);
             sc = new ServerClient();
 
-            //REPLICAÇÂO
-            ReplicaState = new StateContext(new SlaveState());
             if (!know.Equals(""))
                 State.KnownServers.Add(string.Format(localIP + know));
+
 
             while (true)
             {
@@ -119,6 +121,64 @@ namespace Server
             KnownServers = new List<string>();
         }
 
+        public void PrintInfo()
+        {
+            PrintProfile();
+            PrintContacts();
+            PrintMessages();
+        }
+
+        public void PrintProfile()
+        {
+            Console.WriteLine("*************PROFILE**************");
+            Console.WriteLine("IP: {0}", Profile.IP);
+            Console.WriteLine("Username: {0}", Profile.UserName);
+            Console.WriteLine("Age: {0}", Profile.Age);
+            Console.WriteLine("Gender: {0}", Profile.Gender);
+            Console.WriteLine("Post Seq. Number: {0}", Profile.PostSeqNumber);
+            Console.WriteLine("Interests: ");
+            foreach (var item in Profile.Interests)
+            {
+                Console.WriteLine(" {0},", item);
+            }
+            Console.WriteLine("**********************************");
+        }
+
+        public void PrintContacts()
+        {
+            Console.WriteLine("*************CONTACTS*************");
+            foreach (var item in Contacts)
+            {
+                Console.WriteLine(item.ToString());
+            }
+            Console.WriteLine("**********************************");
+
+        }
+
+        public void PrintMessages()
+        {
+            Console.WriteLine("*************MESSAGES*************");
+            for (int a = 0; a < Messages.Count; a++)
+            {
+                if (a != Messages.Count - 1)
+                {
+                    Console.WriteLine("From: {0}", Messages[a].FromUserName);
+                    Console.WriteLine("Time: {0}", Messages[a].Time);
+                    Console.WriteLine("Sequence Number: {0}", Messages[a].SeqNumber);
+                    Console.WriteLine("Post: {0}", Messages[a].Post);
+                    Console.WriteLine("------------------------------");
+                }
+                else
+                {
+                    Console.WriteLine("From: {0}", Messages[a].FromUserName);
+                    Console.WriteLine("Time: {0}", Messages[a].Time);
+                    Console.WriteLine("Sequence Number: {0}", Messages[a].SeqNumber);
+                    Console.WriteLine("Post: {0}", Messages[a].Post);
+                }
+            }
+            Console.WriteLine("**********************************");
+        }
+
         public void AddMessage(Message m)
         {
             lock (Messages)
@@ -138,6 +198,17 @@ namespace Server
                 Contacts.Add(c);
                 SerializeObject(Contacts);
             }
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterContact(c));
+        }
+
+        public void UpdateProfile(Profile p)
+        {
+            lock (Profile)
+            {
+                _profile = p;
+                SerializeObject(Profile);
+            }
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterProfile(p));          
         }
 
         public void AddFriendRequest(Contact c)
@@ -192,7 +263,7 @@ namespace Server
         {
             Server.State.Contacts = (IList<Contact>)Server.State.DeserializeObject(Server.State.Contacts);
             Server.State.Messages = (IList<Message>)Server.State.DeserializeObject(Server.State.Messages);
-            Server.State.Profile = (Profile)Server.State.DeserializeObject(Server.State.Profile);
+            Server.State.UpdateProfile((Profile)Server.State.DeserializeObject(Server.State.Profile));
         }
 
         private void SerializeObject(Object obj)
