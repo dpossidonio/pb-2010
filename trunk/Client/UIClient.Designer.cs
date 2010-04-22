@@ -53,6 +53,7 @@
             this.GenderLabel = new System.Windows.Forms.Label();
             this.UNlabel = new System.Windows.Forms.Label();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.listContacts = new System.Windows.Forms.Button();
             this.IPtextBox = new System.Windows.Forms.TextBox();
             this.Server2IPtextBox = new System.Windows.Forms.TextBox();
             this.Server3IPtextBox = new System.Windows.Forms.TextBox();
@@ -314,6 +315,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.listContacts);
             this.tabPage1.Controls.Add(this.IPtextBox);
             this.tabPage1.Controls.Add(this.Server2IPtextBox);
             this.tabPage1.Controls.Add(this.Server3IPtextBox);
@@ -336,6 +338,16 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Home";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // listContacts
+            // 
+            this.listContacts.Location = new System.Drawing.Point(496, 39);
+            this.listContacts.Name = "listContacts";
+            this.listContacts.Size = new System.Drawing.Size(130, 23);
+            this.listContacts.TabIndex = 17;
+            this.listContacts.Text = "List Contacts";
+            this.listContacts.UseVisualStyleBackColor = true;
+            this.listContacts.Click += new System.EventHandler(this.listContacts_Click);
             // 
             // IPtextBox
             // 
@@ -545,6 +557,7 @@
         private System.Windows.Forms.Button declineButton;
         private System.Windows.Forms.Button acceptButton;
         private System.Windows.Forms.ComboBox friendsReqComboBox;
+        private System.Windows.Forms.Button listContacts;
 
 
 

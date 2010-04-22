@@ -30,6 +30,14 @@ namespace Server
             return;
         }
 
+        private delegate void RemoteAsyncDelegateProfile(Profile profile);
+        private static void OurRemoteAsyncCallBackProfile(IAsyncResult ar)
+        {
+            RemoteAsyncDelegateProfile del = (RemoteAsyncDelegateProfile)((AsyncResult)ar).AsyncDelegate;
+            del.EndInvoke(ar);
+            return;
+        }
+
         //pode-se melhorar isto se der para passar qualquer coisa void*(o VOID* em liguagem OO é Object) para o RemoteAsyncDelegate
         private delegate void RemoteAsyncDelegateContact(Contact c);
         private static void OurRemoteAsyncCallBackContact(IAsyncResult ar)
@@ -108,6 +116,48 @@ namespace Server
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
                     RemoteAsyncDelegateAll RemoteDel = new RemoteAsyncDelegateAll(obj.UpdateSlave);
                     IAsyncResult RemAr = RemoteDel.BeginInvoke(p, m, c, RemoteCallback, null);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                }
+            }
+            Console.WriteLine("#End Replicas Setup");
+        }
+
+        public void SetProfile(List<string> replicas, CommonTypes.Profile p)
+        {
+            Console.WriteLine("#Start Replicas Setup ");
+            foreach (var item in replicas)
+            {
+                var obj = (IServerServer)Activator.GetObject(
+                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
+                try
+                {
+                    AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
+                    RemoteAsyncDelegateProfile RemoteDel = new RemoteAsyncDelegateProfile(obj.UpdateProfile);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(p, RemoteCallback, null);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                }
+            }
+            Console.WriteLine("#End Replicas Setup");
+        }
+
+        public void SetContact(List<string> replicas, CommonTypes.Contact c)
+        {
+            Console.WriteLine("#Start Replicas Setup ");
+            foreach (var item in replicas)
+            {
+                var obj = (IServerServer)Activator.GetObject(
+                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
+                try
+                {
+                    AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
+                    RemoteAsyncDelegateContact RemoteDel = new RemoteAsyncDelegateContact(obj.UpdateContacts);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(c, RemoteCallback, null);
                 }
                 catch (Exception)
                 {
@@ -249,7 +299,7 @@ namespace Server
         public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c)
         {
             Console.WriteLine("<--#START FULL Updating Slave");
-            Server.State.Profile = p;
+            Server.State.UpdateProfile(p);
             Server.State.Messages = m;
             Server.State.Contacts = c;
             Console.WriteLine("<--#END FULL Updating Slave");
@@ -268,6 +318,11 @@ namespace Server
         public void UpdateContacts(Contact c)
         {
             Server.State.AddContact(c);
+        }
+
+        public void UpdateProfile(Profile p)
+        {
+            Server.State.UpdateProfile(p);
         }
 
         public void UpdateFriendRequest(Contact c)
