@@ -90,6 +90,7 @@ namespace Client
         private void listContacts_Click(object sender, EventArgs e)
         {
             string contacts = "My Contacts:\n\n";
+            Client.Friends = Client.Server.GetFriendsContacts();
             foreach (var item in Client.Friends)
             {
                 contacts = contacts + "\r\n" + item.ToString();
