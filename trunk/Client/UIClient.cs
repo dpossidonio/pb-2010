@@ -67,7 +67,6 @@ namespace Client
             this.Invoke(new Action(delegate()
             {
             WallTextBox.Clear();
-                //Client.Friends.
             foreach (var m in Client.Messages.OrderBy(x => x.Time))
             {
                     WallTextBox.Text += m.Time.ToShortTimeString() + " - From: " + m.FromUserName + " - " + m.Post + "\r\n";
@@ -77,7 +76,7 @@ namespace Client
 
         private void SendMessageButton_Click(object sender, EventArgs e)
         {
-            if (Connected)
+            if (Connected && !MessageTextBox.Text.Equals(""))
             {
                 //ao mandar uma msg ele retorna a msg k mandou que é adicionada à lista de msg local e publicada na wall
                 var m = Client.Server.Post(MessageTextBox.Text);
@@ -93,12 +92,15 @@ namespace Client
             Client.Friends = Client.Server.GetFriendsContacts();
             foreach (var item in Client.Friends)
             {
-                contacts = contacts + "\r\n" + item.ToString();
+                contacts +="\r\n" + item.ToString();
             }
+            if (Client.Friends.Count == 0)
+                contacts+="SNIFF... I dont have any friends.";
             var m = Client.Server.Post(contacts);
-            MessageTextBox.Text = "";
             Client.Messages.Add(m);
+             MessageTextBox.Text = "";
             UpdateMessageBox();
+           
         }
 
         private void RefreshViewButton_Click(object sender, EventArgs e)

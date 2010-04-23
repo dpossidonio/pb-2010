@@ -16,8 +16,10 @@ namespace Server
         //regista profile
         void ReplicateProfile(StateContext context, CommonTypes.Profile profile);
         void ReplicateContacts(StateContext context, CommonTypes.Contact contact);
+        void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact);
+        void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact);
         //fazer o set do slave
-        void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c);
+        void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
     }
 
     public class StateContext
@@ -33,7 +35,9 @@ namespace Server
         public void RegisterMessage(CommonTypes.Message msg) { State.AddMessage(this, msg); }
         public void RegisterProfile(CommonTypes.Profile profile) { State.ReplicateProfile(this, profile); }
         public void RegisterContact(CommonTypes.Contact contact) { State.ReplicateContacts(this, contact); }
-        public void InitReplica(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c) { State.SetReplica(this, p, m, c); }
+        public void RegisterFriendRequest(CommonTypes.Contact contact) { State.ReplicateFriendRequest(this, contact); }
+        public void RegisterPendingInvitation(CommonTypes.Contact contact) { State.ReplicatePendingInvitation(this, contact); }
+        public void InitReplica(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) { State.SetReplica(this, p, m, c,fr,pi); }
     }
 
     //Implementação do estado concreto Master
@@ -43,7 +47,10 @@ namespace Server
 
         public void Info(StateContext context)
         {
-            Console.WriteLine("IM IN MASTER STATE");
+            Console.WriteLine("--------------------------------------------------------------");
+            Console.WriteLine("-----------------  IM IN MASTER STATE ------------------------");
+            Console.WriteLine("-------------------- {0} --------------------------",Server.State.ServerIP);
+
             Server.State.PrintInfo();
            
         }
@@ -59,10 +66,10 @@ namespace Server
             Server.sc.ServerServer.ReplicateMessage(Server.State.KnownServers, msg);
         }
 
-        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c)
+        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
         {
             Console.WriteLine("MASTER: UPDATING ALL SLAVES CONTENT");
-            Server.sc.ServerServer.SetSlave(Server.State.KnownServers, p, m, c);
+            Server.sc.ServerServer.SetSlave(Server.State.KnownServers, p, m, c,fr,pi);
         }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
@@ -76,6 +83,17 @@ namespace Server
             Server.sc.ServerServer.SetContact(Server.State.KnownServers, contact);
         }
 
+        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact)
+        {
+            Server.sc.ServerServer.SetFriendRequest(Server.State.KnownServers, contact);
+            
+        }
+
+        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact)
+        {
+            Server.sc.ServerServer.SetFriendInvitation(Server.State.KnownServers, contact);  
+        }
+
         #endregion
     }
 
@@ -86,7 +104,9 @@ namespace Server
 
         public void Info(StateContext context) 
         {
-            Console.WriteLine("IM IN SLAVE STATE");
+            Console.WriteLine("--------------------------------------------------------------");
+            Console.WriteLine("-----------------  IM IN SLAVE STATE -------------------------");
+            Console.WriteLine("-------------------- {0} --------------------------", Server.State.ServerIP);
             Server.State.PrintInfo();
         }
 
@@ -96,34 +116,31 @@ namespace Server
             context.State = new MasterState(); 
         }
 
-        //cada vez que esta funcção é chamada esta a meter no profile do cliente o numero de seq da mensagem em kestão? 
-        //a mensagem pode nao ter origem nele?
         public void AddMessage(StateContext stateContext, CommonTypes.Message msg)
         {
-            Console.WriteLine("SLAVE: ADDING THIS MSG: " + msg.Post);
-
-
-            //Server.State.Profile.PostSeqNumber = msg.SeqNumber;
-            ////Serializa as mensagens
-            //Server.State.AddMessage(msg);
-
-            ////Actualiza no profile o numero de sequencia dos seus posts
-            //Server.State.Profile = Server.State.Profile;
-            
+            Console.WriteLine("SLAVE: ADDING THIS MSG: " + msg.Post);           
         }
 
-        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c) { }
-
+        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) { }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
-        {
-            //Server.State.UpdateProfile(Server.State.Profile);         
-            Console.WriteLine("SLAVE: Saving Profile: ");
+        {      
+            Console.WriteLine("SLAVE: Saving Profile.");
         }
 
         public void ReplicateContacts(StateContext context, CommonTypes.Contact contact)
         {
-            Console.WriteLine("SLAVE: Adding Contact: ");
+            Console.WriteLine("SLAVE: Adding/Updating Contact.");
+        }
+
+        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact)
+        {
+            Console.WriteLine("SLAVE: Adding/Updating FriendRequest.");
+        }
+
+        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact)
+        {
+            Console.WriteLine("SLAVE: Adding/Updating PendingInvitation.");
         }
 
         #endregion

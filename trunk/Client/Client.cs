@@ -47,7 +47,7 @@ namespace Client
             Friends = Server.GetFriendsContacts();
             ClientForm.UpdateFriendsContacts(Friends);
 
-            FriendsRequests = Server.GetFriendsRequestsContacts();
+            FriendsRequests = Server.GetPendingInvitations();
             ClientForm.UpdateFriendsRequests(FriendsRequests);
         }
 
@@ -104,7 +104,7 @@ namespace Client
             //TODO
         }
 
-        void IClient.UpdateFriendRequest(IList<Contact> FriendRequests)
+        void IClient.UpdateFriendInvitation(IList<Contact> FriendRequests)
         {
             ClientForm.UpdateFriendsRequests(FriendRequests);
         }
