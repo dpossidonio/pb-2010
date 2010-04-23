@@ -17,15 +17,22 @@ namespace Client
         private bool Connected { get; set; }
         private Client Client;
 
-        public UIClient()
+        public UIClient(string address,IList<string> server_address)
         {
             InitializeComponent();
-            Init();
+            Init(address,server_address);
             Client = new Client(this);
         }
 
-        private void Init()
+        private void Init(string address, IList<string> server_address)
         {
+            if (!address.Equals("")) {
+                IPtextBox.Text = address;
+                Server1IPtextBox.Text = server_address[0];
+                Server2IPtextBox.Text = server_address[1];
+                Server3IPtextBox.Text = server_address[2];
+                
+            }
             Connected = false;
             GenderComboBox.DataSource = Enum.GetNames(typeof(CommonTypes.Gender));
             GenderComboBox.SelectedIndex = -1;

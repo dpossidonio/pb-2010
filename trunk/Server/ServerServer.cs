@@ -144,7 +144,7 @@ namespace Server
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
                 }
             }
-            Console.WriteLine("#End REP");
+            Console.WriteLine("#End REP Profile");
         }
 
         public void SetContact(List<string> replicas, CommonTypes.Contact c)
@@ -165,7 +165,7 @@ namespace Server
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
                 }
             }
-            Console.WriteLine("#End REP");
+            Console.WriteLine("#End REP Contact");
         }
 
         public void SetFriendRequest(List<string> replicas, CommonTypes.Contact c)
@@ -186,7 +186,7 @@ namespace Server
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
                 }
             }
-            Console.WriteLine("#End REP");
+            Console.WriteLine("#End REP Friend Request");
         }
 
         public void SetFriendInvitation(List<string> replicas, CommonTypes.Contact c)
@@ -207,7 +207,7 @@ namespace Server
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
                 }
             }
-            Console.WriteLine("#End REP");
+            Console.WriteLine("#End REP FriendInvitation");
         }
 
         //FIM REPLICAÇÂO
