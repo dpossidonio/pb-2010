@@ -14,7 +14,7 @@ namespace Server
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Welcome - PADIbook Server");
+            Console.WriteLine("Welcome - PADIbook Server v1.0");
 
             //forma de obter o endereço ip da máquina sem ser hardcoded :P
             //System.Net.IPAddress[] a = System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName());
@@ -47,19 +47,28 @@ namespace Server
                     ReplicaState.RequestStateInfo();
             }
              */
+            var localIP = "127.0.0.1:";
+            int ms;
             begin:
             
-            var localIP = "127.0.0.1:";
             Console.Write("Insert the port for ip 127.0.0.1:");
             var porto = Console.ReadLine();
-            int ms = Convert.ToInt32(porto) % 10;
+            
+            try
+            {
+                ms = Convert.ToInt32(porto) % 10;
+            }
+            catch(FormatException)
+            { goto begin; }
+
             var ip = string.Format(localIP + porto);
-            Console.WriteLine("Running Server on: " + ip);
+            
             //Ligar Master Server ou Slave Server
             switch (ms)
             {
                 
                 case 1:
+                    Console.WriteLine("Running Server on: " + ip);
                     //REPLICAÇÂO
                     ReplicaState = new StateContext(new SlaveState());
 
@@ -71,11 +80,12 @@ namespace Server
                     var slave2 = aux + 2;
                     State.KnownServers.Add(string.Format(localIP + slave1.ToString()));
                     State.KnownServers.Add(string.Format(localIP + slave2.ToString()));
-                    Console.WriteLine("Master Server automatically knows the following Slaves Servers:");
+                    Console.WriteLine("Server automatically knows the following Servers:");
                     Console.WriteLine(localIP + slave1);
                     Console.WriteLine(localIP + slave2);
                     break;
                 case 2:
+                    Console.WriteLine("Running Server on: " + ip);
                     //REPLICAÇÂO
                     ReplicaState = new StateContext(new SlaveState());
 
@@ -87,11 +97,12 @@ namespace Server
                     var slave4 = aux2 + 1;
                     State.KnownServers.Add(string.Format(localIP + slave3.ToString()));
                     State.KnownServers.Add(string.Format(localIP + slave4.ToString()));
-                    Console.WriteLine("Master Server automatically knows the following Slaves Servers:");
+                    Console.WriteLine("Server automatically knows the following Servers:");
                     Console.WriteLine(localIP + slave3);
                     Console.WriteLine(localIP + slave4);
                     break;
                 case 3:
+                    Console.WriteLine("Running Server on: " + ip);
                     //REPLICAÇÂO
                     ReplicaState = new StateContext(new SlaveState());
 
@@ -103,7 +114,7 @@ namespace Server
                     var slave6 = aux3 - 2;
                     State.KnownServers.Add(string.Format(localIP + slave5.ToString()));
                     State.KnownServers.Add(string.Format(localIP + slave6.ToString()));
-                    Console.WriteLine("Master Server automatically knows the following Slaves Servers:");
+                    Console.WriteLine("Server automatically knows the following Servers:");
                     Console.WriteLine(localIP + slave5);
                     Console.WriteLine(localIP + slave6);
                     break;
