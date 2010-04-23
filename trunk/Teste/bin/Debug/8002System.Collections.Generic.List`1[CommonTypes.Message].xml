@@ -123,4 +123,10 @@ fsfsd  ,  127.0.0.1:7001</Post>
     <FromUserName>fsfsd</FromUserName>
     <Post>fdsaf</Post>
   </Message>
+  <Message>
+    <Time>2010-04-23T13:42:08.1253504+01:00</Time>
+    <SeqNumber>3</SeqNumber>
+    <FromUserName>tre</FromUserName>
+    <Post>dsfsaf</Post>
+  </Message>
 </ArrayOfMessage>

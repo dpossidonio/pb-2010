@@ -21,24 +21,28 @@ namespace Teste
                 string[] CurrentDirectory = Regex.Split(c, "Teste");
                 string ClientDirectory = CurrentDirectory[0] + "Client\\bin\\Debug\\Client.exe";
                 string ServerDirectory = CurrentDirectory[0] + "Server\\bin\\Debug\\Server.exe";
+                Read:
                 Console.Write("Number of Clients: ");
-                
-                var numClients = Console.ReadLine();
-                int numClientsInt = Convert.ToInt32(numClients);
-                for (int a = 0; a < numClientsInt; a++)
-                {
-                    var b = new Process();
-                    b.StartInfo.FileName = ClientDirectory;
-                    b.StartInfo.Arguments = "Program.cs";
-                    b.Start();
-                    for (int d = 0; d < 2; d++)
+                try{
+                    
+                    int numClientsInt = Convert.ToInt32(Console.ReadLine());
+                    for (int a = 0; a < numClientsInt; a++)
                     {
-                        var e = new Process();
-                        e.StartInfo.FileName = ServerDirectory;
-                        e.StartInfo.Arguments = "Program.cs";
-                        e.Start();
+                        var b = new Process();
+                        b.StartInfo.FileName = ClientDirectory;
+                        b.StartInfo.Arguments = "Program.cs";
+                        b.Start();
+                        for (int d = 0; d < 3; d++)
+                        {
+                            var e = new Process();
+                            e.StartInfo.FileName = ServerDirectory;
+                            e.StartInfo.Arguments = "8002";
+                            e.Start();
+                        }
                     }
                 }
+                catch(FormatException)
+                {goto Read;}
             }
         }
     }

@@ -19,7 +19,7 @@ namespace Server
             //forma de obter o endereço ip da máquina sem ser hardcoded :P
             //System.Net.IPAddress[] a = System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName());
             //Console.WriteLine(a[2].ToString());
-
+            /*
             //REPLICAÇÂO
             Console.Write("Do you know replicas? Insert there addresses if so: 127.0.0.1:");
             var know = Console.ReadLine();
@@ -39,6 +39,88 @@ namespace Server
             if (!know.Equals(""))
                 State.KnownServers.Add(string.Format(localIP + know));
 
+
+            while (true)
+            {
+                var input = Console.ReadLine();
+                if (input.Equals("info"))
+                    ReplicaState.RequestStateInfo();
+            }
+             */
+            begin:
+
+            Console.Write("Turn On Master[m] or Slave[s]? ");
+            var ms = Console.ReadLine();
+
+            //Ligar Master Server ou Slave Server
+            switch (ms)
+            {
+                //Caso seja inserido 'm' 'e ligado o Master Slave
+                case "m":
+                    Console.WriteLine("Turning On the Master Slave...");
+                    var localIP = "127.0.0.1:";
+                    
+                    //Label da verificacao do inteiro na leitura do porto
+                    Read:
+
+                    Console.Write("Enter Port to run: ");
+                    var porto = Console.ReadLine();
+
+                    //verifica se o valor inserido é um inteiro
+                    try
+                    {
+                        int aux1 = Convert.ToInt32(porto);
+                    }catch(FormatException)
+                    { goto Read; }
+
+                    var ip = string.Format(localIP + porto);
+                    Console.WriteLine("Running Master Server on: " + ip);
+
+                    //REPLICAÇÂO
+                    ReplicaState = new StateContext(new SlaveState());
+
+                    State = new ServerState(ip);
+                    sc = new ServerClient();
+                    var aux = Convert.ToInt32(porto);
+                    //O Master Slave fica a conhecer automaticamente 2 servidores com o mesmo IP e porto +1 e +2, respectivamente
+                    var slave1 = aux + 1;
+                    var slave2 = aux + 2;
+                    State.KnownServers.Add(string.Format(localIP + slave1.ToString()));
+                    State.KnownServers.Add(string.Format(localIP + slave2.ToString()));
+                    Console.WriteLine("Master Server automatically knows the following Slaves Servers:");
+                    Console.WriteLine(localIP + slave1);
+                    Console.WriteLine(localIP + slave2);
+                    break;
+                case "s":
+                    localIP = "127.0.0.1:";
+
+                    //Label da verificacao do inteiro na leitura do porto
+                    Read2:
+
+                    Console.Write("Enter the Slave Server Port: ");
+                    porto = Console.ReadLine();
+
+                    //verifica se o valor inserido é um inteiro
+                    try
+                    {
+                        int aux2 = Convert.ToInt32(porto);
+                    }
+                    catch (FormatException)
+                    { goto Read2; }
+                    ip = string.Format(localIP + porto);
+                    Console.WriteLine("Running Slave Server on: " + ip);
+
+                    //REPLICAÇÂO
+                    ReplicaState = new StateContext(new SlaveState());
+
+                    State = new ServerState(ip);
+                    sc = new ServerClient();
+                    break;
+                default:
+                    ms = Console.ReadLine();
+                    goto begin;
+
+            }
 
             while (true)
             {
