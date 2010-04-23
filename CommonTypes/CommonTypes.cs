@@ -11,13 +11,13 @@ namespace CommonTypes
         void ReceiveFriendRequest(Contact c);
         void ReceiveMessage(Message msg);
         IList<Message> RequestMessages(int lastSeqNumber);
-
-        //REPLICAÇÂO
-        void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c);
+  
+        void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
         void UpdateMessages(Message msg);
         void UpdateProfile(Profile p);
         void UpdateContacts(Contact c);
         void UpdateFriendRequest(Contact c);
+        void UpdatePendingInvitation(Contact c);
     }
 
     public interface IServerClient
@@ -25,7 +25,7 @@ namespace CommonTypes
         void Connect(string ip);
         IList<Message> GetMessages();
         IList<Contact> GetFriendsContacts();
-        IList<Contact> GetFriendsRequestsContacts();
+        IList<Contact> GetPendingInvitations();
         Profile GetProfile();
 
         void Freeze();
@@ -43,7 +43,7 @@ namespace CommonTypes
     {
         //Call by the new coordinator server
         void Coordinator(string IP);
-        void UpdateFriendRequest(IList<Contact> FriendRequests);
+        void UpdateFriendInvitation(IList<Contact> FriendRequests);
         void UpdatePosts(IList<Message> NewPosts);
         void UpdateFriends(Contact Friend);
     }

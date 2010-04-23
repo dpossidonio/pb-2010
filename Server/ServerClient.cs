@@ -18,7 +18,6 @@ namespace Server
             ServerServer = new ServerServer(this);
             Registration();
             Server.State.DeserializeState();        
-            //test();
         }
 
         private void Registration()
@@ -38,48 +37,8 @@ namespace Server
             ThreadPool.QueueUserWorkItem((object o) =>
             {
                 Server.ReplicaState.ChangeState();
-                Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages, Server.State.Contacts);
+                Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages, Server.State.Contacts, Server.State.FriendRequests, Server.State.PendingInvitations);
             });
-        }
-        //Metodo exclusivamente para testes
-        public void test()
-        {
-            //Test
-            var p = new Profile();
-
-            p.UserName = "David";
-            p.Age = 25;
-            p.Interests.Add(Interest.Movies);
-            p.Interests.Add(Interest.Science);
-            p.Gender = Gender.Male;
-
-            var ip = "127.0.0.1:123";
-            for (int i = 0; i < 4; i++)
-            {
-                var c = new Contact();
-                c.IP = ip + i;
-                c.Username = "A" + i;
-                Server.State.AddContact(c);
-            }
-
-            Server.State.UpdateProfile(p);
-
-            for (int i = 0; i < 4; i++)
-            {
-                var msg = new Message();
-                msg.FromUserName = "David";
-                msg.Post = string.Format("Post#{0}", i);
-                msg.Time = DateTime.Now;
-                Server.State.AddMessage(msg);
-            }
-
-            //TextWriter tw = new StreamWriter("PADIdatabase.xml");
-            //System.Xml.Serialization.XmlSerializer x = new System.Xml.Serialization.XmlSerializer(p.GetType());
-            //x.Serialize(tw, p);
-            //Console.WriteLine("object written to file");
-            //Console.ReadLine();
-            //tw.Close();
-            //end Test
         }
 
         #region IServerClient Members
@@ -104,12 +63,17 @@ namespace Server
         public void PostFriendRequest(string address)
         {
             var c = new Contact();
-            c.Username = Server.State.Profile.UserName;
-            c.IP = Server.State.ServerIP;
-            c.LastMsgSeqNumber = Server.State.Profile.PostSeqNumber;
-            ThreadPool.QueueUserWorkItem((object o) => ServerServer.SendFriendRequest(c, address));
+            c.IP = address;
+            Server.State.AddFriendRequest(c);
+            ThreadPool.QueueUserWorkItem((object o) => ServerServer.SendFriendRequest(address));
         }
 
+        /// <summary>
+        ///  If client accepts the invitation, send confirmation to the new friend
+        /// </summary>
+        /// <param name="c"></param>
+        /// <param name="accept"></param>
+        /// <returns></returns>
         public Message RespondToFriendRequest(Contact c, bool accept)
         {
             var msg = new Message();
@@ -124,9 +88,9 @@ namespace Server
                     ServerServer.BroadCastMessage(msg);
                     Server.State.AddMessage(msg);
                     Server.State.AddContact(c);
+                    Server.State.RemoveFriendInvitation(c);
                 });
             }
-            Server.State.FriendRequests.Remove(c);
             return msg;
         }
 
@@ -161,10 +125,10 @@ namespace Server
             return Server.State.Contacts;
         }
 
-        public IList<Contact> GetFriendsRequestsContacts()
+        public IList<Contact> GetPendingInvitations()
         {
-            Console.WriteLine("Client: Get Friends Requests");
-            return Server.State.FriendRequests;
+            Console.WriteLine("Client: Get Pending Invitations");
+            return Server.State.PendingInvitations;
         }
 
         public IList<Message> GetMessages()

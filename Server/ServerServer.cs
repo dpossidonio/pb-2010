@@ -47,7 +47,7 @@ namespace Server
             return;
         }
 
-        private delegate void RemoteAsyncDelegateAll(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c);
+        private delegate void RemoteAsyncDelegateAll(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
         private static void OurRemoteAsyncCallBackAll(IAsyncResult ar)
         {
             RemoteAsyncDelegateAll del = (RemoteAsyncDelegateAll)((AsyncResult)ar).AsyncDelegate;
@@ -81,10 +81,11 @@ namespace Server
             Console.WriteLine("#End BroadCasting Message");
         }
 
+        #region Replication
         //REPLICAÇÂO
         public void ReplicateMessage(List<string> destinations, Message msg)
         {
-            Console.WriteLine("#Start Replicate Message with SeqNumber:" + msg.SeqNumber);
+            Console.WriteLine("#REP: Message with SeqNumber:" + msg.SeqNumber);
             foreach (var item in destinations)
             {
                 var obj = (IServerServer)Activator.GetObject(
@@ -101,10 +102,10 @@ namespace Server
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
                 }
             }
-            Console.WriteLine("#End Replicate Message");
+            Console.WriteLine("#End REP");
         }
 
-        public void SetSlave(List<string> replicas, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c)
+        public void SetSlave(List<string> replicas, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
         {
             Console.WriteLine("#Start Replicas Setup ");
             foreach (var item in replicas)
@@ -115,7 +116,7 @@ namespace Server
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
                     RemoteAsyncDelegateAll RemoteDel = new RemoteAsyncDelegateAll(obj.UpdateSlave);
-                    IAsyncResult RemAr = RemoteDel.BeginInvoke(p, m, c, RemoteCallback, null);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(p, m, c,fr,pi, RemoteCallback, null);
                 }
                 catch (Exception)
                 {
@@ -127,7 +128,7 @@ namespace Server
 
         public void SetProfile(List<string> replicas, CommonTypes.Profile p)
         {
-            Console.WriteLine("#Start Replicas Setup ");
+            Console.WriteLine("#REP: Profile");
             foreach (var item in replicas)
             {
                 var obj = (IServerServer)Activator.GetObject(
@@ -143,12 +144,12 @@ namespace Server
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
                 }
             }
-            Console.WriteLine("#End Replicas Setup");
+            Console.WriteLine("#End REP");
         }
 
         public void SetContact(List<string> replicas, CommonTypes.Contact c)
         {
-            Console.WriteLine("#Start Replicas Setup ");
+            Console.WriteLine("#REP: Contact");
             foreach (var item in replicas)
             {
                 var obj = (IServerServer)Activator.GetObject(
@@ -164,11 +165,55 @@ namespace Server
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
                 }
             }
-            Console.WriteLine("#End Replicas Setup");
+            Console.WriteLine("#End REP");
+        }
+
+        public void SetFriendRequest(List<string> replicas, CommonTypes.Contact c)
+        {
+            Console.WriteLine("#REP: Friend Request");
+            foreach (var item in replicas)
+            {
+                var obj = (IServerServer)Activator.GetObject(
+                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
+                try
+                {
+                    AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
+                    RemoteAsyncDelegateContact RemoteDel = new RemoteAsyncDelegateContact(obj.UpdateFriendRequest);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(c, RemoteCallback, null);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                }
+            }
+            Console.WriteLine("#End REP");
+        }
+
+        public void SetFriendInvitation(List<string> replicas, CommonTypes.Contact c)
+        {
+            Console.WriteLine("#REP: FriendInvitation");
+            foreach (var item in replicas)
+            {
+                var obj = (IServerServer)Activator.GetObject(
+                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
+                try
+                {
+                    AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
+                    RemoteAsyncDelegateContact RemoteDel = new RemoteAsyncDelegateContact(obj.UpdatePendingInvitation);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(c, RemoteCallback, null);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                }
+            }
+            Console.WriteLine("#End REP");
         }
 
         //FIM REPLICAÇÂO
-        public void SendFriendRequest(Contact c, string IP)
+        #endregion
+
+        public void SendFriendRequest(string IP)
         {
             Console.WriteLine("-->Sending Friend Request.");
             var obj = (IServerServer)Activator.GetObject(
@@ -178,7 +223,7 @@ namespace Server
             {
                 AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackContact);
                 RemoteAsyncDelegateContact RemoteDel = new RemoteAsyncDelegateContact(obj.ReceiveFriendRequest);
-                IAsyncResult RemAr = RemoteDel.BeginInvoke(c, RemoteCallback, null);
+                IAsyncResult RemAr = RemoteDel.BeginInvoke(Server.State.MakeContact(), RemoteCallback, null);
             }
             catch (SocketException)
             {
@@ -222,12 +267,6 @@ namespace Server
             }
         }
 
-        public IList<Message> RequestMessages(int lastSeqNumber)
-        {
-            var res = Server.State.Messages.Where(x => x.FromUserName.Equals(Server.State.Profile.UserName) && x.SeqNumber > lastSeqNumber).ToList();
-            Console.WriteLine("Server: Sending missing Messages.");
-            return res;
-        }
         #endregion
 
 
@@ -237,13 +276,13 @@ namespace Server
         {
             Console.WriteLine("<--Received FR from: " + c.Username + ",address: " + c.IP + ", SeqNumber:" + c.LastMsgSeqNumber);
 
-            Server.State.AddFriendRequest(c);
+            Server.State.AddFriendInvitation(c);
             var lc = new List<Contact>();
             lc.Add(c);
 
             //Pedreiro -verifica se esta um cliente ligado, para actualizar a sua interface
             if (ServerClient.Client != null)
-                ServerClient.Client.UpdateFriendRequest(lc);
+                ServerClient.Client.UpdateFriendInvitation(lc);
         }
 
         public void ReceiveFriendRequestOK(Contact c)
@@ -255,13 +294,12 @@ namespace Server
                 var msg = Server.State.MakeMessage(s);
 
                 Server.State.AddMessage(msg);
-
+                Server.State.RemoveFriendRequest(c);
                 var lm = new List<Message>();
                 lm.Add(msg);
                 ServerClient.Client.UpdatePosts(lm);
                 ServerClient.Client.UpdateFriends(c);
                 BroadCastMessage(msg);
-
                 Server.State.AddContact(c);
             });
         }
@@ -287,21 +325,30 @@ namespace Server
                     }
                 }
                 else
-                {//isto nunca pode ser executado por um secundário - (Pedir mensagens em falta)
+                {
                     var aux = SendRequestMessages(c.IP, c.LastMsgSeqNumber);
                     RefreshLocalMessages(aux, c);
                 }
         }
 
+        public IList<Message> RequestMessages(int lastSeqNumber)
+        {
+            var res = Server.State.Messages.Where(x => x.FromUserName.Equals(Server.State.Profile.UserName) && x.SeqNumber > lastSeqNumber).ToList();
+            Console.WriteLine("Server: Sending missing Messages.");
+            return res;
+        }
+
         public override object InitializeLifetimeService() { return null; }
 
         //REPLICAÇÂO
-        public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c)
+        public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
         {
             Console.WriteLine("<--#START FULL Updating Slave");
             Server.State.UpdateProfile(p);
             Server.State.Messages = m;
             Server.State.Contacts = c;
+            Server.State.FriendRequests = fr;
+            Server.State.PendingInvitations = pi;
             Console.WriteLine("<--#END FULL Updating Slave");
         }
 
@@ -328,6 +375,10 @@ namespace Server
         public void UpdateFriendRequest(Contact c)
         {
             Server.State.AddFriendRequest(c);   
+        }
+        public void UpdatePendingInvitation(Contact c)
+        {
+            Server.State.AddFriendInvitation(c);
         }
 
         //FIM REPLICAÇÂO
