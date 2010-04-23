@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ArrayOfContact xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <Contact>
-    <LastMsgSeqNumber>13</LastMsgSeqNumber>
-    <IP>127.0.0.1:7001</IP>
-    <Username>fsfsd</Username>
-  </Contact>
-</ArrayOfContact>
