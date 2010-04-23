@@ -4,7 +4,7 @@ Implementado:
 - Send a friend request (a mesma politica que o Post Message)
 - Accept/reject a friend request 
 - Refresh view (pergunta a todos os amigos se tem mensagens novas)
-
+- Persistencia de todas alterações de estado do servidor primário para as réplicas
 
 
 

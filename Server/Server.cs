@@ -14,118 +14,54 @@ namespace Server
         public static StateContext ReplicaState;
         public static ServerClient sc;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args">
+        /// /Server ip num_rep
+        /// </param>
         static void Main(string[] args)
         {
-            Console.WriteLine("Welcome - PADIbook Server v1.0");
-
             //forma de obter o endereço ip da máquina sem ser hardcoded :P
             //System.Net.IPAddress[] a = System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName());
             //Console.WriteLine(a[2].ToString());
-            /*
-            //REPLICAÇÂO
-            Console.Write("Do you know replicas? Insert there addresses if so: 127.0.0.1:");
-            var know = Console.ReadLine();
-
-            var localIP = "127.0.0.1:";
-            Console.Write("Enter Port to run: ");
-            var porto = Console.ReadLine();
-            var ip = string.Format(localIP + porto);
-            Console.WriteLine("Running Server on: " + ip);
-
-                //REPLICAÇÂO
-            ReplicaState = new StateContext(new SlaveState());
-            
-            State = new ServerState(ip);
-            sc = new ServerClient();
-
-            if (!know.Equals(""))
-                State.KnownServers.Add(string.Format(localIP + know));
-
-
-            while (true)
+            string address = "";
+            int num_rep = 0;
+            switch (args.Length)
             {
-                var input = Console.ReadLine();
-                if (input.Equals("info"))
-                    ReplicaState.RequestStateInfo();
-            }
-             */
-            var localIP = "127.0.0.1:";
-            int ms = 0;
-            
-            
-            Console.Write("Insert the port for ip 127.0.0.1:");
-            var porto = Console.ReadLine();
-            
-            try
-            {
-                ms = Convert.ToInt32(porto) % 10;
-            }
-            catch(FormatException)
-            {
-                Console.WriteLine("Invalid port");
-            }
-
-            var ip = string.Format(localIP + porto);
-            
-            //Ligar Master Server ou Slave Server
-            switch (ms)
-            {
-                
-                case 1:
-                    Console.WriteLine("Running Server on: " + ip);
-                    //REPLICAÇÂO
-                    ReplicaState = new StateContext(new SlaveState());
-
-                    State = new ServerState(ip);
-                    sc = new ServerClient();
-                    var aux = Convert.ToInt32(porto);
-                    
-                    var slave1 = aux + 1;
-                    var slave2 = aux + 2;
-                    State.KnownServers.Add(string.Format(localIP + slave1.ToString()));
-                    State.KnownServers.Add(string.Format(localIP + slave2.ToString()));
-                    Console.WriteLine("Server automatically knows the following Servers:");
-                    Console.WriteLine(localIP + slave1);
-                    Console.WriteLine(localIP + slave2);
+                case 0:
+                    Console.Write("Enter [IP:Port] to run: ");
+                    address = Console.ReadLine();
+                    Console.Write("Enter number of Replics: ");
+                    num_rep = int.Parse(Console.ReadLine());
                     break;
                 case 2:
-                    Console.WriteLine("Running Server on: " + ip);
-                    //REPLICAÇÂO
-                    ReplicaState = new StateContext(new SlaveState());
-
-                    State = new ServerState(ip);
-                    sc = new ServerClient();
-                    var aux2 = Convert.ToInt32(porto);
-
-                    var slave3 = aux2 - 1;
-                    var slave4 = aux2 + 1;
-                    State.KnownServers.Add(string.Format(localIP + slave3.ToString()));
-                    State.KnownServers.Add(string.Format(localIP + slave4.ToString()));
-                    Console.WriteLine("Server automatically knows the following Servers:");
-                    Console.WriteLine(localIP + slave3);
-                    Console.WriteLine(localIP + slave4);
-                    break;
-                case 3:
-                    Console.WriteLine("Running Server on: " + ip);
-                    //REPLICAÇÂO
-                    ReplicaState = new StateContext(new SlaveState());
-
-                    State = new ServerState(ip);
-                    sc = new ServerClient();
-                    var aux3 = Convert.ToInt32(porto);
-
-                    var slave5 = aux3 - 1;
-                    var slave6 = aux3 - 2;
-                    State.KnownServers.Add(string.Format(localIP + slave5.ToString()));
-                    State.KnownServers.Add(string.Format(localIP + slave6.ToString()));
-                    Console.WriteLine("Server automatically knows the following Servers:");
-                    Console.WriteLine(localIP + slave5);
-                    Console.WriteLine(localIP + slave6);
+                    address = args[0];
+                    num_rep = int.Parse(args[1]);
                     break;
                 default:
+                    Console.WriteLine("Error: Invalid arguments \nServer.exe address number_of_replics");
+                    Console.ReadLine();
+                    System.Environment.Exit(1);
                     break;
-
             }
+            Console.WriteLine("Welcome - PADIbook Server v1.0");
+            Console.WriteLine("Running Server on: " + address);
+            //constroi uma lista com os end. das replicas servers
+            var rep_list = new List<string>();
+            for (int i = 1; i < num_rep + 1; i++)
+            {
+                var a = string.Format(address.Substring(0, address.Length - 1) + "{0}", i);
+                rep_list.Add(a);
+            }
+            rep_list.Remove(address);
+            ;
+            //init
+            ReplicaState = new StateContext(new SlaveState());
+            State = new ServerState(address);
+            sc = new ServerClient();
+            State.KnownServers = rep_list;
+
 
             while (true)
             {
@@ -133,6 +69,8 @@ namespace Server
                 if (input.Equals("info"))
                     ReplicaState.RequestStateInfo();
             }
+
+
         }
     }
 
@@ -147,7 +85,7 @@ namespace Server
         private IList<Contact> _friendRequests;
         //Pedidos recebidos
         private IList<Contact> _pendingInvitations;
-       
+
         public Profile Profile
         {
             get { return _profile; }
@@ -156,7 +94,7 @@ namespace Server
                 lock (Profile)
                 {
                     _profile = value;
-                    SerializeObject(Profile,"Profile");
+                    SerializeObject(Profile, "Profile");
                 }
             }
         }
@@ -168,7 +106,7 @@ namespace Server
                 lock (Messages)
                 {
                     _messages = value;
-                    SerializeObject(Messages,"Messages");
+                    SerializeObject(Messages, "Messages");
                 }
             }
         }
@@ -180,7 +118,7 @@ namespace Server
                 lock (Contacts)
                 {
                     _contacts = value;
-                    SerializeObject(Contacts,"Contacts");
+                    SerializeObject(Contacts, "Contacts");
                 }
             }
         }
@@ -192,7 +130,7 @@ namespace Server
                 lock (FriendRequests)
                 {
                     _friendRequests = value;
-                    SerializeObject(FriendRequests,"FriendRequests");
+                    SerializeObject(FriendRequests, "FriendRequests");
                 }
 
             }
@@ -207,7 +145,7 @@ namespace Server
                 {
                     _pendingInvitations = value;
                     SerializeObject(PendingInvitations, "PendingInvitations");
-                }     
+                }
             }
         }
         public string ServerIP { get; set; }
@@ -320,11 +258,11 @@ namespace Server
             lock (Messages)
             {
                 Messages.Add(m);
-                SerializeObject(Messages,"Messages");
+                SerializeObject(Messages, "Messages");
             }
-                //Replicação
-                ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterMessage(m));
-            
+            //Replicação
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterMessage(m));
+
         }
 
         public Contact MakeContact()
@@ -353,9 +291,9 @@ namespace Server
             lock (Profile)
             {
                 _profile = p;
-                SerializeObject(Profile,"Profile");
+                SerializeObject(Profile, "Profile");
             }
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterProfile(p));          
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterProfile(p));
         }
 
         public void AddFriendRequest(Contact c)
@@ -366,7 +304,7 @@ namespace Server
                 SerializeObject(FriendRequests, "FriendRequests");
             }
             //Replicação
-          ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c));
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c));
         }
 
         public void AddFriendInvitation(Contact c)
@@ -413,12 +351,12 @@ namespace Server
         {
             Server.State.Contacts = (IList<Contact>)Server.State.DeserializeObject(Server.State.Contacts, "Contacts");
             Server.State.Messages = (IList<Message>)Server.State.DeserializeObject(Server.State.Messages, "Messages");
-            Server.State.UpdateProfile((Profile)Server.State.DeserializeObject(Server.State.Profile,"Profile"));
+            Server.State.UpdateProfile((Profile)Server.State.DeserializeObject(Server.State.Profile, "Profile"));
             Server.State.PendingInvitations = (IList<Contact>)Server.State.DeserializeObject(Server.State.PendingInvitations, "PendingInvitations");
             Server.State.FriendRequests = (IList<Contact>)Server.State.DeserializeObject(Server.State.FriendRequests, "FriendRequests");
         }
 
-        private void SerializeObject(Object obj,string file)
+        private void SerializeObject(Object obj, string file)
         {
             var port = ServerIP.Split(':');
             TextWriter tw = new StreamWriter(string.Format("{0} - {1}.xml", port[1], file));
@@ -428,7 +366,7 @@ namespace Server
             tw.Close();
         }
 
-        private Object DeserializeObject(Object obj,string file)
+        private Object DeserializeObject(Object obj, string file)
         {
             try
             {
@@ -442,8 +380,8 @@ namespace Server
             catch (FileNotFoundException)
             {
 
-                SerializeObject(obj,file);
-                Object o = DeserializeObject(obj,file);
+                SerializeObject(obj, file);
+                Object o = DeserializeObject(obj, file);
                 return o;
             }
         }
