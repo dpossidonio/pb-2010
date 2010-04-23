@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfMessage xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Message>
+    <Time>2010-04-23T11:33:38.4467171+01:00</Time>
+    <SeqNumber>0</SeqNumber>
+    <FromUserName />
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:36.4500347+01:00</Time>
+    <SeqNumber>0</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>YUPI!! I have a new friend: tre(127.0.0.1:8001).</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:42.7073926+01:00</Time>
+    <SeqNumber>1</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:47.7866831+01:00</Time>
+    <SeqNumber>2</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:48.4857231+01:00</Time>
+    <SeqNumber>3</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:48.6887347+01:00</Time>
+    <SeqNumber>4</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:48.8877461+01:00</Time>
+    <SeqNumber>5</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:49.0897577+01:00</Time>
+    <SeqNumber>6</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:49.2907692+01:00</Time>
+    <SeqNumber>7</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:49.47978+01:00</Time>
+    <SeqNumber>8</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:49.6467895+01:00</Time>
+    <SeqNumber>9</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:49.8247997+01:00</Time>
+    <SeqNumber>10</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:49.9648077+01:00</Time>
+    <SeqNumber>11</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:52.1809345+01:00</Time>
+    <SeqNumber>1</SeqNumber>
+    <FromUserName>tre</FromUserName>
+    <Post>My Contacts:
+
+
+fsfsd  ,  127.0.0.1:7001</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:34:55.0110964+01:00</Time>
+    <SeqNumber>12</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>My Contacts:
+
+</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:35:00.4194057+01:00</Time>
+    <SeqNumber>2</SeqNumber>
+    <FromUserName>tre</FromUserName>
+    <Post>fdsaf</Post>
+  </Message>
+  <Message>
+    <Time>2010-04-23T11:35:03.2665685+01:00</Time>
+    <SeqNumber>13</SeqNumber>
+    <FromUserName>fsfsd</FromUserName>
+    <Post>fdsaf</Post>
+  </Message>
+</ArrayOfMessage>
