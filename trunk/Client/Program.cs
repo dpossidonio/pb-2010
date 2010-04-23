@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace Client
 {
-    static class Program
+    static class ProgramClient
     {
         /// <summary>
         /// The main entry point for the application.
