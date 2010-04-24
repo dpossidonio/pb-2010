@@ -32,7 +32,7 @@ namespace Server
                 case 0:
                     Console.Write("Enter [IP:Port] to run: ");
                     address = Console.ReadLine();
-                    Console.Write("Enter number of Replics: ");
+                    Console.Write("Enter number of Servers: ");
                     num_rep = int.Parse(Console.ReadLine());
                     break;
                 case 2:

@@ -17,21 +17,38 @@ namespace Client
         private bool Connected { get; set; }
         private Client Client;
 
-        public UIClient(string address,IList<string> server_address)
+        public UIClient(string address, IList<string> server_address)
         {
             InitializeComponent();
-            Init(address,server_address);
+            Init(address, server_address);
             Client = new Client(this);
         }
 
         private void Init(string address, IList<string> server_address)
         {
-            if (!address.Equals("")) {
+            if (!address.Equals(""))
+            {
                 IPtextBox.Text = address;
-                Server1IPtextBox.Text = server_address[0];
-                Server2IPtextBox.Text = server_address[1];
-                Server3IPtextBox.Text = server_address[2];
-                
+                switch (server_address.Count)
+                {
+                    case 1: 
+                        Server1IPtextBox.Text = server_address[0];
+                        Server2IPtextBox.Text = "";
+                        Server3IPtextBox.Text = "";
+                        break;
+                    case 2: 
+                        Server1IPtextBox.Text = server_address[0];
+                        Server2IPtextBox.Text = server_address[1];
+                        Server3IPtextBox.Text = "";
+                        break;
+                    case 3: 
+                        Server1IPtextBox.Text = server_address[0];
+                        Server2IPtextBox.Text = server_address[1];
+                        Server3IPtextBox.Text = server_address[2];
+                        break;
+                    default: break;
+
+                }
             }
             Connected = false;
             GenderComboBox.DataSource = Enum.GetNames(typeof(CommonTypes.Gender));
@@ -55,12 +72,12 @@ namespace Client
             else
             {
                 Client.GetServersAdress(Server1IPtextBox.Text, Server2IPtextBox.Text, Server3IPtextBox.Text);
-                try   
+                try
                 {
                     Client.Connect(IPtextBox.Text);
                     ConnectButton.Visible = false;
                     Connected = true;
-                    this.Text = _client + " - Connected - Server :"+ Client.ConnectedToServer;
+                    this.Text = _client + " - Connected - Server :" + Client.ConnectedToServer;
                 }
                 catch (SocketException)
                 {
@@ -73,12 +90,12 @@ namespace Client
         {
             this.Invoke(new Action(delegate()
             {
-            WallTextBox.Clear();
-            foreach (var m in Client.Messages.OrderBy(x => x.Time))
-            {
+                WallTextBox.Clear();
+                foreach (var m in Client.Messages.OrderBy(x => x.Time))
+                {
                     WallTextBox.Text += m.Time.ToShortTimeString() + " - From: " + m.FromUserName + " - " + m.Post + "\r\n";
-            }
-           }));
+                }
+            }));
         }
 
         private void SendMessageButton_Click(object sender, EventArgs e)
@@ -99,22 +116,22 @@ namespace Client
             Client.Friends = Client.Server.GetFriendsContacts();
             foreach (var item in Client.Friends)
             {
-                contacts +="\r\n" + item.ToString();
+                contacts += "\r\n" + item.ToString();
             }
             if (Client.Friends.Count == 0)
-                contacts+="SNIFF... I dont have any friends.";
+                contacts += "SNIFF... I dont have any friends.";
             var m = Client.Server.Post(contacts);
             Client.Messages.Add(m);
-             MessageTextBox.Text = "";
+            MessageTextBox.Text = "";
             UpdateMessageBox();
-           
+
         }
 
         private void RefreshViewButton_Click(object sender, EventArgs e)
         {
             if (Connected)
             {
-                Client.Server.RefreshView();   
+                Client.Server.RefreshView();
             }
         }
 
