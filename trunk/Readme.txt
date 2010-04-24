@@ -5,29 +5,28 @@ Implementado:
 - Accept/reject a friend request 
 - Refresh view (pergunta a todos os amigos se tem mensagens novas)
 - Persistencia de todas alterações de estado do servidor primário para as réplicas
-
-
+- Comando info no Servidor
 
 Como executar o projecto:
-O projecto pode ser testado correndo cada aplicação em separado( Client e Server)
-ou entao pode se optar por utilizar o projecto de teste.
- 
+O projecto pode ser testado correndo cada aplicação em separado( Client.exe e Server.exe) directamente apartir da pasta dos executáveis.
+Neste Caso seguir os seguintes passos:
 
-1. Executar Teste.exe
+1- Iniciar Server.exe
+2- Indicar qual o endereço na qual este se vai executar (e.g. 127.0.0.1:8001)
+3- Indicar o numero de servidores do cliente
 
-2. Indicar o nº de aplicações cliente que desejamos executar
-(Para cada aplicação aberta também abrirá automaticamente os seus 3 servidores)
+4- Iniciar Client.exe
+5- Indicar o seu endereço na caixa de texto repectiva
+6- Indicar o endereço de pelo menos um servidor
+7- usar a interface grafica do cliente para interagir com o sistema(e.g. dar um username)
 
-3. Indicar em cada 3 servidores os seus portos para cada cliente
-Exemplo:
-Para o cliente com o porto 8000:
-8001 num dos servidores abertos
-8002 "		"	"
-8003 "		"	"
+Ou entao pode se optar por utilizar o executável de teste (Teste.exe), neste caso seguir os seguintes passos:
 
-4. Substituir na aplicação cliente os portos escolhidos em cada um dos seus servidores nos campos definidos para esse efeito.
-
-5. Clicar "Connect"
+1- Iniciar Teste.exe
+2- Introduzir o endereço do cliente (e.g. 127.0.0.1:8000)
+3- Introduzir o numero de servidores do cliente
+4- Na aplicação cliente Clicar em "Connect"
+Repetir os passos (1 a 5) para iniciar mais aplicações do tipo Client e Server.
 
 Nota: Como ainda não foi criado o anel que liga todos os servidores primários de cada cliente, algumas operações requerem que 
 seja preenchido na tab Profile pelo menos o username.

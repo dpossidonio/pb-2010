@@ -44,11 +44,7 @@
   <ItemGroup>
     <Compile Include="BigInteger.cs" />
     <Compile Include="CommonTypes.cs" />
-    <Compile Include="PADIutil.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="TODOlist.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
