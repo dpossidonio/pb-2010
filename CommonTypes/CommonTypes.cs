@@ -12,12 +12,13 @@ namespace CommonTypes
         void ReceiveMessage(Message msg);
         IList<Message> RequestMessages(int lastSeqNumber);
   
+        //Replicação
         void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
         void UpdateMessages(Message msg);
         void UpdateProfile(Profile p);
-        void UpdateContacts(Contact c);
-        void UpdateFriendRequest(Contact c);
-        void UpdatePendingInvitation(Contact c);
+        void UpdateContacts(Contact c,bool updateSeqNumber);
+        void UpdateFriendRequest(Contact c,bool b);
+        void UpdatePendingInvitation(Contact c,bool b);
     }
 
     public interface IServerClient

@@ -18,7 +18,7 @@ namespace Server
         /// 
         /// </summary>
         /// <param name="args">
-        /// /Server ip num_rep
+        /// Server.exe "Address" "Num_Servers"
         /// </param>
         static void Main(string[] args)
         {
@@ -55,7 +55,7 @@ namespace Server
                 rep_list.Add(a);
             }
             rep_list.Remove(address);
-            ;
+            
             //init
             ReplicaState = new StateContext(new SlaveState());
             State = new ServerState(address);
@@ -164,8 +164,165 @@ namespace Server
             KnownServers = new List<string>();
         }
 
+        public Message MakeMessage(string msg)
+        {
+            var m = new Message();
+            m.FromUserName = this.Profile.UserName;
+            m.Post = msg;
+            m.Time = DateTime.Now;
+            m.SeqNumber = ++this.Profile.PostSeqNumber;
+            return m;
+        }
+
+        public void AddMessage(Message m)
+        {
+            lock (Messages)
+            {
+                Messages.Add(m);
+                SerializeObject(Messages, "Messages");
+            }
+            //Replicação
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterMessage(m));
+
+        }
+
+        public Contact MakeContact()
+        {
+            var myContact = new Contact();
+            //Conhece apenas o endereço do servidor do client
+            myContact.IP = Server.State.ServerIP;
+            myContact.Username = Server.State.Profile.UserName;
+            //Enviar o numero de sequencia da ultima mensagem? ou 0 para o amigo pedir todas os post's
+            myContact.LastMsgSeqNumber = Server.State.Profile.PostSeqNumber;
+            return myContact;
+        }
+
+        public void AddContact(Contact c)
+        {
+            lock (Contacts)
+            {
+                Contacts.Add(c);
+                SerializeObject(Contacts, "Contacts");
+            }
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterContact(c,false));
+        }
+
+        public void UpdateProfile(Profile p)
+        {
+            lock (Profile)
+            {
+                _profile = p;
+                SerializeObject(Profile, "Profile");
+            }
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterProfile(p));
+        }
+
+        public void AddFriendRequest(Contact c)
+        {
+            lock (FriendRequests)
+            {
+                FriendRequests.Add(c);
+                SerializeObject(FriendRequests, "FriendRequests");
+            }
+            //Replicação
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c,true));
+        }
+
+        public void RemoveFriendRequest(Contact c)
+        {
+            var caux = FriendRequests.First(x => x.IP.Equals(c.IP));
+            lock (FriendRequests)
+            {
+                FriendRequests.Remove(caux);
+                SerializeObject(FriendRequests, "FriendRequests");
+            }
+            //Replicação
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c, false));
+        }
+
+        public void AddFriendInvitation(Contact c)
+        {
+            lock (PendingInvitations)
+            {
+                PendingInvitations.Add(c);
+                SerializeObject(PendingInvitations, "PendingInvitations");
+            }
+            //Replicação
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterPendingInvitation(c,true));
+        }
+
+        public void RemoveFriendInvitation(Contact c)
+        {
+            var caux = PendingInvitations.First(x => x.IP.Equals(c.IP));
+            lock (PendingInvitations)
+            {
+                PendingInvitations.Remove(caux);
+                SerializeObject(PendingInvitations, "PendingInvitations");
+            }
+            //Replicação
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterPendingInvitation(c, false));
+
+        }
+
+        public void UpdateSeqNumber(Contact c, int seqNumber)
+        {
+            var caux = Contacts.First(x => x.IP.Equals(c.IP));
+            lock (Contacts)
+            {
+                caux.LastMsgSeqNumber = seqNumber;
+                SerializeObject(Contacts, "Contacts");
+            }
+            //Replicação
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterContact(c, true));
+        }
+
+
+        #region Serialize
+        public void DeserializeState()
+        {
+            Server.State.Contacts = (IList<Contact>)Server.State.DeserializeObject(Server.State.Contacts, "Contacts");
+            Server.State.Messages = (IList<Message>)Server.State.DeserializeObject(Server.State.Messages, "Messages");
+            Server.State.UpdateProfile((Profile)Server.State.DeserializeObject(Server.State.Profile, "Profile"));
+            Server.State.PendingInvitations = (IList<Contact>)Server.State.DeserializeObject(Server.State.PendingInvitations, "PendingInvitations");
+            Server.State.FriendRequests = (IList<Contact>)Server.State.DeserializeObject(Server.State.FriendRequests, "FriendRequests");
+        }
+
+        private void SerializeObject(Object obj, string file)
+        {
+            var port = ServerIP.Split(':');
+            TextWriter tw = new StreamWriter(string.Format("{0} - {1}.xml", port[1], file));
+            Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
+            Serializer.Serialize(tw, obj);
+            //Console.WriteLine(obj + " written to file: " + obj.GetType() + ".xml");
+            tw.Close();
+        }
+
+        private Object DeserializeObject(Object obj, string file)
+        {
+            try
+            {
+                var port = ServerIP.Split(':');
+                TextReader tr = new StreamReader(string.Format("{0} - {1}.xml", port[1], file));
+                Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
+                var fileP = Serializer.Deserialize(tr);
+                tr.Close();
+                return fileP;
+            }
+            catch (FileNotFoundException)
+            {
+
+                SerializeObject(obj, file);
+                Object o = DeserializeObject(obj, file);
+                return o;
+            }
+        }
+        #endregion 
+
+        #region Print Server State
+
         public void PrintInfo()
         {
+            PrintServers();
             PrintProfile();
             PrintFriendRequests();
             PrintPendingInvitations();
@@ -189,12 +346,22 @@ namespace Server
             Console.WriteLine("**********************************");
         }
 
+        public void PrintServers()
+        {
+            Console.WriteLine("*************Replics*************");
+            foreach (var item in KnownServers)
+            {
+                Console.WriteLine(item.ToString());
+            }
+            Console.WriteLine("**********************************");
+        }
+
         public void PrintContacts()
         {
             Console.WriteLine("*************CONTACTS*************");
             foreach (var item in Contacts)
             {
-                Console.WriteLine(item.ToString());
+                Console.WriteLine("Addr:{0} - UserName:{1} - MsgSeqNumber:{2}", item.IP, item.Username, item.LastMsgSeqNumber);
             }
             Console.WriteLine("**********************************");
         }
@@ -243,148 +410,8 @@ namespace Server
             Console.WriteLine("**********************************");
         }
 
-        public Message MakeMessage(string msg)
-        {
-            var m = new Message();
-            m.FromUserName = this.Profile.UserName;
-            m.Post = msg;
-            m.Time = DateTime.Now;
-            m.SeqNumber = ++this.Profile.PostSeqNumber;
-            return m;
-        }
+        #endregion
 
-        public void AddMessage(Message m)
-        {
-            lock (Messages)
-            {
-                Messages.Add(m);
-                SerializeObject(Messages, "Messages");
-            }
-            //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterMessage(m));
-
-        }
-
-        public Contact MakeContact()
-        {
-            var myContact = new Contact();
-            //Conhece apenas o endereço do servidor do client
-            myContact.IP = Server.State.ServerIP;
-            myContact.Username = Server.State.Profile.UserName;
-            //Enviar o numero de sequencia da ultima mensagem? ou 0 para o amigo pedir todas os post's
-            myContact.LastMsgSeqNumber = Server.State.Profile.PostSeqNumber;
-            return myContact;
-        }
-
-        public void AddContact(Contact c)
-        {
-            lock (Contacts)
-            {
-                Contacts.Add(c);
-                SerializeObject(Contacts, "Contacts");
-            }
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterContact(c));
-        }
-
-        public void UpdateProfile(Profile p)
-        {
-            lock (Profile)
-            {
-                _profile = p;
-                SerializeObject(Profile, "Profile");
-            }
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterProfile(p));
-        }
-
-        public void AddFriendRequest(Contact c)
-        {
-            lock (FriendRequests)
-            {
-                FriendRequests.Add(c);
-                SerializeObject(FriendRequests, "FriendRequests");
-            }
-            //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c));
-        }
-
-        public void AddFriendInvitation(Contact c)
-        {
-            lock (PendingInvitations)
-            {
-                PendingInvitations.Add(c);
-                SerializeObject(PendingInvitations, "PendingInvitations");
-            }
-            //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterPendingInvitation(c));
-        }
-
-        public void RemoveFriendRequest(Contact c)
-        {
-            var caux = FriendRequests.First(x => x.IP.Equals(c.IP));
-            lock (FriendRequests)
-            {
-                FriendRequests.Remove(caux);
-                SerializeObject(FriendRequests, "FriendRequests");
-            }
-        }
-
-        public void RemoveFriendInvitation(Contact c)
-        {
-            var caux = PendingInvitations.First(x => x.IP.Equals(c.IP));
-            lock (PendingInvitations)
-            {
-                PendingInvitations.Remove(caux);
-                SerializeObject(PendingInvitations, "PendingInvitations");
-            }
-        }
-
-        public void UpdateSeqNumber(Contact c, int seqNumber)
-        {
-            lock (Contacts)
-            {
-                c.LastMsgSeqNumber = seqNumber;
-                SerializeObject(Contacts, "Contacts");
-            }
-        }
-
-        public void DeserializeState()
-        {
-            Server.State.Contacts = (IList<Contact>)Server.State.DeserializeObject(Server.State.Contacts, "Contacts");
-            Server.State.Messages = (IList<Message>)Server.State.DeserializeObject(Server.State.Messages, "Messages");
-            Server.State.UpdateProfile((Profile)Server.State.DeserializeObject(Server.State.Profile, "Profile"));
-            Server.State.PendingInvitations = (IList<Contact>)Server.State.DeserializeObject(Server.State.PendingInvitations, "PendingInvitations");
-            Server.State.FriendRequests = (IList<Contact>)Server.State.DeserializeObject(Server.State.FriendRequests, "FriendRequests");
-        }
-
-        private void SerializeObject(Object obj, string file)
-        {
-            var port = ServerIP.Split(':');
-            TextWriter tw = new StreamWriter(string.Format("{0} - {1}.xml", port[1], file));
-            Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
-            Serializer.Serialize(tw, obj);
-            //Console.WriteLine(obj + " written to file: " + obj.GetType() + ".xml");
-            tw.Close();
-        }
-
-        private Object DeserializeObject(Object obj, string file)
-        {
-            try
-            {
-                var port = ServerIP.Split(':');
-                TextReader tr = new StreamReader(string.Format("{0} - {1}.xml", port[1], file));
-                Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
-                var fileP = Serializer.Deserialize(tr);
-                tr.Close();
-                return fileP;
-            }
-            catch (FileNotFoundException)
-            {
-
-                SerializeObject(obj, file);
-                Object o = DeserializeObject(obj, file);
-                return o;
-            }
-        }
     }
     #endregion
 }

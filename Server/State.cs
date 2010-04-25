@@ -15,9 +15,9 @@ namespace Server
         void AddMessage(StateContext context, CommonTypes.Message msg);
         //regista profile
         void ReplicateProfile(StateContext context, CommonTypes.Profile profile);
-        void ReplicateContacts(StateContext context, CommonTypes.Contact contact);
-        void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact);
-        void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact);
+        void ReplicateContacts(StateContext context, CommonTypes.Contact contact,bool updateSeqNumber);
+        void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b);
+        void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact,bool b);
         //fazer o set do slave
         void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
     }
@@ -34,9 +34,9 @@ namespace Server
         public void ChangeState() { State.Change(this); }
         public void RegisterMessage(CommonTypes.Message msg) { State.AddMessage(this, msg); }
         public void RegisterProfile(CommonTypes.Profile profile) { State.ReplicateProfile(this, profile); }
-        public void RegisterContact(CommonTypes.Contact contact) { State.ReplicateContacts(this, contact); }
-        public void RegisterFriendRequest(CommonTypes.Contact contact) { State.ReplicateFriendRequest(this, contact); }
-        public void RegisterPendingInvitation(CommonTypes.Contact contact) { State.ReplicatePendingInvitation(this, contact); }
+        public void RegisterContact(CommonTypes.Contact contact,bool updateSeqNumber) { State.ReplicateContacts(this, contact,updateSeqNumber); }
+        public void RegisterFriendRequest(CommonTypes.Contact contact,bool b) { State.ReplicateFriendRequest(this, contact,b); }
+        public void RegisterPendingInvitation(CommonTypes.Contact contact,bool b) { State.ReplicatePendingInvitation(this, contact,b); }
         public void InitReplica(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) { State.SetReplica(this, p, m, c,fr,pi); }
     }
 
@@ -50,9 +50,7 @@ namespace Server
             Console.WriteLine("--------------------------------------------------------------");
             Console.WriteLine("-----------------  IM IN MASTER STATE ------------------------");
             Console.WriteLine("-------------------- {0} --------------------------",Server.State.ServerIP);
-
-            Server.State.PrintInfo();
-           
+            Server.State.PrintInfo();        
         }
 
         public void Change(StateContext context)
@@ -74,24 +72,23 @@ namespace Server
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
         {
-            Server.sc.ServerServer.SetProfile(Server.State.KnownServers, profile);
+            Server.sc.ServerServer.SetProfile(Server.State.KnownServers, profile);           
+        }
+
+        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact,bool updateSeqNumber)
+        {
+            Server.sc.ServerServer.SetContact(Server.State.KnownServers, contact,updateSeqNumber);
+        }
+
+        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b)
+        {
+            Server.sc.ServerServer.SetFriendRequest(Server.State.KnownServers, contact,b);
             
         }
 
-        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact)
+        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact,bool b)
         {
-            Server.sc.ServerServer.SetContact(Server.State.KnownServers, contact);
-        }
-
-        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact)
-        {
-            Server.sc.ServerServer.SetFriendRequest(Server.State.KnownServers, contact);
-            
-        }
-
-        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact)
-        {
-            Server.sc.ServerServer.SetFriendInvitation(Server.State.KnownServers, contact);  
+            Server.sc.ServerServer.SetFriendInvitation(Server.State.KnownServers, contact,b);  
         }
 
         #endregion
@@ -121,24 +118,26 @@ namespace Server
             Console.WriteLine("SLAVE: ADDING THIS MSG: " + msg.Post);           
         }
 
-        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) { }
+        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) {
+            Console.WriteLine("SLAVE: FULL Update from Master."); 
+        }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
         {      
             Console.WriteLine("SLAVE: Saving Profile.");
         }
 
-        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact)
+        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact,bool updateSeqNumber)
         {
             Console.WriteLine("SLAVE: Adding/Updating Contact.");
         }
 
-        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact)
+        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b)
         {
             Console.WriteLine("SLAVE: Adding/Updating FriendRequest.");
         }
 
-        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact)
+        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact,bool b)
         {
             Console.WriteLine("SLAVE: Adding/Updating PendingInvitation.");
         }
