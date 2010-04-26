@@ -90,7 +90,7 @@ namespace Client
             props["port"] = int.Parse(ip.Split(':')[1]);
             props["timeout"] = 1000; // in miliseconds
             TcpChannel channel = new TcpChannel(props, null, provider);
-            ChannelServices.RegisterChannel(channel, true);
+            ChannelServices.RegisterChannel(channel, false);
             InitChannel = true;
 
             RemotingServices.Marshal(this, "IClient", typeof(IClient));
