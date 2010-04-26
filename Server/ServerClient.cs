@@ -23,7 +23,7 @@ namespace Server
         private void Registration()
         {
             TcpChannel channel = new TcpChannel(int.Parse(Server.State.ServerIP.Split(':')[1]));
-            ChannelServices.RegisterChannel(channel, true);
+            ChannelServices.RegisterChannel(channel, false);
 
             RemotingServices.Marshal(this, "IServerClient", typeof(IServerClient));
             RemotingServices.Marshal(this.ServerServer, "IServerServer", typeof(IServerServer));
