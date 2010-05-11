@@ -14,6 +14,8 @@ namespace Server
         public static StateContext ReplicaState;
         public static ServerClient sc;
 
+        public static ChordNode node;
+
         /// <summary>
         /// 
         /// </summary>
@@ -62,16 +64,28 @@ namespace Server
             sc = new ServerClient();
             State.KnownServers = rep_list;
 
-
             while (true)
             {
                 var input = Console.ReadLine();
                 if (input.Equals("info"))
                     ReplicaState.RequestStateInfo();
+
+                //chord
+                if (input.Equals("join"))
+                {
+                    Console.Write("Input ip:");
+                    input = Console.ReadLine();
+                    Console.WriteLine("Going to join a ChordRing! at {0}",input);
+                    ThreadPool.QueueUserWorkItem((object o) => sc.ServerServer.ChordJoin(input));
+                    
+                }
+
+                if(input.Equals("ring"))
+                    Console.WriteLine(sc.ServerServer.PrintSucessores());
             }
 
-
         }
+
     }
 
     #region ServerState
@@ -98,6 +112,7 @@ namespace Server
                 }
             }
         }
+
         public IList<Message> Messages
         {
             get { return _messages; }
@@ -110,6 +125,7 @@ namespace Server
                 }
             }
         }
+
         public IList<Contact> Contacts
         {
             get { return _contacts; }
@@ -122,6 +138,7 @@ namespace Server
                 }
             }
         }
+
         public IList<Contact> FriendRequests
         {
             get { return _friendRequests; }

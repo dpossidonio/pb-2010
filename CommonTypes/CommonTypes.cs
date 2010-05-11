@@ -19,6 +19,15 @@ namespace CommonTypes
         void UpdateContacts(Contact c,bool updateSeqNumber);
         void UpdateFriendRequest(Contact c,bool b);
         void UpdatePendingInvitation(Contact c,bool b);
+
+        //ChordFunctions
+        object[] ChordNodeRequestingToJoin(string ip);
+        void ChordNodeRequestingToLeave();
+
+        void SetSucessor(string iss);
+        void SetSucessor2(string iss);
+        void SetPredecessor(string iss);
+        string GetServerIP();
     }
 
     public interface IServerClient
