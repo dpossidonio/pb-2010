@@ -12,13 +12,97 @@ namespace Server
     public class ServerServer : MarshalByRefObject, IServerServer
     {
         public ServerClient ServerClient;
+        public ChordNode node;
 
         public ServerServer(ServerClient sc)
         {
             ServerClient = sc;
+            node = new ChordNode();
         }
 
-        #region OUTBOUND
+        /// <summary>
+        /// OUTBOUND
+        /// </summary>
+
+#region OUTBOUND
+
+        public void SendFriendRequest(string IP)
+        {
+            Console.WriteLine("-->Sending Friend Request.");
+            var obj = (IServerServer)Activator.GetObject(
+               typeof(IServerServer),
+               string.Format("tcp://{0}/IServerServer", IP));
+            try
+            {
+                AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackContact);
+                RemoteAsyncDelegateContact RemoteDel = new RemoteAsyncDelegateContact(obj.ReceiveFriendRequest);
+                IAsyncResult RemAr = RemoteDel.BeginInvoke(Server.State.MakeContact(), RemoteCallback, null);
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("-->The Server with the address {0} does not respond.", IP);
+            }
+        }
+
+        public IList<Message> SendRequestMessages(string IP, int lastSeqNumber)
+        {
+            Console.WriteLine("-->Sending Request Messages to:{0} with SeqNumber > {1}", IP, lastSeqNumber);
+            var obj = (IServerServer)Activator.GetObject(
+               typeof(IServerServer),
+               string.Format("tcp://{0}/IServerServer", IP));
+            var res = new List<Message>();
+            try
+            {
+                res = (List<Message>)obj.RequestMessages(lastSeqNumber);
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("-->The Server with the address {0} does not respond.", IP);
+            }
+            return res;
+        }
+
+        public void SendFriendRequestConfirmation(Contact c, string IP)
+        {
+            Console.WriteLine("-->Sending Confirmation to Friend Request.");
+            var obj = (IServerServer)Activator.GetObject(
+                   typeof(IServerServer),
+                   string.Format("tcp://{0}/IServerServer", IP));
+            try
+            {
+                AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackContact);
+                RemoteAsyncDelegateContact RemoteDel = new RemoteAsyncDelegateContact(obj.ReceiveFriendRequestOK);
+                IAsyncResult RemAr = RemoteDel.BeginInvoke(c, RemoteCallback, null);
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("-->The Server with the address {0} does not respond.", IP);
+            }
+        }
+
+        public void BroadCastMessage(Message msg)
+        {
+            Console.WriteLine("#Start BroadCasting Message with SeqNumber:" + msg.SeqNumber);
+            foreach (var item in Server.State.Contacts)
+            {
+                //TODO: IP do Servidor do Cliente ou IP do Clente??
+                //var friend_server_ip = item.IP.Substring(0, item.IP.Length - 1) + "1";
+                var obj = (IServerServer)Activator.GetObject(
+                typeof(IServerServer),
+                string.Format("tcp://{0}/IServerServer", item.IP.Trim()));
+                try
+                {
+                    AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackMessage);
+                    RemoteAsyncDelegateMessage RemoteDel = new RemoteAsyncDelegateMessage(obj.ReceiveMessage);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(msg, RemoteCallback, null);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("-->The Server with the address {0} does not respond.", item.IP);
+                }
+            }
+            Console.WriteLine("#End BroadCasting Message");
+        }
 
         #region Delegates & Asyncs
 
@@ -64,30 +148,6 @@ namespace Server
         }
 
         #endregion
-
-        public void BroadCastMessage(Message msg)
-        {
-            Console.WriteLine("#Start BroadCasting Message with SeqNumber:" + msg.SeqNumber);
-            foreach (var item in Server.State.Contacts)
-            {
-                //TODO: IP do Servidor do Cliente ou IP do Clente??
-                //var friend_server_ip = item.IP.Substring(0, item.IP.Length - 1) + "1";
-                var obj = (IServerServer)Activator.GetObject(
-                typeof(IServerServer),
-                string.Format("tcp://{0}/IServerServer", item.IP.Trim()));
-                try
-                {
-                    AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackMessage);
-                    RemoteAsyncDelegateMessage RemoteDel = new RemoteAsyncDelegateMessage(obj.ReceiveMessage);
-                    IAsyncResult RemAr = RemoteDel.BeginInvoke(msg, RemoteCallback, null);
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("-->The Server with the address {0} does not respond.", item.IP);
-                }
-            }
-            Console.WriteLine("#End BroadCasting Message");
-        }
 
         #region Replication
         //REPLICAÇÂO
@@ -221,64 +281,50 @@ namespace Server
         //FIM REPLICAÇÂO
         #endregion
 
-        public void SendFriendRequest(string IP)
+        #region ChordNodeStuff
+
+        public void ChordJoin(string ip)
         {
-            Console.WriteLine("-->Sending Friend Request.");
-            var obj = (IServerServer)Activator.GetObject(
-               typeof(IServerServer),
-               string.Format("tcp://{0}/IServerServer", IP));
-            try
-            {
-                AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackContact);
-                RemoteAsyncDelegateContact RemoteDel = new RemoteAsyncDelegateContact(obj.ReceiveFriendRequest);
-                IAsyncResult RemAr = RemoteDel.BeginInvoke(Server.State.MakeContact(), RemoteCallback, null);
-            }
-            catch (SocketException)
-            {
-                Console.WriteLine("-->The Server with the address {0} does not respond.", IP);
-            }
+           node.SetID(Server.State.Profile.UserName);
+           node.Predecessor = (IServerServer)Activator.GetObject(typeof(IServerServer), string.Format("tcp://{0}/IServerServer", ip));
+           object[] o = node.Predecessor.ChordNodeRequestingToJoin(Server.State.ServerIP);
+           node.Sucessor = (IServerServer)Activator.GetObject(typeof(IServerServer), string.Format("tcp://{0}/IServerServer", o[0]));
+           node.Sucessor2 = (IServerServer)Activator.GetObject(typeof(IServerServer),string.Format("tcp://{0}/IServerServer", o[1]));
+           
         }
 
-        public IList<Message> SendRequestMessages(string IP, int lastSeqNumber)
+        public void ChordLeave()
         {
-            Console.WriteLine("-->Sending Request Messages to:{0} with SeqNumber > {1}", IP, lastSeqNumber);
-            var obj = (IServerServer)Activator.GetObject(
-               typeof(IServerServer),
-               string.Format("tcp://{0}/IServerServer", IP));
-            var res = new List<Message>();
-            try
-            {
-                res = (List<Message>)obj.RequestMessages(lastSeqNumber);
-            }
-            catch (SocketException)
-            {
-                Console.WriteLine("-->The Server with the address {0} does not respond.", IP);
-            }
-            return res;
+
         }
 
-        public void SendFriendRequestConfirmation(Contact c, string IP)
+        //função de debug para ver se o anel está realmente bem formado
+        public string PrintSucessores()
         {
-            Console.WriteLine("-->Sending Confirmation to Friend Request.");
-            var obj = (IServerServer)Activator.GetObject(
-                   typeof(IServerServer),
-                   string.Format("tcp://{0}/IServerServer", IP));
-            try
+            string s = "none";
+            if (node.HasSucessor() && node.HasSucessor2())
             {
-                AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackContact);
-                RemoteAsyncDelegateContact RemoteDel = new RemoteAsyncDelegateContact(obj.ReceiveFriendRequestOK);
-                IAsyncResult RemAr = RemoteDel.BeginInvoke(c, RemoteCallback, null);
+                s = "Sucessor: " + node.Sucessor.GetServerIP() +"\nSucessor2: " + node.Sucessor2.GetServerIP() +"\nPredecessor: " + node.Predecessor.GetServerIP();
+                return s;
             }
-            catch (SocketException)
+            else if (node.HasSucessor())
             {
-                Console.WriteLine("-->The Server with the address {0} does not respond.", IP);
+                s = "Sucessor: " + node.Sucessor.GetServerIP() + "\nPredecessor: " + node.Predecessor.GetServerIP();
+                return s;
             }
+            else
+                return s;
         }
 
         #endregion
 
+#endregion
 
-        #region INBOUND - IServerServer Members
+        /// <summary>
+        /// INBOUND
+        /// </summary>
+
+#region INBOUND - IServerServer Members
 
         public void ReceiveFriendRequest(Contact c)
         {
@@ -348,7 +394,23 @@ namespace Server
 
         public override object InitializeLifetimeService() { return null; }
 
-        //REPLICAÇÂO
+        public void RefreshLocalMessages(IList<Message> msgs, Contact c)
+        {
+            if (msgs != null && msgs.Count > 0)
+            {
+                foreach (var item in msgs)
+                {
+                    Server.State.AddMessage(item);
+                }
+                Server.State.UpdateSeqNumber(c, msgs.Max(x => x.SeqNumber));
+
+                //pedreiro
+                if (ServerClient.Client != null)
+                    ServerClient.Client.UpdatePosts(msgs);
+            }
+        }
+
+        #region REPLICAÇÂO
         public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
         {
             Console.WriteLine("<--#START FULL Updating Slave");
@@ -359,7 +421,6 @@ namespace Server
             Server.State.PendingInvitations = pi;
             Console.WriteLine("<--#END FULL Updating Slave");
         }
-
 
         public void UpdateMessages(Message msg)
         {
@@ -386,29 +447,68 @@ namespace Server
             if (b) Server.State.AddFriendRequest(c);
             else Server.State.RemoveFriendRequest(c);
         }
+
         public void UpdatePendingInvitation(Contact c,bool b)
         {
             if (b) Server.State.AddFriendInvitation(c);
             else Server.State.RemoveFriendInvitation(c);
         }
 
-        //FIM REPLICAÇÂO
         #endregion
 
-        public void RefreshLocalMessages(IList<Message> msgs, Contact c)
-        {
-            if (msgs != null && msgs.Count > 0)
-            {
-                foreach (var item in msgs)
-                {
-                    Server.State.AddMessage(item);
-                }
-                Server.State.UpdateSeqNumber(c, msgs.Max(x => x.SeqNumber));
+        #region ChordNode
 
-                //pedreiro
-                if (ServerClient.Client != null)
-                    ServerClient.Client.UpdatePosts(msgs);
+        //funções auxiliares
+        public void SetSucessor(string ip) { node.Sucessor = (IServerServer)Activator.GetObject(typeof(IServerServer), string.Format("tcp://{0}/IServerServer", ip)); }
+        public void SetSucessor2(string ip) { node.Sucessor2 = (IServerServer)Activator.GetObject(typeof(IServerServer), string.Format("tcp://{0}/IServerServer", ip)); }
+        public void SetPredecessor(string ip) { node.Predecessor = (IServerServer)Activator.GetObject(typeof(IServerServer), string.Format("tcp://{0}/IServerServer", ip)); }
+        public string GetServerIP() { return Server.State.ServerIP; }
+
+        public object[] ChordNodeRequestingToJoin(string ip)
+        {
+            //tá implementado de forma a que o nó que pede para entrar é posto à frente do nó que já estava no anel
+
+            var v = (IServerServer)Activator.GetObject(typeof(IServerServer), string.Format("tcp://{0}/IServerServer", ip));
+            //lista de sucessores que tinha
+            if (!node.HasPredecessor() && !node.HasSucessor2() && !node.HasSucessor())
+            {
+                node.Predecessor = v;
+                node.Sucessor = v;
+                node.Sucessor2 = (IServerServer)Activator.GetObject(typeof(IServerServer),
+                        string.Format("tcp://{0}/IServerServer", Server.State.ServerIP));
+
+                object[] aux = {Server.State.ServerIP,ip };
+                return aux;
             }
+
+            object[] auxx = { node.Sucessor.GetServerIP(), node.Sucessor2.GetServerIP() };
+            
+            //o predecessor do meu sucessor agora é o novo no que pus no anel
+            if(node.HasSucessor())
+                node.Sucessor.SetPredecessor(ip);
+
+            //tenho de alterar o meu predecessor e dizer que o seu novo sucessor2 é quem eu pus no anel
+            if(node.HasPredecessor())
+                node.Predecessor.SetSucessor2(ip);
+
+            //eu tenho de alterar os meus sucessores
+            node.Sucessor2 = node.Sucessor;
+            node.Sucessor = v;
+       
+            return auxx;
         }
+
+        public void ChordNodeRequestingToLeave()
+        {
+
+        }
+
+
+
+        #endregion
+
+#endregion
+
+
     }
 }
