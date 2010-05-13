@@ -248,6 +248,7 @@
             // 
             this.UserNameTextBox.Location = new System.Drawing.Point(161, 40);
             this.UserNameTextBox.Name = "UserNameTextBox";
+            this.UserNameTextBox.ReadOnly = true;
             this.UserNameTextBox.Size = new System.Drawing.Size(100, 20);
             this.UserNameTextBox.TabIndex = 1;
             // 

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CommonTypes
 {
@@ -22,12 +20,22 @@ namespace CommonTypes
 
         //ChordFunctions
         object[] ChordNodeRequestingToJoin(string ip);
-        void ChordNodeRequestingToLeave();
+        void ChordNodeRequestingToLeave(string ips2);
 
         void SetSucessor(string iss);
         void SetSucessor2(string iss);
         void SetPredecessor(string iss);
+
+        void SetSucessorData(string ip);
+        void SetSucessor2Data(string ip);
+        void SetPredecessorData(string ip);
+
         string GetServerIP();
+        uint GetServerIDName();
+        uint GetServerIDSexAge();
+        List<uint> GetServerIDInterest();
+
+        string Lookup(uint id);
     }
 
     public interface IServerClient
@@ -46,7 +54,7 @@ namespace CommonTypes
 
         void RefreshView();
 
-        //Lookup();
+        //Search(string campo);
     }
 
     public interface IClient
