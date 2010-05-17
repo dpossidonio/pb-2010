@@ -31,7 +31,6 @@ namespace Server
             return;
         }
 
-        //pode-se melhorar isto se der para passar qualquer coisa void*(o VOID* em liguagem OO é Object) para o RemoteAsyncDelegate
         private delegate void RemoteAsyncDelegateContact(Contact c);
         private static void OurRemoteAsyncCallBackContact(IAsyncResult ar)
         {
@@ -56,11 +55,68 @@ namespace Server
             return;
         }
 
+        private delegate void RemoteAsyncDelegateInitQuorum(string ip);
+        private static void OurRemoteAsyncDelegateInitQuorum(IAsyncResult ar)
+        {
+            RemoteAsyncDelegateInitQuorum del = (RemoteAsyncDelegateInitQuorum)((AsyncResult)ar).AsyncDelegate;
+            del.EndInvoke(ar);
+            return;
+        }
+
         #endregion
+
+        public void PingReplicationServers()
+        {
+            Console.WriteLine("#REP: Ping Replicated Servers");
+            var failed_servers = new List<string>();
+            foreach (var item in Server.State.ReplicationServers)
+            {
+                var obj = (IServerServer)Activator.GetObject(
+                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
+
+                try
+                {
+                    obj.Ping();
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                    failed_servers.Add(item);  
+                }
+            }
+            UpdateAvailableServers(failed_servers);
+            Console.WriteLine("#End REP");
+        }
+
+        public void InitReplication(List<string> destinations)
+        {
+            Console.WriteLine("#REP: Looking for Replicated Servers");
+            var failed_servers = new List<string>();
+            foreach (var item in destinations)
+            {
+                var obj = (IServerServer)Activator.GetObject(
+                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
+
+                try
+                {
+                    AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncDelegateInitQuorum);
+                    RemoteAsyncDelegateInitQuorum RemoteDel = new RemoteAsyncDelegateInitQuorum(obj.StatusRequest);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(Server.State.ServerIP, RemoteCallback, null);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                    failed_servers.Add(item);
+                }
+            }
+            UpdateAvailableServers(failed_servers);
+            Console.WriteLine("#End REP");
+        }
 
         public void ReplicateMessage(List<string> destinations, Message msg)
         {
             Console.WriteLine("#REP: Message with SeqNumber:" + msg.SeqNumber);
+            var failed_servers = new List<string>();
             foreach (var item in destinations)
             {
                 var obj = (IServerServer)Activator.GetObject(
@@ -75,14 +131,17 @@ namespace Server
                 catch (Exception)
                 {
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                    failed_servers.Add(item);
                 }
             }
+            UpdateAvailableServers(failed_servers);
             Console.WriteLine("#End REP");
         }
 
         public void SetSlave(List<string> replicas, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
         {
             Console.WriteLine("#Start Replicas Setup ");
+            var failed_servers = new List<string>();
             foreach (var item in replicas)
             {
                 var obj = (IServerServer)Activator.GetObject(
@@ -96,14 +155,18 @@ namespace Server
                 catch (Exception)
                 {
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                    failed_servers.Add(item);
                 }
             }
+            UpdateAvailableServers(failed_servers);
             Console.WriteLine("#End Replicas Setup");
         }
 
         public void SetProfile(List<string> replicas, CommonTypes.Profile p)
         {
             Console.WriteLine("#REP: Profile");
+            var failed_servers = new List<string>();
+
             foreach (var item in replicas)
             {
                 var obj = (IServerServer)Activator.GetObject(
@@ -117,14 +180,17 @@ namespace Server
                 catch (Exception)
                 {
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                    failed_servers.Add(item);                                     
                 }
             }
+            UpdateAvailableServers(failed_servers);
             Console.WriteLine("#End REP Profile");
         }
 
         public void SetContact(List<string> replicas, CommonTypes.Contact c, bool updateSeqNumber)
         {
             Console.WriteLine("#REP: Contact");
+            var failed_servers = new List<string>();
             foreach (var item in replicas)
             {
                 var obj = (IServerServer)Activator.GetObject(
@@ -138,14 +204,18 @@ namespace Server
                 catch (Exception)
                 {
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                    failed_servers.Add(item);
                 }
             }
+            UpdateAvailableServers(failed_servers);
             Console.WriteLine("#End REP Contact");
         }
 
         public void SetFriendRequest(List<string> replicas, CommonTypes.Contact c, bool b)
         {
             Console.WriteLine("#REP: Friend Request");
+            var failed_servers = new List<string>();
+
             foreach (var item in replicas)
             {
                 var obj = (IServerServer)Activator.GetObject(
@@ -158,15 +228,20 @@ namespace Server
                 }
                 catch (Exception)
                 {
+                    Server.State.ReplicationServers.Remove(item);
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                    failed_servers.Add(item);
                 }
             }
+            UpdateAvailableServers(failed_servers);
             Console.WriteLine("#End REP Friend Request");
         }
 
         public void SetFriendInvitation(List<string> replicas, CommonTypes.Contact c, bool b)
         {
             Console.WriteLine("#REP: FriendInvitation");
+            var failed_servers = new List<string>();
+
             foreach (var item in replicas)
             {
                 var obj = (IServerServer)Activator.GetObject(
@@ -180,14 +255,20 @@ namespace Server
                 catch (Exception)
                 {
                     Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
+                    Server.State.ReplicationServers.Remove(item);
+                    failed_servers.Add(item);
                 }
             }
+            UpdateAvailableServers(failed_servers);
             Console.WriteLine("#End REP FriendInvitation");
         }
 
         /// <summary>
         /// INBOUND
         /// </summary>
+
+        public void Ping() {}
+        public void StatusRequest(string ip) { }
 
         public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
         {
@@ -232,5 +313,12 @@ namespace Server
             else Server.State.RemoveFriendInvitation(c);
         }
 
+        /// <summary>
+        ///  UTIL
+        /// </summary>
+        /// <param name="failed_servers"></param>
+        private void UpdateAvailableServers(List<string> failed_servers){       
+        Server.State.ReplicationServers = Server.State.ReplicationServers.Except(failed_servers).ToList();
+        }
     }
 }

@@ -61,34 +61,34 @@ namespace Server
         public void AddMessage(StateContext stateContext, CommonTypes.Message msg)
         {
             Console.WriteLine("MASTER: UPDATING THE MESSAGES IN SLAVES");
-            Server.sc.ServerServer.ReplicateMessage(Server.State.KnownServers, msg);
+            Server.sc.ServerServer.ReplicateMessage(Server.State.ReplicationServers, msg);
         }
 
         public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
         {
             Console.WriteLine("MASTER: UPDATING ALL SLAVES CONTENT");
-            Server.sc.ServerServer.SetSlave(Server.State.KnownServers, p, m, c,fr,pi);
+            Server.sc.ServerServer.SetSlave(Server.State.ReplicationServers, p, m, c,fr,pi);
         }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
         {
-            Server.sc.ServerServer.SetProfile(Server.State.KnownServers, profile);           
+            Server.sc.ServerServer.SetProfile(Server.State.ReplicationServers, profile);           
         }
 
         public void ReplicateContacts(StateContext context, CommonTypes.Contact contact,bool updateSeqNumber)
         {
-            Server.sc.ServerServer.SetContact(Server.State.KnownServers, contact,updateSeqNumber);
+            Server.sc.ServerServer.SetContact(Server.State.ReplicationServers, contact,updateSeqNumber);
         }
 
         public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b)
         {
-            Server.sc.ServerServer.SetFriendRequest(Server.State.KnownServers, contact,b);
+            Server.sc.ServerServer.SetFriendRequest(Server.State.ReplicationServers, contact,b);
             
         }
 
         public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact,bool b)
         {
-            Server.sc.ServerServer.SetFriendInvitation(Server.State.KnownServers, contact,b);  
+            Server.sc.ServerServer.SetFriendInvitation(Server.State.ReplicationServers, contact,b);  
         }
 
         #endregion

@@ -89,7 +89,7 @@ namespace Server
         private XmlSerializer Serializer;
 
         //REPLICAÇÂO
-        public List<string> KnownServers { get; set; }
+        public List<string> ReplicationServers { get; set; }
 
         public ServerState(string ip)
         {
@@ -99,7 +99,7 @@ namespace Server
             _contacts = new List<Contact>();
             _friendRequests = new List<Contact>();
             _pendingInvitations = new List<Contact>();
-            KnownServers = new List<string>();
+            ReplicationServers = new List<string>();
         }
 
         public Message MakeMessage(string msg)
@@ -289,7 +289,7 @@ namespace Server
         public void PrintServers()
         {
             Console.WriteLine("*************Replics*************");
-            foreach (var item in KnownServers)
+            foreach (var item in ReplicationServers)
             {
                 Console.WriteLine(item.ToString());
             }

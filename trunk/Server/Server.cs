@@ -31,11 +31,11 @@ namespace Server
                     //paiva-alterei isso para fazer debug mais rapido é so apagar isso e descomentar o que está em baixo.
                     Console.Write("Enter [Port] to run: ");
                     address = "127.0.0.1:" + Console.ReadLine();
-                    num_rep = 0;
+                    //num_rep = 0;
                     //Console.Write("Enter [IP:Port] to run: ");
                     //address = Console.ReadLine();
-                    //Console.Write("Enter number of Servers: ");
-                    //num_rep = int.Parse(Console.ReadLine());
+                    Console.Write("Enter number of Servers: ");
+                    num_rep = int.Parse(Console.ReadLine());
                     break;
                 case 2:
                     address = args[0];
@@ -47,6 +47,7 @@ namespace Server
                     System.Environment.Exit(1);
                     break;
             }
+            num_rep = num_rep % 10;
             Console.WriteLine("Welcome - PADIbook Server v1.0");
             Console.WriteLine("Running Server on: " + address);
             //constroi uma lista com os end. das replicas servers
@@ -62,7 +63,7 @@ namespace Server
             ReplicaState = new StateContext(new SlaveState());
             State = new ServerState(address);
             sc = new ServerClient();
-            State.KnownServers = rep_list;
+            State.ReplicationServers = rep_list;
 
             while (true)
             {

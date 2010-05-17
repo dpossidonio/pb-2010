@@ -19,12 +19,14 @@ namespace Teste
             string[] CurrentDirectory = Regex.Split(c, "Teste");
             string ClientDirectory = CurrentDirectory[0] + "Client\\bin\\Debug\\Client.exe";
             string ServerDirectory = CurrentDirectory[0] + "Server\\bin\\Debug\\Server.exe";
-            //string ClientDirectory = "Client.exe";
+           // string ClientDirectory = "Client.exe";
             //string ServerDirectory = "Server.exe";
             while (true)
             {
-                Console.Write("Client's Adress: ");
-                var client_address = Console.ReadLine();
+                Console.Write("Client's Adress: 127.0.0.1:");
+                var client_address = "127.0.0.1:" + Console.ReadLine();
+
+                //var client_address = Console.ReadLine();
                 Console.Write("Number of Servers: ");
                 var num_replic = int.Parse(Console.ReadLine());
                 try

@@ -41,41 +41,40 @@ namespace Server
             });
         }
 
+        private void IsSystemDown() {
+            //if (Server.State.ReplicationServers.Count == 0)
+            //    throw new QuorumException(0, this);
+        }
+
         #region IServerClient Members
 
-        public void Freeze() { }
-
         public Message Post(string message)
-        {          
-            var m = Server.State.MakeMessage(message);           
-            //REPLICAÇÂO - DaVID- isto pode ir para a mesma classe ServerServer?
-            //Server.ReplicaState.RegisterMessage(m);
+        {
+            IsSystemDown();
+            var m = Server.State.MakeMessage(message);
 
             Server.State.AddMessage(m);
 
-                //Actualiza no profile o numero de sequencia dos seus posts
-                Server.State.UpdateProfile(Server.State.Profile);
-            
+            //Actualiza no profile o numero de sequencia dos seus posts
+            Server.State.UpdateProfile(Server.State.Profile);
+
             ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
             return m;
+            
         }
 
         public void PostFriendRequest(string address)
         {
+            IsSystemDown();
             var c = new Contact();
             c.IP = address;
             Server.State.AddFriendRequest(c);
             ThreadPool.QueueUserWorkItem((object o) => ServerServer.SendFriendRequest(address));
         }
 
-        /// <summary>
-        ///  If client accepts the invitation, send confirmation to the new friend
-        /// </summary>
-        /// <param name="c"></param>
-        /// <param name="accept"></param>
-        /// <returns></returns>
         public Message RespondToFriendRequest(Contact c, bool accept)
         {
+            IsSystemDown();
             var msg = new Message();
             if (accept)
             {
@@ -96,6 +95,7 @@ namespace Server
 
         public void RefreshView()
         {
+            IsSystemDown();
             ThreadPool.QueueUserWorkItem((object o) =>
             {
                 Console.WriteLine("Server: Refresh View");
@@ -109,6 +109,7 @@ namespace Server
 
         public void UpdateProfile(Profile profile)
         {
+            IsSystemDown();
             Console.WriteLine("Client: Update Profile");
             Server.State.UpdateProfile(profile);
         }
@@ -133,6 +134,7 @@ namespace Server
 
         public IList<Message> GetMessages()
         {
+          
             Console.WriteLine("Client: Messages");
             return Server.State.Messages;
         }
@@ -148,8 +150,6 @@ namespace Server
         {
             return null;
         }
-
-
         #endregion
     
     }

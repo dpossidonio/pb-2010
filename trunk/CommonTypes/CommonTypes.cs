@@ -11,6 +11,8 @@ namespace CommonTypes
         IList<Message> RequestMessages(int lastSeqNumber);
   
         //Replicação
+        void Ping();
+        void StatusRequest(string ip);
         void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
         void UpdateMessages(Message msg);
         void UpdateProfile(Profile p);
@@ -46,12 +48,10 @@ namespace CommonTypes
         IList<Contact> GetPendingInvitations();
         Profile GetProfile();
 
-        void Freeze();
         void UpdateProfile(Profile profile);
         Message Post(string message);
         void PostFriendRequest(string address);
         Message RespondToFriendRequest(Contact c, bool accept);
-
         void RefreshView();
 
         //Search(string campo);
@@ -59,8 +59,6 @@ namespace CommonTypes
 
     public interface IClient
     {
-        //Call by the new coordinator server
-        void Coordinator(string IP);
         void UpdateFriendInvitation(IList<Contact> FriendRequests);
         void UpdatePosts(IList<Message> NewPosts);
         void UpdateFriends(Contact Friend);
@@ -112,6 +110,38 @@ namespace CommonTypes
 
         public override string ToString() {
             return string.Format("{0}  ,  {1}", Username, IP);
+        }
+    }
+
+    /// <summary>
+    ///  Exception lanched when que Quorum has only 1 Server
+    /// </summary>
+    [Serializable]
+    public class QuorumException : ApplicationException
+    {
+        public int Number_Of_Servers;
+        public IServerClient mo;  //proprio objecto k lançou a excepçao
+
+        public QuorumException(int c, IServerClient mo)
+        {
+            Number_Of_Servers = c;
+            this.mo = mo;
+        }
+
+        public QuorumException(System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+            Number_Of_Servers = info.GetInt32("numberOfAvailableServers");
+            mo = (IServerClient)info.GetValue("mo", typeof(IServerClient));
+        }
+
+        public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("numberOfAvailableServers", Number_Of_Servers);
+            info.AddValue("mo", mo);
         }
     }
 }
