@@ -14,6 +14,7 @@ namespace Client
     public class Client : MarshalByRefObject, IClient
     {
         public IServerClient Server { get; set; }
+        public string ClientAddress { get; set; }
         public string ConnectedToServer { get; set; }
         public Queue<string> ServerAdress { get; set; }
         public UIClient ClientForm;
@@ -33,10 +34,11 @@ namespace Client
 
         public void Connect(string ip)
         {
+            ClientAddress = ip;
             if (!InitChannel)
-                RegChannel(ip);
+                RegChannel();
 
-            ConnectToServer(ip);
+            ConnectToServer();
 
             Profile = Server.GetProfile();
             ClientForm.LoadProfile(Profile);
@@ -62,7 +64,7 @@ namespace Client
                 ServerAdress.Enqueue(srv3);
         }
 
-        private void ConnectToServer(string ip)
+        public void ConnectToServer()
         {
             while (ServerAdress.Count != 0)
             {
@@ -72,7 +74,8 @@ namespace Client
                     Server = (IServerClient)Activator.GetObject(
                      typeof(IServerClient),
                      string.Format("tcp://{0}/IServerClient", ConnectedToServer));
-                    Server.Connect(ip);
+                    Server.Connect(this.ClientAddress);
+                    ClientForm.UpdateServerInformation();
                     break;
                 }
                 catch (SocketException)
@@ -80,14 +83,14 @@ namespace Client
                     Console.WriteLine();
                 }
             }
-
         }
 
-        private void RegChannel(string ip)
+        private void RegChannel()
         {
             BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
             IDictionary props = new Hashtable();
-            props["port"] = int.Parse(ip.Split(':')[1]);
+            var adr = this.ClientAddress;
+            props["port"] = int.Parse(adr.Split(':')[1]);
             props["timeout"] = 1000; // in miliseconds
             TcpChannel channel = new TcpChannel(props, null, provider);
             ChannelServices.RegisterChannel(channel, false);
@@ -98,11 +101,6 @@ namespace Client
 
 
         #region IClient Members
-
-        void IClient.Coordinator(string IP)
-        { //is this right?
-            //TODO
-        }
 
         void IClient.UpdateFriendInvitation(IList<Contact> FriendRequests)
         {
@@ -118,9 +116,10 @@ namespace Client
             ClientForm.UpdateMessageBox();
         }
 
-        void IClient.UpdateFriends(Contact Friend)
+        void IClient.UpdateFriends(Contact friend)
         {
-            ClientForm.UpdateFriendsContacts(Friend);
+            ClientForm.UpdateFriendsContacts(friend);
+            this.Friends.Add(friend);
         }
 
         public override object InitializeLifetimeService()

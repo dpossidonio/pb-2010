@@ -1,27 +1,30 @@
 ﻿Falta Fazer:
 
-- Enviar os pedidos para todos os outros servidores locais
-
 -  quando eles ficam amigos como é tratado este caso? vao pedir quantas mensagens?
   
 -  FALTA TRATAR A EXcepção quando o FRiend nao esta disponivel e guardar o pedido
 
-- Falta fazer o Refreshview que pede aos seus amigos (até 100 amigos por exemplo) se lhe enviaram mensagens enquando este esteve indisponivel.
-(ta kuase feito)
-
-
 
 Alterar?
- 
- Paulo-> Quando respondo positivamente a um friend request respondo ao emissor, caso contario nao digo nada?
  
  - Alterar o friend request para receber o endereço do client, e só quando este vai
 enviar mensagens para o amigo , troca o porto por 1,2,3 (nao percebi ainda isto)
 
-
+- Tolerancia a falhas
+  o Servidor primário nao faz ping aos restantes, assim ele só sabe se os outros falharam após iniciar o processo
+  de replicação. Isto significa que ele tem no máximo uma alteração caso fique sem servidores secundários
 
 
 Dúvidas:
+
+ - O freeze é para ser enviado tambem pelo cliente para o servidor primário? ou apenas aplicado na interface do servidor
+ - Usando o freeze, se uma replica fica muito lenta então podemos considerar que jão nao faz parte da replicação?
+ - Se o Servidor primário nao faz ping aos restantes e se os outros falharam após iniciar o processo
+  de replicação. Podemos considerar que caso fique sem servidores secundários e o sistema para o cliente fica indisponivel, e o 
+  servidor fica com uma alteração que apenas foi efectuada no seu estado?
+ 
+ 
+ 
 - Depois de confirmar a amizade devemos receber mensagens antigaS do novo amigo?
 R.Nuno: Acho que isso fica ao nosso critério e sinceramente não faz muito sentido.
 

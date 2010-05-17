@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using CommonTypes;
 using System.Net.Sockets;
+using System.Runtime.Remoting;
 
 namespace Client
 {
@@ -53,7 +50,10 @@ namespace Client
             Connected = false;
             GenderComboBox.DataSource = Enum.GetNames(typeof(CommonTypes.Gender));
             GenderComboBox.SelectedIndex = -1;
-            InterestsComboBox.DataSource = Enum.GetNames(typeof(CommonTypes.Interest));
+            var interests = Enum.GetNames(typeof(CommonTypes.Interest)).ToList();
+
+            //call
+            FillInterestsComboBox(interests);
             InterestsComboBox.SelectedIndex = -1;
             for (int i = 1; i < 101; i++)
             {
@@ -62,6 +62,7 @@ namespace Client
             //Friends tab
             friendsTextBox.Text = "   Friend Server      -         Friend Username\r\n";
         }
+
 
         #region Home
 
@@ -77,13 +78,20 @@ namespace Client
                     Client.Connect(IPtextBox.Text);
                     ConnectButton.Visible = false;
                     Connected = true;
-                    this.Text = _client + " - Connected - Server :" + Client.ConnectedToServer;
+                    
                 }
                 catch (SocketException)
                 {
                     MessageBox.Show("Could not locate server.");
                 }
             }
+        }
+
+        public void UpdateServerInformation() {
+            this.Invoke(new Action(delegate()
+            {
+                this.Text = _client + " - Connected - Server :" + Client.ConnectedToServer;
+            }));
         }
 
         public void UpdateMessageBox()
@@ -102,18 +110,29 @@ namespace Client
         {
             if (Connected && !MessageTextBox.Text.Equals(""))
             {
-                //ao mandar uma msg ele retorna a msg k mandou que é adicionada à lista de msg local e publicada na wall
-                var m = Client.Server.Post(MessageTextBox.Text);
-                MessageTextBox.Text = "";
-                Client.Messages.Add(m);
-                UpdateMessageBox();
+                try
+                {
+                    //ao mandar uma msg ele retorna a msg k mandou que é adicionada à lista de msg local e publicada na wall
+                    var m = Client.Server.Post(MessageTextBox.Text);
+                    MessageTextBox.Text = "";
+                    Client.Messages.Add(m);
+                    UpdateMessageBox();
+                }
+                catch (SocketException)
+                {
+                    Client.ConnectToServer();
+                    this.SendMessageButton_Click(sender, e);
+                }
+                catch (QuorumException)
+                {
+                    MessageTextBox.Text = "Exceção!";
+                }
             }
         }
 
         private void listContacts_Click(object sender, EventArgs e)
         {
             string contacts = "My Contacts:\n\n";
-            Client.Friends = Client.Server.GetFriendsContacts();
             foreach (var item in Client.Friends)
             {
                 contacts += "\r\n" + item.ToString();
@@ -147,26 +166,43 @@ namespace Client
                 AgeComboBox.SelectedIndex = p.Age - 1;
                 GenderComboBox.SelectedIndex = p.Gender.GetHashCode();
                 UpdateInterests();
-                InterestsComboBox.DataSource = Enum.GetNames(typeof(CommonTypes.Interest));
             }));
         }
 
+        private void FillInterestsComboBox(List<string> interests) {
+            InterestsComboBox.Items.Clear();
+            foreach (var interest in interests)
+            {
+                InterestsComboBox.Items.Add(interest);
+            }
+        }
         private void UpdateInterests()
         {
+            var all_interests = Enum.GetNames(typeof(CommonTypes.Interest)).ToList();
+            var profile_interests = new List<string>();
             InterestsTextBox.Text = "";
+   
             foreach (var item in Client.Profile.Interests)
             {
+                profile_interests.Add(item.ToString());        
                 InterestsTextBox.Text += item.ToString() + ",";
             }
+            List<string> equal = all_interests.Except(profile_interests).ToList();
+            FillInterestsComboBox(equal);
         }
 
         private void AddInterestsButton_Click(object sender, EventArgs e)
         {
-            if (Connected)
+            if (Connected && InterestsComboBox.SelectedItem != null)
             {
-                var a = Enum.Parse(typeof(CommonTypes.Interest), InterestsComboBox.SelectedItem.ToString());
-                Client.Profile.Interests.Add((Interest)a);
-                UpdateInterests();
+                if (Client.Profile.Interests.Count < 6)
+                {
+                    var a = Enum.Parse(typeof(CommonTypes.Interest), InterestsComboBox.SelectedItem.ToString());
+                    Client.Profile.Interests.Add((Interest)a);
+                    InterestsComboBox.Items.Remove(InterestsComboBox.SelectedItem);
+                    UpdateInterests();
+                }
+                else MessageBox.Show("It's only possible to add 6 Interests!");
             }
         }
 
@@ -241,7 +277,6 @@ namespace Client
             {
                 var c = (Contact)friendsReqComboBox.SelectedItem;
                 var m = Client.Server.RespondToFriendRequest(c, true);
-                Client.Friends.Add(c);
                 Client.Messages.Add(m);
                 UpdateFriendsContacts(c);
                 UpdateMessageBox();
