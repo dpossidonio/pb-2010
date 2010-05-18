@@ -21,14 +21,13 @@ namespace Server
         public string ServerIP { get; set; }
         private XmlSerializer Serializer;
         public List<string> ReplicationServers { get; set; }
-        public bool ServerFreeze { get; set; }
         public int Delay { get; set; }
         public int FreezePeriod { get; set; }
         public DateTime FreezeTimeOver { get; set; }
 
         public void VerifyFreeze()
         {
-            if (Server.State.ServerFreeze && FreezeTimeOver >= DateTime.Now)
+            if (FreezeTimeOver >= DateTime.Now)
                 Thread.Sleep(Server.State.Delay);
         }
 
@@ -41,7 +40,6 @@ namespace Server
             _friendRequests = new List<Contact>();
             _pendingInvitations = new List<Contact>();
             ReplicationServers = new List<string>();
-            ServerFreeze = false;
         }
 
         public Profile Profile
