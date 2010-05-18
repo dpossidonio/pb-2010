@@ -24,10 +24,11 @@ namespace Server
         public bool ServerFreeze { get; set; }
         public int Delay { get; set; }
         public int FreezePeriod { get; set; }
+        public DateTime FreezeTimeOver { get; set; }
 
         public void VerifyFreeze()
         {
-            if (Server.State.ServerFreeze)
+            if (Server.State.ServerFreeze && FreezeTimeOver >= DateTime.Now)
                 Thread.Sleep(Server.State.Delay);
         }
 
