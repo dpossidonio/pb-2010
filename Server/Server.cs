@@ -70,6 +70,18 @@ namespace Server
                 var input = Console.ReadLine();
                 if (input.Equals("info"))
                     ReplicaState.RequestStateInfo();
+                if (input.Equals("freeze"))
+                {
+                    Console.Write("Freeze Period: ");
+                    input = Console.ReadLine();
+                    Console.Write("Delay: ");
+                    var input2 = Console.ReadLine();
+                    State.Delay = int.Parse(input2);
+                    State.FreezePeriod = int.Parse(input);
+                    State.ServerFreeze = true;
+                    Console.Write("Freeze Period: {0}", State.FreezePeriod);
+                    Console.Write("Delay: {0}", State.Delay);
+                }
 
                 //chord
                 if (input.Equals("join"))

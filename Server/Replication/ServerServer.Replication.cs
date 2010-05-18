@@ -302,21 +302,25 @@ namespace Server
 
         public void UpdateMessages(Message msg)
         {
+            Server.State.VerifyFreeze();
             Server.State.AddMessage(msg);
         }
 
         public void UpdateContacts(Contact c)
         {
+            Server.State.VerifyFreeze();
             Server.State.AddContact(c);
         }
 
         public void UpdateProfile(Profile p)
         {
+            Server.State.VerifyFreeze();
             Server.State.UpdateProfile(p);
         }
 
         public void UpdateFriendRequest(Contact c, bool b)
         {
+            Server.State.VerifyFreeze();
             Console.WriteLine("SLAVE: Adding/Updating FriendRequest.");
             if (b) Server.State.CommitAddFriendRequest(c);
             else Server.State.CommitRemoveFriendRequest(c);
@@ -324,6 +328,7 @@ namespace Server
 
         public void UpdatePendingInvitation(Contact c, bool b)
         {
+            Server.State.VerifyFreeze();
             Console.WriteLine("SLAVE: Adding/Updating PendingInvitation.");
             if (b) Server.State.CommitAddFriendInvitation(c);
             else Server.State.CommitRemoveFriendInvitation(c);

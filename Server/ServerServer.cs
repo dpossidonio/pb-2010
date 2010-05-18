@@ -107,9 +107,11 @@ namespace Server
         /// <summary>
         /// INBOUND
         /// </summary>
+        /// 
 
         public void ReceiveFriendRequest(Contact c)
         {
+            Server.State.VerifyFreeze();
             Console.WriteLine("<--Received FR from: " + c.Username + ",address: " + c.IP + ", SeqNumber:" + c.LastMsgSeqNumber);
 
             Server.State.AddFriendInvitation(c);
@@ -130,6 +132,7 @@ namespace Server
 
         public void ReceiveFriendRequestOK(Contact c)
         {
+            Server.State.VerifyFreeze();
             Console.WriteLine("<--Received confirmation of a FR send to:" + c.Username + ",address:" + c.IP + ",SeqNumber:" + c.LastMsgSeqNumber);
             ThreadPool.QueueUserWorkItem((object o) =>
             {
@@ -160,6 +163,7 @@ namespace Server
 
         public void ReceiveMessage(Message msg)
         {
+            Server.State.VerifyFreeze();
             Console.WriteLine("<--Received post from:{0} SeqNumber:{1} Post:{2}", msg.FromUserName, msg.SeqNumber, msg.Post);
             Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
             if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
@@ -187,6 +191,7 @@ namespace Server
 
         public IList<Message> RequestMessages(int lastSeqNumber)
         {
+            Server.State.VerifyFreeze();
             var res = Server.State.Messages.Where(x => x.FromUserName.Equals(Server.State.Profile.UserName) && x.SeqNumber > lastSeqNumber).ToList();
             Console.WriteLine("Server: Sending missing Messages.");
             return res;
@@ -196,6 +201,7 @@ namespace Server
 
         public void RefreshLocalMessages(IList<Message> msgs, Contact c)
         {
+            Server.State.VerifyFreeze();
             if (msgs != null && msgs.Count > 0)
             {
                 foreach (var item in msgs)
