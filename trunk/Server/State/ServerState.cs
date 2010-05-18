@@ -18,6 +18,21 @@ namespace Server
         //Pedidos recebidos
         private IList<Contact> _pendingInvitations;
 
+        public string ServerIP { get; set; }
+        private XmlSerializer Serializer;
+        public List<string> ReplicationServers { get; set; }
+
+        public ServerState(string ip)
+        {
+            ServerIP = ip;
+            _profile = new Profile();
+            _messages = new List<Message>();
+            _contacts = new List<Contact>();
+            _friendRequests = new List<Contact>();
+            _pendingInvitations = new List<Contact>();
+            ReplicationServers = new List<string>();
+        }
+
         public Profile Profile
         {
             get { return _profile; }
@@ -84,24 +99,6 @@ namespace Server
             }
         }
 
-        public string ServerIP { get; set; }
-
-        private XmlSerializer Serializer;
-
-        //REPLICAÇÂO
-        public List<string> ReplicationServers { get; set; }
-
-        public ServerState(string ip)
-        {
-            ServerIP = ip;
-            _profile = new Profile();
-            _messages = new List<Message>();
-            _contacts = new List<Contact>();
-            _friendRequests = new List<Contact>();
-            _pendingInvitations = new List<Contact>();
-            ReplicationServers = new List<string>();
-        }
-
         public Message MakeMessage(string msg)
         {
             var m = new Message();
@@ -113,16 +110,19 @@ namespace Server
         }
 
         public void AddMessage(Message m)
+        {  //Replicação
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterMessage(m));
+        }
+
+        public void CommitMessage(Message m)
         {
             lock (Messages)
             {
                 Messages.Add(m);
                 SerializeObject(Messages, "Messages");
             }
-            //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterMessage(m));
-
         }
+
 
         public Contact MakeContact()
         {
@@ -137,36 +137,52 @@ namespace Server
 
         public void AddContact(Contact c)
         {
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterContact(c));
+        }
+
+        public void CommitContact(Contact c) {
             lock (Contacts)
             {
                 Contacts.Add(c);
                 SerializeObject(Contacts, "Contacts");
-            }
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterContact(c, false));
+            }    
         }
 
         public void UpdateProfile(Profile p)
         {
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterProfile(p));
+        }
+
+        public void CommitProfile(Profile p) {
             lock (Profile)
             {
                 _profile = p;
                 SerializeObject(Profile, "Profile");
             }
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterProfile(p));
         }
 
         public void AddFriendRequest(Contact c)
+        {
+            //Replicação
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c, true));
+        }
+
+        public void CommitAddFriendRequest(Contact c)
         {
             lock (FriendRequests)
             {
                 FriendRequests.Add(c);
                 SerializeObject(FriendRequests, "FriendRequests");
             }
-            //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c, true));
         }
 
         public void RemoveFriendRequest(Contact c)
+        {
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c, false));
+        }
+
+
+        public void CommitRemoveFriendRequest(Contact c)
         {
             var caux = FriendRequests.First(x => x.IP.Equals(c.IP));
             lock (FriendRequests)
@@ -174,22 +190,29 @@ namespace Server
                 FriendRequests.Remove(caux);
                 SerializeObject(FriendRequests, "FriendRequests");
             }
-            //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c, false));
         }
 
+
         public void AddFriendInvitation(Contact c)
+        {
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterPendingInvitation(c, true));
+        }
+
+        public void CommitAddFriendInvitation(Contact c)
         {
             lock (PendingInvitations)
             {
                 PendingInvitations.Add(c);
                 SerializeObject(PendingInvitations, "PendingInvitations");
             }
-            //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterPendingInvitation(c, true));
         }
 
         public void RemoveFriendInvitation(Contact c)
+        {
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterPendingInvitation(c, false));
+        }
+
+        public void CommitRemoveFriendInvitation(Contact c)
         {
             var caux = PendingInvitations.First(x => x.IP.Equals(c.IP));
             lock (PendingInvitations)
@@ -197,9 +220,6 @@ namespace Server
                 PendingInvitations.Remove(caux);
                 SerializeObject(PendingInvitations, "PendingInvitations");
             }
-            //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterPendingInvitation(c, false));
-
         }
 
         public void UpdateSeqNumber(Contact c, int seqNumber)
@@ -211,7 +231,7 @@ namespace Server
                 SerializeObject(Contacts, "Contacts");
             }
             //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterContact(c, true));
+            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterContact(c));
         }
 
 

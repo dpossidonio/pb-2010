@@ -116,13 +116,14 @@ namespace Client
                     var m = Client.Server.Post(MessageTextBox.Text);
                     MessageTextBox.Text = "";
                     Client.Messages.Add(m);
-                    UpdateMessageBox();
-                }
-                catch (SocketException)
-                {
-                    Client.ConnectToServer();
-                    this.SendMessageButton_Click(sender, e);
-                }
+                    UpdateMessageBox();               
+               }
+                    //EM MODO DEBUG com breakpoint's no Servidor Não!
+                //catch (SocketException)
+                //{
+                //    Client.ConnectToServer();
+                //    this.SendMessageButton_Click(sender, e);
+                //}
                 catch (QuorumException)
                 {
                     MessageTextBox.Text = "Exceção!";

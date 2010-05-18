@@ -56,7 +56,7 @@ namespace Server
             Server.State.AddMessage(m);
 
             //Actualiza no profile o numero de sequencia dos seus posts
-            Server.State.UpdateProfile(Server.State.Profile);
+            Server.State.Profile = Server.State.Profile;
 
             ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
             return m;

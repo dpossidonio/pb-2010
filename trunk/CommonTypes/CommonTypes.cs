@@ -16,7 +16,7 @@ namespace CommonTypes
         void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
         void UpdateMessages(Message msg);
         void UpdateProfile(Profile p);
-        void UpdateContacts(Contact c,bool updateSeqNumber);
+        void UpdateContacts(Contact c);
         void UpdateFriendRequest(Contact c,bool b);
         void UpdatePendingInvitation(Contact c,bool b);
 
