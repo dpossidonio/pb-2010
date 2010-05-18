@@ -39,13 +39,23 @@ namespace Server
             return;
         }
 
-        private delegate void RemoteAsyncDelegateUpdateContact(Contact c, bool b);
+        private delegate void RemoteAsyncDelegateUpdateContact(Contact c);
         private static void OurRemoteAsyncCallBackUpdateContact(IAsyncResult ar)
         {
             RemoteAsyncDelegateUpdateContact del = (RemoteAsyncDelegateUpdateContact)((AsyncResult)ar).AsyncDelegate;
             del.EndInvoke(ar);
             return;
         }
+
+
+        private delegate void RemoteAsyncDelegateUpdateFriendRequest(Contact c,bool request);
+        private static void OurRemoteAsyncCallBackUpdateFriendRequest(IAsyncResult ar)
+        {
+            RemoteAsyncDelegateUpdateFriendRequest del = (RemoteAsyncDelegateUpdateFriendRequest)((AsyncResult)ar).AsyncDelegate;
+            del.EndInvoke(ar);
+            return;
+        }
+
 
         private delegate void RemoteAsyncDelegateAll(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
         private static void OurRemoteAsyncCallBackAll(IAsyncResult ar)
@@ -135,6 +145,15 @@ namespace Server
                 }
             }
             UpdateAvailableServers(failed_servers);
+            if (Server.State.ReplicationServers.Count >= 1)
+            {
+                Console.WriteLine("#Message Commited!");
+                Server.State.CommitMessage(msg);
+            }
+            else {
+                Console.WriteLine("### Service Unnavailable ###");           
+            }
+
             Console.WriteLine("#End REP");
         }
 
@@ -187,7 +206,7 @@ namespace Server
             Console.WriteLine("#End REP Profile");
         }
 
-        public void SetContact(List<string> replicas, CommonTypes.Contact c, bool updateSeqNumber)
+        public void SetContact(List<string> replicas, CommonTypes.Contact c)
         {
             Console.WriteLine("#REP: Contact");
             var failed_servers = new List<string>();
@@ -199,7 +218,7 @@ namespace Server
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
                     RemoteAsyncDelegateUpdateContact RemoteDel = new RemoteAsyncDelegateUpdateContact(obj.UpdateContacts);
-                    IAsyncResult RemAr = RemoteDel.BeginInvoke(c, updateSeqNumber, RemoteCallback, null);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(c, RemoteCallback, null);
                 }
                 catch (Exception)
                 {
@@ -223,7 +242,7 @@ namespace Server
                 try
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
-                    RemoteAsyncDelegateUpdateContact RemoteDel = new RemoteAsyncDelegateUpdateContact(obj.UpdateFriendRequest);
+                    RemoteAsyncDelegateUpdateFriendRequest RemoteDel = new RemoteAsyncDelegateUpdateFriendRequest(obj.UpdateFriendRequest);
                     IAsyncResult RemAr = RemoteDel.BeginInvoke(c, b, RemoteCallback, null);
                 }
                 catch (Exception)
@@ -249,7 +268,7 @@ namespace Server
                 try
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
-                    RemoteAsyncDelegateUpdateContact RemoteDel = new RemoteAsyncDelegateUpdateContact(obj.UpdatePendingInvitation);
+                    RemoteAsyncDelegateUpdateFriendRequest RemoteDel = new RemoteAsyncDelegateUpdateFriendRequest(obj.UpdatePendingInvitation);
                     IAsyncResult RemAr = RemoteDel.BeginInvoke(c, b, RemoteCallback, null);
                 }
                 catch (Exception)
@@ -272,28 +291,23 @@ namespace Server
 
         public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
         {
-            Console.WriteLine("<--#START FULL Updating Slave");
-            Server.State.UpdateProfile(p);
+            Console.WriteLine("<--#START FULL Updating State from Master");
+            Server.State.CommitProfile(p);
             Server.State.Messages = m;
             Server.State.Contacts = c;
             Server.State.FriendRequests = fr;
             Server.State.PendingInvitations = pi;
-            Console.WriteLine("<--#END FULL Updating Slave");
+            Console.WriteLine("<--#END FULL Updating State from Master");
         }
 
         public void UpdateMessages(Message msg)
         {
             Server.State.AddMessage(msg);
-            if (msg.FromUserName == Server.State.Profile.UserName)
-                Server.State.Profile.PostSeqNumber = msg.SeqNumber;
-            else //Se der excepção aki é porque os Contactos ainda n foram actualizados
-                Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName)).LastMsgSeqNumber = msg.SeqNumber;
         }
 
-        public void UpdateContacts(Contact c, bool updateSeqNumber)
+        public void UpdateContacts(Contact c)
         {
-            if (updateSeqNumber) Server.State.UpdateSeqNumber(c, c.LastMsgSeqNumber);
-            else Server.State.AddContact(c);
+            Server.State.AddContact(c);
         }
 
         public void UpdateProfile(Profile p)
@@ -303,14 +317,16 @@ namespace Server
 
         public void UpdateFriendRequest(Contact c, bool b)
         {
-            if (b) Server.State.AddFriendRequest(c);
-            else Server.State.RemoveFriendRequest(c);
+            Console.WriteLine("SLAVE: Adding/Updating FriendRequest.");
+            if (b) Server.State.CommitAddFriendRequest(c);
+            else Server.State.CommitRemoveFriendRequest(c);
         }
 
         public void UpdatePendingInvitation(Contact c, bool b)
         {
-            if (b) Server.State.AddFriendInvitation(c);
-            else Server.State.RemoveFriendInvitation(c);
+            Console.WriteLine("SLAVE: Adding/Updating PendingInvitation.");
+            if (b) Server.State.CommitAddFriendInvitation(c);
+            else Server.State.CommitRemoveFriendInvitation(c);
         }
 
         /// <summary>

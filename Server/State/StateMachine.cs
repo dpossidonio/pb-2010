@@ -15,7 +15,7 @@ namespace Server
         void AddMessage(StateContext context, CommonTypes.Message msg);
         //regista profile
         void ReplicateProfile(StateContext context, CommonTypes.Profile profile);
-        void ReplicateContacts(StateContext context, CommonTypes.Contact contact,bool updateSeqNumber);
+        void ReplicateContacts(StateContext context, CommonTypes.Contact contac);
         void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b);
         void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact,bool b);
         //fazer o set do slave
@@ -34,7 +34,7 @@ namespace Server
         public void ChangeState() { State.Change(this); }
         public void RegisterMessage(CommonTypes.Message msg) { State.AddMessage(this, msg); }
         public void RegisterProfile(CommonTypes.Profile profile) { State.ReplicateProfile(this, profile); }
-        public void RegisterContact(CommonTypes.Contact contact,bool updateSeqNumber) { State.ReplicateContacts(this, contact,updateSeqNumber); }
+        public void RegisterContact(CommonTypes.Contact cont) { State.ReplicateContacts(this, cont); }
         public void RegisterFriendRequest(CommonTypes.Contact contact,bool b) { State.ReplicateFriendRequest(this, contact,b); }
         public void RegisterPendingInvitation(CommonTypes.Contact contact,bool b) { State.ReplicatePendingInvitation(this, contact,b); }
         public void InitReplica(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) { State.SetReplica(this, p, m, c,fr,pi); }
@@ -75,9 +75,9 @@ namespace Server
             Server.sc.ServerServer.SetProfile(Server.State.ReplicationServers, profile);           
         }
 
-        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact,bool updateSeqNumber)
+        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact)
         {
-            Server.sc.ServerServer.SetContact(Server.State.ReplicationServers, contact,updateSeqNumber);
+            Server.sc.ServerServer.SetContact(Server.State.ReplicationServers, contact);
         }
 
         public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b)
@@ -115,7 +115,18 @@ namespace Server
 
         public void AddMessage(StateContext stateContext, CommonTypes.Message msg)
         {
-            Console.WriteLine("SLAVE: ADDING THIS MSG: " + msg.Post);           
+            Console.WriteLine("SLAVE: ADDING THIS MSG: " + msg.Post);
+            Server.State.CommitMessage(msg);
+            if (msg.FromUserName == Server.State.Profile.UserName)
+            {
+                Server.State.Profile.PostSeqNumber = msg.SeqNumber;
+                Server.State.UpdateProfile(Server.State.Profile); //obriga a serializar o objecto
+            }
+            else //Se der excepção aki é porque os Contactos ainda n foram actualizados
+            {
+                Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName)).LastMsgSeqNumber = msg.SeqNumber;
+                Server.State.Contacts = Server.State.Contacts; //obriga a serializar o objecto
+            }
         }
 
         public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) {
@@ -125,11 +136,13 @@ namespace Server
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
         {      
             Console.WriteLine("SLAVE: Saving Profile.");
+            Server.State.CommitProfile(profile);
         }
 
-        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact,bool updateSeqNumber)
+        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact)
         {
             Console.WriteLine("SLAVE: Adding/Updating Contact.");
+            Server.State.CommitContact(contact);
         }
 
         public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b)

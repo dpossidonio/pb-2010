@@ -19,7 +19,7 @@ namespace Server
         {
             ServerClient = sc;
             node = new ChordNode();
-            iddMSexo=new Dictionary<string,List<string>>();
+            iddMSexo = new Dictionary<string, List<string>>();
         }
 
         /// <summary>
@@ -116,9 +116,16 @@ namespace Server
             var lc = new List<Contact>();
             lc.Add(c);
 
-            //Pedreiro -verifica se esta um cliente ligado, para actualizar a sua interface
-            if (ServerClient.Client != null)
-                ServerClient.Client.UpdateFriendInvitation(lc);
+            //Verifica se esta um cliente ligado, para actualizar a sua interface
+            try
+            {
+                if (ServerClient.Client != null)
+                    ServerClient.Client.UpdateFriendInvitation(lc);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Server: Client is not reachable!");
+            }
         }
 
         public void ReceiveFriendRequestOK(Contact c)
@@ -133,8 +140,19 @@ namespace Server
                 Server.State.RemoveFriendRequest(c);
                 var lm = new List<Message>();
                 lm.Add(msg);
-                ServerClient.Client.UpdatePosts(lm);
-                ServerClient.Client.UpdateFriends(c);
+                try
+                {
+                    if (ServerClient.Client != null)
+                    {
+                        ServerClient.Client.UpdatePosts(lm);
+                        ServerClient.Client.UpdateFriends(c);
+                    }
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Server: Client is not reachable!");
+                }
+
                 BroadCastMessage(msg);
                 Server.State.AddContact(c);
             });
@@ -143,28 +161,28 @@ namespace Server
         public void ReceiveMessage(Message msg)
         {
             Console.WriteLine("<--Received post from:{0} SeqNumber:{1} Post:{2}", msg.FromUserName, msg.SeqNumber, msg.Post);
-                Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
-                if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
+            Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
+            if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
+            {
+                Server.State.AddMessage(msg);
+                Server.State.UpdateSeqNumber(c, msg.SeqNumber);
+                var lm = new List<Message>();
+                lm.Add(msg);
+                try
                 {
-                    Server.State.AddMessage(msg);
-                    Server.State.UpdateSeqNumber(c, msg.SeqNumber);
-                    var lm = new List<Message>();
-                    lm.Add(msg);
-                    try
-                    {
-                        if (ServerClient.Client != null)
-                            ServerClient.Client.UpdatePosts(lm);
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("Server: Client is not reachable!");
-                    }
+                    if (ServerClient.Client != null)
+                        ServerClient.Client.UpdatePosts(lm);
                 }
-                else
+                catch (Exception)
                 {
-                    var aux = SendRequestMessages(c.IP, c.LastMsgSeqNumber);
-                    RefreshLocalMessages(aux, c);
+                    Console.WriteLine("Server: Client is not reachable!");
                 }
+            }
+            else
+            {
+                var aux = SendRequestMessages(c.IP, c.LastMsgSeqNumber);
+                RefreshLocalMessages(aux, c);
+            }
         }
 
         public IList<Message> RequestMessages(int lastSeqNumber)
@@ -186,9 +204,14 @@ namespace Server
                 }
                 Server.State.UpdateSeqNumber(c, msgs.Max(x => x.SeqNumber));
 
-                //pedreiro
-                if (ServerClient.Client != null)
-                    ServerClient.Client.UpdatePosts(msgs);
+                try
+                {
+                    if (ServerClient.Client != null)
+                        ServerClient.Client.UpdatePosts(msgs);
+                }
+                catch (Exception) {
+                    Console.WriteLine("Server: Client is not reachable!"); 
+                }
             }
         }
 
