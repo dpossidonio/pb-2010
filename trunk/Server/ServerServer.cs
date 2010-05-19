@@ -134,11 +134,8 @@ namespace Server
         {
             Server.State.VerifyFreeze();
             Console.WriteLine("<--Received confirmation of a FR send to:" + c.Username + ",address:" + c.IP + ",SeqNumber:" + c.LastMsgSeqNumber);
-            ThreadPool.QueueUserWorkItem((object o) =>
-            {
                 var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";
                 var msg = Server.State.MakeMessage(s);
-
                 Server.State.AddMessage(msg);
                 Server.State.RemoveFriendRequest(c);
                 var lm = new List<Message>();
@@ -158,7 +155,7 @@ namespace Server
 
                 BroadCastMessage(msg);
                 Server.State.AddContact(c);
-            });
+            
         }
 
         public void ReceiveMessage(Message msg)
@@ -168,18 +165,25 @@ namespace Server
             Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
             if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
             {
-                Server.State.AddMessage(msg);
-                Server.State.UpdateSeqNumber(c, msg.SeqNumber);
-                var lm = new List<Message>();
-                lm.Add(msg);
                 try
                 {
-                    if (ServerClient.Client != null)
-                        ServerClient.Client.UpdatePosts(lm);
+                    Server.State.AddMessage(msg);
+                    Server.State.UpdateSeqNumber(c, msg.SeqNumber);
+                    var lm = new List<Message>();
+                    lm.Add(msg);
+                    try
+                    {
+
+                        if (ServerClient.Client != null)
+                            ServerClient.Client.UpdatePosts(lm);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Server: Client is not reachable!");
+                    }
                 }
-                catch (Exception)
-                {
-                    Console.WriteLine("Server: Client is not reachable!");
+                catch (Exception) {
+                    throw new ServiceNotAvailableException(1, this.ServerClient);
                 }
             }
             else

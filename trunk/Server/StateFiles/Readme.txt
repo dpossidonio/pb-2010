@@ -1,0 +1,1 @@
+﻿Aqui serão colocados os ficheiros do estado dos servidores.

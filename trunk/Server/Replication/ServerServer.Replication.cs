@@ -145,15 +145,7 @@ namespace Server
                 }
             }
             UpdateAvailableServers(failed_servers);
-            if (Server.State.ReplicationServers.Count >= 1)
-            {
-                Console.WriteLine("#Message Commited!");
-                Server.State.CommitMessage(msg);
-            }
-            else {
-                Console.WriteLine("### Service Unnavailable ###");           
-            }
-
+            UpdateMessages(msg);
             Console.WriteLine("#End REP");
         }
 
@@ -178,6 +170,7 @@ namespace Server
                 }
             }
             UpdateAvailableServers(failed_servers);
+
             Console.WriteLine("#End Replicas Setup");
         }
 
@@ -203,6 +196,7 @@ namespace Server
                 }
             }
             UpdateAvailableServers(failed_servers);
+            UpdateProfile(p);
             Console.WriteLine("#End REP Profile");
         }
 
@@ -227,6 +221,7 @@ namespace Server
                 }
             }
             UpdateAvailableServers(failed_servers);
+            UpdateContacts(c);
             Console.WriteLine("#End REP Contact");
         }
 
@@ -253,6 +248,7 @@ namespace Server
                 }
             }
             UpdateAvailableServers(failed_servers);
+            UpdateFriendRequest(c, b);
             Console.WriteLine("#End REP Friend Request");
         }
 
@@ -279,6 +275,8 @@ namespace Server
                 }
             }
             UpdateAvailableServers(failed_servers);
+            UpdatePendingInvitation(c, b);
+
             Console.WriteLine("#End REP FriendInvitation");
         }
 
@@ -302,36 +300,91 @@ namespace Server
 
         public void UpdateMessages(Message msg)
         {
-            Server.State.VerifyFreeze();
-            Server.State.AddMessage(msg);
+            //Server.State.VerifyFreeze();
+            try
+            {
+                Server.State.CommitMessage(msg);
+                if (msg.FromUserName == Server.State.Profile.UserName)
+                {
+                    Server.State.Profile.PostSeqNumber = msg.SeqNumber;
+                    Server.State.UpdateProfile(Server.State.Profile); //obriga a serializar o objecto
+                }
+                else
+                {
+                    Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName)).LastMsgSeqNumber = msg.SeqNumber;
+                    Server.State.Contacts = Server.State.Contacts; //obriga a serializar o objecto
+                }
+                Console.WriteLine("#Message Commited!");
+            }
+            catch (ServiceNotAvailableException)
+            {
+                Console.WriteLine("#Message NOT Commited!");
+                throw;
+            }
         }
 
         public void UpdateContacts(Contact c)
         {
             Server.State.VerifyFreeze();
-            Server.State.AddContact(c);
+
+            try
+            {
+                Server.State.CommitContact(c);
+                Console.WriteLine("#Contact Commited!");
+            }
+            catch (ServiceNotAvailableException)
+            {
+                Console.WriteLine("#Contact NOT Commited!");
+                throw;
+            }
         }
 
         public void UpdateProfile(Profile p)
         {
-            Server.State.VerifyFreeze();
-            Server.State.UpdateProfile(p);
+           // Server.State.VerifyFreeze();
+            try
+            {
+                Server.State.CommitProfile(p);
+                Console.WriteLine("#Profile Commited!");
+            }
+            catch (ServiceNotAvailableException)
+            {
+                Console.WriteLine("#Profile NOT Commited!");
+                throw;
+            }
         }
 
         public void UpdateFriendRequest(Contact c, bool b)
         {
             Server.State.VerifyFreeze();
-            Console.WriteLine("SLAVE: Adding/Updating FriendRequest.");
-            if (b) Server.State.CommitAddFriendRequest(c);
-            else Server.State.CommitRemoveFriendRequest(c);
+
+            try
+            {
+                if (b) Server.State.CommitAddFriendRequest(c);
+                else Server.State.CommitRemoveFriendRequest(c);
+                Console.WriteLine("#FriendRequest Commited!");
+            }
+            catch (ServiceNotAvailableException)
+            {
+                Console.WriteLine("#FriendRequest NOT Commited!");
+                throw;
+            }
         }
 
         public void UpdatePendingInvitation(Contact c, bool b)
         {
             Server.State.VerifyFreeze();
-            Console.WriteLine("SLAVE: Adding/Updating PendingInvitation.");
-            if (b) Server.State.CommitAddFriendInvitation(c);
-            else Server.State.CommitRemoveFriendInvitation(c);
+            try
+            {
+                if (b) Server.State.CommitAddFriendInvitation(c);
+                else Server.State.CommitRemoveFriendInvitation(c);
+                Console.WriteLine("#FriendEnvitation Commited!");
+            }
+            catch (ServiceNotAvailableException)
+            {
+                Console.WriteLine("#FriendEnvitation NOT Commited");
+                throw;
+            }
         }
 
         /// <summary>
@@ -340,6 +393,8 @@ namespace Server
         /// <param name="failed_servers"></param>
         private void UpdateAvailableServers(List<string> failed_servers){       
         Server.State.ReplicationServers = Server.State.ReplicationServers.Except(failed_servers).ToList();
+        if (Server.State.ReplicationServers.Count < 1)
+            Server.ReplicaState.State = new UnnavailableState();
         }
     }
 }

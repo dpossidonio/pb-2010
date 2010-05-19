@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CommonTypes;
 
 namespace Server
 {
@@ -19,6 +20,7 @@ namespace Server
         void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b);
         void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact,bool b);
         //fazer o set do slave
+        void Commit(StateContext context);
         void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
     }
 
@@ -37,6 +39,7 @@ namespace Server
         public void RegisterContact(CommonTypes.Contact cont) { State.ReplicateContacts(this, cont); }
         public void RegisterFriendRequest(CommonTypes.Contact contact,bool b) { State.ReplicateFriendRequest(this, contact,b); }
         public void RegisterPendingInvitation(CommonTypes.Contact contact,bool b) { State.ReplicatePendingInvitation(this, contact,b); }
+        public void CommitChanges() { State.Commit(this); }
         public void InitReplica(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) { State.SetReplica(this, p, m, c,fr,pi); }
     }
 
@@ -91,6 +94,10 @@ namespace Server
             Server.sc.ServerServer.SetFriendInvitation(Server.State.ReplicationServers, contact,b);  
         }
 
+        public void Commit(StateContext context)
+        {
+        }
+
         #endregion
     }
 
@@ -117,16 +124,7 @@ namespace Server
         {
             Console.WriteLine("SLAVE: ADDING THIS MSG: " + msg.Post);
             Server.State.CommitMessage(msg);
-            if (msg.FromUserName == Server.State.Profile.UserName)
-            {
-                Server.State.Profile.PostSeqNumber = msg.SeqNumber;
-                Server.State.UpdateProfile(Server.State.Profile); //obriga a serializar o objecto
-            }
-            else //Se der excepção aki é porque os Contactos ainda n foram actualizados
-            {
-                Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName)).LastMsgSeqNumber = msg.SeqNumber;
-                Server.State.Contacts = Server.State.Contacts; //obriga a serializar o objecto
-            }
+            throw new NotImplementedException();
         }
 
         public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) {
@@ -153,6 +151,66 @@ namespace Server
         public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact,bool b)
         {
             Console.WriteLine("SLAVE: Adding/Updating PendingInvitation.");
+        }
+
+        public void Commit(StateContext context)
+        {
+        }
+
+        #endregion
+    }
+
+    public class UnnavailableState : IState
+    {
+        #region IState Members
+
+        public void Info(StateContext context)
+        {
+            Console.WriteLine("--------------------------------------------------------------");
+            Console.WriteLine("-----------------  IM IN UNNAVAILAVLE STATE ------------------");
+            Console.WriteLine("-------------------- {0} --------------------------", Server.State.ServerIP);
+            Server.State.PrintInfo();
+        }
+
+        public void Change(StateContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddMessage(StateContext stateContext, CommonTypes.Message msg)
+        {
+            throw new ServiceNotAvailableException(1,Server.sc);
+        }
+
+        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
+        {
+            Console.WriteLine("SLAVE: FULL Update from Master.");
+
+        }
+
+        public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
+        {
+            throw new ServiceNotAvailableException(1, Server.sc);
+        }
+
+        public void ReplicateContacts(StateContext context, CommonTypes.Contact contact)
+        {
+            throw new ServiceNotAvailableException(1, Server.sc);
+        }
+
+        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact, bool b)
+        {
+            throw new ServiceNotAvailableException(1, Server.sc);
+        }
+
+        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact, bool b)
+        {
+            throw new ServiceNotAvailableException(1, Server.sc);
+        }
+
+        public void Commit(StateContext context)
+        {
+            throw new ServiceNotAvailableException(1, Server.sc);
         }
 
         #endregion

@@ -11,6 +11,7 @@ namespace Client
     public partial class UIClient : Form
     {
         private string _client = "PADIbook - Client";
+        private string Status;
         private bool Connected { get; set; }
         private Client Client;
 
@@ -19,6 +20,7 @@ namespace Client
             InitializeComponent();
             Init(address, server_address);
             Client = new Client(this);
+            Status = "OK";
         }
 
         private void Init(string address, IList<string> server_address)
@@ -90,7 +92,7 @@ namespace Client
         public void UpdateServerInformation() {
             this.Invoke(new Action(delegate()
             {
-                this.Text = _client + " - Connected - Server :" + Client.ConnectedToServer;
+                this.Text = _client + " "+ Client.ClientAddress+" -> Server :" + Client.ConnectedToServer+" Status:"+Status;
             }));
         }
 
@@ -124,9 +126,10 @@ namespace Client
                 //    Client.ConnectToServer();
                 //    this.SendMessageButton_Click(sender, e);
                 //}
-                catch (QuorumException)
+                catch (ServiceNotAvailableException)
                 {
-                    MessageTextBox.Text = "Exceção!";
+                    Status = "SERVICE NOT AVAILABLE";
+                    UpdateServerInformation();
                 }
             }
         }
@@ -140,18 +143,33 @@ namespace Client
             }
             if (Client.Friends.Count == 0)
                 contacts += "SNIFF... I dont have any friends.";
-            var m = Client.Server.Post(contacts);
-            Client.Messages.Add(m);
-            MessageTextBox.Text = "";
-            UpdateMessageBox();
-
+            try
+            {
+                var m = Client.Server.Post(contacts);
+                Client.Messages.Add(m);
+                MessageTextBox.Text = "";
+                UpdateMessageBox();
+            }
+            catch (ServiceNotAvailableException)
+            {
+                Status = "SERVICE NOT AVAILABLE";
+                UpdateServerInformation();
+            }
         }
 
         private void RefreshViewButton_Click(object sender, EventArgs e)
         {
             if (Connected)
             {
-                Client.Server.RefreshView();
+                try
+                {
+                    Client.Server.RefreshView();
+                }
+                catch (ServiceNotAvailableException)
+                {
+                    Status = "SERVICE NOT AVAILABLE";
+                    UpdateServerInformation();
+                }
             }
         }
 
@@ -216,7 +234,15 @@ namespace Client
                 //
                 Client.Profile.Age = AgeComboBox.SelectedIndex + 1;
                 Client.Profile.Gender = (Gender)Enum.Parse(typeof(Gender), (string)GenderComboBox.SelectedValue);
-                Client.Server.UpdateProfile(Client.Profile);
+                try
+                {
+                    Client.Server.UpdateProfile(Client.Profile);
+                }
+                catch (ServiceNotAvailableException)
+                {
+                    Status = "SERVICE NOT AVAILABLE";
+                    UpdateServerInformation();
+                }
             }
         }
 
@@ -264,9 +290,10 @@ namespace Client
                         Client.Server.PostFriendRequest(serverTextBox.Text);
                         serverTextBox.Text = "127.0.0.1:";
                     }
-                    catch (SocketException)
+                    catch (ServiceNotAvailableException)
                     {
-                        // E AGORA???
+                        Status = "SERVICE NOT AVAILABLE";
+                        UpdateServerInformation();
                     }
                 }
             }
@@ -277,12 +304,20 @@ namespace Client
             if (friendsReqComboBox.SelectedItem != null)
             {
                 var c = (Contact)friendsReqComboBox.SelectedItem;
-                var m = Client.Server.RespondToFriendRequest(c, true);
-                Client.Messages.Add(m);
-                UpdateFriendsContacts(c);
-                UpdateMessageBox();
-                friendsReqComboBox.Items.Remove(friendsReqComboBox.SelectedItem);
-                friendsReqComboBox.Text = "";
+                try
+                {
+                    var m = Client.Server.RespondToFriendRequest(c, true);
+                    Client.Messages.Add(m);
+                    UpdateFriendsContacts(c);
+                    UpdateMessageBox();
+                    friendsReqComboBox.Items.Remove(friendsReqComboBox.SelectedItem);
+                    friendsReqComboBox.Text = "";
+                }
+                catch (ServiceNotAvailableException)
+                {
+                    Status = "SERVICE NOT AVAILABLE";
+                    UpdateServerInformation();
+                }
             }
         }
 
@@ -291,9 +326,18 @@ namespace Client
             if (friendsReqComboBox.SelectedItem != null)
             {
                 var c = (Contact)friendsReqComboBox.SelectedItem;
-                friendsReqComboBox.Items.Remove(friendsReqComboBox.SelectedItem);
-                friendsReqComboBox.Text = "";
-                Client.Server.RespondToFriendRequest(c, false);
+                try
+                {
+                    Client.Server.RespondToFriendRequest(c, false);
+                    friendsReqComboBox.Items.Remove(friendsReqComboBox.SelectedItem);
+                    friendsReqComboBox.Text = "";
+                }
+                catch (ServiceNotAvailableException)
+                {
+                    Status = "SERVICE NOT AVAILABLE";
+                    UpdateServerInformation();
+                }
+                
             }
         }
 

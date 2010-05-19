@@ -18,6 +18,8 @@ namespace Server
         //Pedidos recebidos
         private IList<Contact> _pendingInvitations;
 
+        private object lockObject = new Object();
+
         public string ServerIP { get; set; }
         private XmlSerializer Serializer;
         public List<string> ReplicationServers { get; set; }
@@ -120,11 +122,12 @@ namespace Server
 
         public void AddMessage(Message m)
         {  //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterMessage(m));
+            Server.ReplicaState.RegisterMessage(m);
         }
 
         public void CommitMessage(Message m)
         {
+            Server.ReplicaState.CommitChanges();
             lock (Messages)
             {
                 Messages.Add(m);
@@ -150,6 +153,7 @@ namespace Server
         }
 
         public void CommitContact(Contact c) {
+            Server.ReplicaState.CommitChanges();
             lock (Contacts)
             {
                 Contacts.Add(c);
@@ -159,10 +163,12 @@ namespace Server
 
         public void UpdateProfile(Profile p)
         {
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterProfile(p));
+            Server.ReplicaState.RegisterProfile(p);
         }
 
         public void CommitProfile(Profile p) {
+            Server.ReplicaState.CommitChanges();
+
             lock (Profile)
             {
                 _profile = p;
@@ -173,11 +179,12 @@ namespace Server
         public void AddFriendRequest(Contact c)
         {
             //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c, true));
+            Server.ReplicaState.RegisterFriendRequest(c, true);
         }
 
         public void CommitAddFriendRequest(Contact c)
         {
+            Server.ReplicaState.CommitChanges();
             lock (FriendRequests)
             {
                 FriendRequests.Add(c);
@@ -190,9 +197,10 @@ namespace Server
             ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterFriendRequest(c, false));
         }
 
-
         public void CommitRemoveFriendRequest(Contact c)
         {
+            Server.ReplicaState.CommitChanges();
+
             var caux = FriendRequests.First(x => x.IP.Equals(c.IP));
             lock (FriendRequests)
             {
@@ -201,7 +209,6 @@ namespace Server
             }
         }
 
-
         public void AddFriendInvitation(Contact c)
         {
             ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterPendingInvitation(c, true));
@@ -209,6 +216,8 @@ namespace Server
 
         public void CommitAddFriendInvitation(Contact c)
         {
+            Server.ReplicaState.CommitChanges();
+
             lock (PendingInvitations)
             {
                 PendingInvitations.Add(c);
@@ -223,6 +232,8 @@ namespace Server
 
         public void CommitRemoveFriendInvitation(Contact c)
         {
+            Server.ReplicaState.CommitChanges();
+
             var caux = PendingInvitations.First(x => x.IP.Equals(c.IP));
             lock (PendingInvitations)
             {
@@ -239,10 +250,7 @@ namespace Server
                 caux.LastMsgSeqNumber = seqNumber;
                 SerializeObject(Contacts, "Contacts");
             }
-            //Replicação
-            ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterContact(c));
         }
-
 
         #region Serialize
 
@@ -257,24 +265,29 @@ namespace Server
 
         private void SerializeObject(Object obj, string file)
         {
-            var port = ServerIP.Split(':');
-            TextWriter tw = new StreamWriter(string.Format("{0} - {1}.xml", port[1], file));
-            Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
-            Serializer.Serialize(tw, obj);
-            //Console.WriteLine(obj + " written to file: " + obj.GetType() + ".xml");
-            tw.Close();
+            lock (lockObject)
+            {
+                var port = ServerIP.Split(':');
+                TextWriter tw = new StreamWriter(string.Format(@"./StateFiles/{0} - {1}.xml", port[1], file));
+                Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
+                Serializer.Serialize(tw, obj);
+                tw.Close();
+            }
         }
 
         private Object DeserializeObject(Object obj, string file)
         {
             try
             {
-                var port = ServerIP.Split(':');
-                TextReader tr = new StreamReader(string.Format("{0} - {1}.xml", port[1], file));
-                Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
-                var fileP = Serializer.Deserialize(tr);
-                tr.Close();
-                return fileP;
+                lock (lockObject)
+                {
+                    var port = ServerIP.Split(':');
+                    TextReader tr = new StreamReader(string.Format(@"./StateFiles/{0} - {1}.xml", port[1], file));
+                    Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
+                    var fileP = Serializer.Deserialize(tr);
+                    tr.Close();
+                    return fileP;
+                }
             }
             catch (FileNotFoundException)
             {
@@ -296,7 +309,8 @@ namespace Server
             PrintFriendRequests();
             PrintPendingInvitations();
             PrintContacts();
-            PrintMessages();
+            //PrintMessages();
+            Console.WriteLine("### Number os MESSAGES:"+Messages.Count);
         }
 
         public void PrintProfile()
