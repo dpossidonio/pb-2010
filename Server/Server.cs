@@ -48,8 +48,9 @@ namespace Server
                     break;
             }
             num_rep = num_rep % 10;
+
             Console.WriteLine("Welcome - PADIbook Server v1.0");
-            Console.WriteLine("Running Server on: " + address);
+            Console.Title = "Server:" + address;
             //constroi uma lista com os end. das replicas servers
             var rep_list = new List<string>();
             for (int i = 1; i < num_rep + 1; i++)

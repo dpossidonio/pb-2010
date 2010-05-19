@@ -91,14 +91,14 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(642, 376);
+            this.tabPage3.Size = new System.Drawing.Size(642, 238);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Friends";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
             // declineButton
             // 
-            this.declineButton.Location = new System.Drawing.Point(495, 328);
+            this.declineButton.Location = new System.Drawing.Point(496, 203);
             this.declineButton.Name = "declineButton";
             this.declineButton.Size = new System.Drawing.Size(75, 23);
             this.declineButton.TabIndex = 12;
@@ -108,7 +108,7 @@
             // 
             // acceptButton
             // 
-            this.acceptButton.Location = new System.Drawing.Point(381, 328);
+            this.acceptButton.Location = new System.Drawing.Point(385, 203);
             this.acceptButton.Name = "acceptButton";
             this.acceptButton.Size = new System.Drawing.Size(75, 23);
             this.acceptButton.TabIndex = 11;
@@ -119,7 +119,7 @@
             // friendsReqComboBox
             // 
             this.friendsReqComboBox.FormattingEnabled = true;
-            this.friendsReqComboBox.Location = new System.Drawing.Point(345, 266);
+            this.friendsReqComboBox.Location = new System.Drawing.Point(345, 172);
             this.friendsReqComboBox.Name = "friendsReqComboBox";
             this.friendsReqComboBox.Size = new System.Drawing.Size(259, 21);
             this.friendsReqComboBox.TabIndex = 10;
@@ -127,7 +127,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(434, 228);
+            this.label10.Location = new System.Drawing.Point(440, 143);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(85, 13);
             this.label10.TabIndex = 9;
@@ -135,7 +135,7 @@
             // 
             // sendFriendReqButton
             // 
-            this.sendFriendReqButton.Location = new System.Drawing.Point(419, 141);
+            this.sendFriendReqButton.Location = new System.Drawing.Point(419, 98);
             this.sendFriendReqButton.Name = "sendFriendReqButton";
             this.sendFriendReqButton.Size = new System.Drawing.Size(133, 23);
             this.sendFriendReqButton.TabIndex = 8;
@@ -145,7 +145,7 @@
             // 
             // serverTextBox
             // 
-            this.serverTextBox.Location = new System.Drawing.Point(419, 91);
+            this.serverTextBox.Location = new System.Drawing.Point(419, 55);
             this.serverTextBox.Name = "serverTextBox";
             this.serverTextBox.Size = new System.Drawing.Size(185, 20);
             this.serverTextBox.TabIndex = 6;
@@ -154,7 +154,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(342, 91);
+            this.label9.Location = new System.Drawing.Point(342, 55);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(79, 13);
             this.label9.TabIndex = 4;
@@ -163,7 +163,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(440, 55);
+            this.label7.Location = new System.Drawing.Point(440, 26);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(79, 13);
             this.label7.TabIndex = 2;
@@ -175,7 +175,7 @@
             this.friendsTextBox.Multiline = true;
             this.friendsTextBox.Name = "friendsTextBox";
             this.friendsTextBox.ReadOnly = true;
-            this.friendsTextBox.Size = new System.Drawing.Size(250, 296);
+            this.friendsTextBox.Size = new System.Drawing.Size(250, 156);
             this.friendsTextBox.TabIndex = 1;
             // 
             // label6
@@ -204,14 +204,14 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(642, 376);
+            this.tabPage2.Size = new System.Drawing.Size(642, 238);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Profile";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // AddInterestsButton
             // 
-            this.AddInterestsButton.Location = new System.Drawing.Point(314, 207);
+            this.AddInterestsButton.Location = new System.Drawing.Point(279, 129);
             this.AddInterestsButton.Name = "AddInterestsButton";
             this.AddInterestsButton.Size = new System.Drawing.Size(100, 23);
             this.AddInterestsButton.TabIndex = 11;
@@ -222,7 +222,7 @@
             // InterestsComboBox
             // 
             this.InterestsComboBox.FormattingEnabled = true;
-            this.InterestsComboBox.Location = new System.Drawing.Point(173, 207);
+            this.InterestsComboBox.Location = new System.Drawing.Point(163, 129);
             this.InterestsComboBox.Name = "InterestsComboBox";
             this.InterestsComboBox.Size = new System.Drawing.Size(100, 21);
             this.InterestsComboBox.TabIndex = 10;
@@ -230,7 +230,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(71, 207);
+            this.label2.Location = new System.Drawing.Point(61, 129);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(81, 13);
             this.label2.TabIndex = 9;
@@ -238,7 +238,7 @@
             // 
             // InterestsTextBox
             // 
-            this.InterestsTextBox.Location = new System.Drawing.Point(161, 146);
+            this.InterestsTextBox.Location = new System.Drawing.Point(143, 93);
             this.InterestsTextBox.Name = "InterestsTextBox";
             this.InterestsTextBox.ReadOnly = true;
             this.InterestsTextBox.Size = new System.Drawing.Size(356, 20);
@@ -246,16 +246,15 @@
             // 
             // UserNameTextBox
             // 
-            this.UserNameTextBox.Location = new System.Drawing.Point(161, 40);
+            this.UserNameTextBox.Location = new System.Drawing.Point(143, 21);
             this.UserNameTextBox.Name = "UserNameTextBox";
-            this.UserNameTextBox.ReadOnly = true;
             this.UserNameTextBox.Size = new System.Drawing.Size(100, 20);
             this.UserNameTextBox.TabIndex = 1;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(71, 153);
+            this.label1.Location = new System.Drawing.Point(64, 93);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(50, 13);
             this.label1.TabIndex = 7;
@@ -263,18 +262,18 @@
             // 
             // UpdateProfileButton
             // 
-            this.UpdateProfileButton.Location = new System.Drawing.Point(261, 274);
+            this.UpdateProfileButton.Location = new System.Drawing.Point(192, 180);
             this.UpdateProfileButton.Name = "UpdateProfileButton";
-            this.UpdateProfileButton.Size = new System.Drawing.Size(100, 23);
+            this.UpdateProfileButton.Size = new System.Drawing.Size(138, 23);
             this.UpdateProfileButton.TabIndex = 6;
-            this.UpdateProfileButton.Text = "Update";
+            this.UpdateProfileButton.Text = "Apply Changes";
             this.UpdateProfileButton.UseVisualStyleBackColor = true;
             this.UpdateProfileButton.Click += new System.EventHandler(this.UpdateProfileButton_Click);
             // 
             // AgeComboBox
             // 
             this.AgeComboBox.FormattingEnabled = true;
-            this.AgeComboBox.Location = new System.Drawing.Point(357, 96);
+            this.AgeComboBox.Location = new System.Drawing.Point(347, 59);
             this.AgeComboBox.Name = "AgeComboBox";
             this.AgeComboBox.Size = new System.Drawing.Size(82, 21);
             this.AgeComboBox.TabIndex = 5;
@@ -282,7 +281,7 @@
             // GenderComboBox
             // 
             this.GenderComboBox.FormattingEnabled = true;
-            this.GenderComboBox.Location = new System.Drawing.Point(161, 93);
+            this.GenderComboBox.Location = new System.Drawing.Point(143, 56);
             this.GenderComboBox.Name = "GenderComboBox";
             this.GenderComboBox.Size = new System.Drawing.Size(82, 21);
             this.GenderComboBox.TabIndex = 4;
@@ -290,7 +289,7 @@
             // AgeLabel
             // 
             this.AgeLabel.AutoSize = true;
-            this.AgeLabel.Location = new System.Drawing.Point(311, 96);
+            this.AgeLabel.Location = new System.Drawing.Point(301, 59);
             this.AgeLabel.Name = "AgeLabel";
             this.AgeLabel.Size = new System.Drawing.Size(29, 13);
             this.AgeLabel.TabIndex = 3;
@@ -299,7 +298,7 @@
             // GenderLabel
             // 
             this.GenderLabel.AutoSize = true;
-            this.GenderLabel.Location = new System.Drawing.Point(76, 96);
+            this.GenderLabel.Location = new System.Drawing.Point(66, 59);
             this.GenderLabel.Name = "GenderLabel";
             this.GenderLabel.Size = new System.Drawing.Size(45, 13);
             this.GenderLabel.TabIndex = 2;
@@ -308,7 +307,7 @@
             // UNlabel
             // 
             this.UNlabel.AutoSize = true;
-            this.UNlabel.Location = new System.Drawing.Point(76, 47);
+            this.UNlabel.Location = new System.Drawing.Point(58, 28);
             this.UNlabel.Name = "UNlabel";
             this.UNlabel.Size = new System.Drawing.Size(58, 13);
             this.UNlabel.TabIndex = 0;
@@ -335,7 +334,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(642, 376);
+            this.tabPage1.Size = new System.Drawing.Size(642, 238);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Home";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -389,7 +388,7 @@
             this.WallTextBox.Name = "WallTextBox";
             this.WallTextBox.ReadOnly = true;
             this.WallTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.WallTextBox.Size = new System.Drawing.Size(610, 264);
+            this.WallTextBox.Size = new System.Drawing.Size(610, 124);
             this.WallTextBox.TabIndex = 4;
             // 
             // MessageTextBox
@@ -492,7 +491,7 @@
             this.tabControl.Location = new System.Drawing.Point(12, 12);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(650, 402);
+            this.tabControl.Size = new System.Drawing.Size(650, 264);
             this.tabControl.TabIndex = 0;
             // 
             // UIClient
@@ -500,7 +499,7 @@
             this.AcceptButton = this.SendMessageButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(674, 426);
+            this.ClientSize = new System.Drawing.Size(674, 289);
             this.Controls.Add(this.tabControl);
             this.Name = "UIClient";
             this.Text = "PADIbook - Client";

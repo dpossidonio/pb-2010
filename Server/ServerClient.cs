@@ -41,78 +41,118 @@ namespace Server
             });
         }
 
-        private void IsSystemDown() {
-            //if (Server.State.ReplicationServers.Count == 0)
-            //    throw new QuorumException(0, this);
-        }
-
         #region IServerClient Members
 
+        /// <summary>
+        /// Write Operations
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public Message Post(string message)
         {
-            IsSystemDown();
             var m = Server.State.MakeMessage(message);
-
-            Server.State.AddMessage(m);
-
-            //Actualiza no profile o numero de sequencia dos seus posts
-            Server.State.Profile = Server.State.Profile;
-
-            ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
+            try
+            {
+                Server.State.AddMessage(m);
+                ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
+            }
+            catch (ServiceNotAvailableException)
+            {
+                Console.WriteLine("Service Not Available");
+                throw;
+            }
             return m;
             
         }
 
         public void PostFriendRequest(string address)
         {
-            IsSystemDown();
             var c = new Contact();
             c.IP = address;
-            Server.State.AddFriendRequest(c);
-            ThreadPool.QueueUserWorkItem((object o) => ServerServer.SendFriendRequest(address));
+            try
+            {
+                Server.State.AddFriendRequest(c);
+                ThreadPool.QueueUserWorkItem((object o) => ServerServer.SendFriendRequest(address));
+            }
+            catch (ServiceNotAvailableException)
+            {
+                Console.WriteLine("Service Not Available");
+                throw;
+            }
         }
 
         public Message RespondToFriendRequest(Contact c, bool accept)
         {
-            IsSystemDown();
             var msg = new Message();
             if (accept)
             {
                 var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";
-                msg = Server.State.MakeMessage(s);
-
-                ThreadPool.QueueUserWorkItem((object o) =>
+                try
                 {
-                    ServerServer.SendFriendRequestConfirmation(Server.State.MakeContact(), c.IP.Trim());
-                    ServerServer.BroadCastMessage(msg);
-                    Server.State.AddMessage(msg);
-                    Server.State.AddContact(c);
-                    Server.State.RemoveFriendInvitation(c);
-                });
+                    Server.ReplicaState.CommitChanges();
+                    msg = Server.State.MakeMessage(s);
+                    ThreadPool.QueueUserWorkItem((object o) => NewFriendAnouncement(c, msg));
+                }
+                catch (ServiceNotAvailableException)
+                {
+                    Console.WriteLine("Service Not Available");
+                    throw;
+                }            
             }
             return msg;
         }
 
+        public void NewFriendAnouncement(Contact c, Message msg) {
+            ServerServer.SendFriendRequestConfirmation(Server.State.MakeContact(), c.IP.Trim());
+            ServerServer.BroadCastMessage(msg);
+            Server.State.AddMessage(msg);
+            Server.State.AddContact(c);
+            Server.State.RemoveFriendInvitation(c);
+        }
+
         public void RefreshView()
         {
-            IsSystemDown();
-            ThreadPool.QueueUserWorkItem((object o) =>
+            try
             {
-                Console.WriteLine("Server: Refresh View");
-                foreach (var item in Server.State.Contacts)
+                Server.ReplicaState.CommitChanges();
+
+                ThreadPool.QueueUserWorkItem((object o) =>
                 {
-                    var aux = ServerServer.SendRequestMessages(item.IP, item.LastMsgSeqNumber);
-                    ServerServer.RefreshLocalMessages(aux, item);
-                }
-            });
+                    Console.WriteLine("Server: Refresh View");
+                    foreach (var item in Server.State.Contacts)
+                    {
+                        var aux = ServerServer.SendRequestMessages(item.IP, item.LastMsgSeqNumber);
+                        ServerServer.RefreshLocalMessages(aux, item);
+                    }
+                });
+            }
+            catch (ServiceNotAvailableException)
+            {
+                Console.WriteLine("Service Not Available");
+                throw;
+            }            
         }
 
         public void UpdateProfile(Profile profile)
         {
-            IsSystemDown();
+            try{
             Console.WriteLine("Client: Update Profile");
+            var seq_number = Server.State.Profile.PostSeqNumber;
             Server.State.UpdateProfile(profile);
+            Server.State.Profile.PostSeqNumber = seq_number;
+    
+            }
+            catch (ServiceNotAvailableException)
+            {
+                Console.WriteLine("Service Not Available");
+                throw;
+            } 
         }
+
+        /// <summary>
+        /// Read Opertations
+        /// </summary>
+        /// <returns></returns>
 
         public Profile GetProfile()
         {

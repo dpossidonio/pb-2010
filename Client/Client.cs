@@ -91,7 +91,7 @@ namespace Client
             IDictionary props = new Hashtable();
             var adr = this.ClientAddress;
             props["port"] = int.Parse(adr.Split(':')[1]);
-            props["timeout"] = 1000; // in miliseconds
+            props["timeout"] = 3000; // in miliseconds
             TcpChannel channel = new TcpChannel(props, null, provider);
             ChannelServices.RegisterChannel(channel, false);
             InitChannel = true;

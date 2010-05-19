@@ -114,21 +114,21 @@ namespace CommonTypes
     }
 
     /// <summary>
-    ///  Exception lanched when que Quorum has only 1 Server
+    ///  Exception lanched to CLIENT when que Quorum has only 1 Server
     /// </summary>
     [Serializable]
-    public class QuorumException : ApplicationException
+    public class ServiceNotAvailableException : ApplicationException
     {
         public int Number_Of_Servers;
         public IServerClient mo;  //proprio objecto k lançou a excepçao
 
-        public QuorumException(int c, IServerClient mo)
+        public ServiceNotAvailableException(int c, IServerClient mo)
         {
             Number_Of_Servers = c;
             this.mo = mo;
         }
 
-        public QuorumException(System.Runtime.Serialization.SerializationInfo info,
+        public ServiceNotAvailableException(System.Runtime.Serialization.SerializationInfo info,
             System.Runtime.Serialization.StreamingContext context)
             : base(info, context)
         {
@@ -144,4 +144,5 @@ namespace CommonTypes
             info.AddValue("mo", mo);
         }
     }
+
 }

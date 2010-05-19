@@ -15,6 +15,7 @@ namespace Teste
         static void Main(string[] args)
         {
             Console.WriteLine("Welcome to PADIbook Test Console");
+            int MAX_SERVERS = 5;
             var c = Directory.GetCurrentDirectory();
             string[] CurrentDirectory = Regex.Split(c, "Teste");
             string ClientDirectory = CurrentDirectory[0] + "Client\\bin\\Debug\\Client.exe";
@@ -23,12 +24,22 @@ namespace Teste
             //string ServerDirectory = "Server.exe";
             while (true)
             {
-                Console.Write("Client's Adress: 127.0.0.1:");
-                var client_address = "127.0.0.1:" + Console.ReadLine();
+                string client_address;
+                int num_replic;
+                while (true)
+                {
+                    Console.Write("Client's Address: 127.0.0.1:");
+                    client_address = "127.0.0.1:";
+                    client_address += Console.ReadLine();
 
-                //var client_address = Console.ReadLine();
-                Console.Write("Number of Servers: ");
-                var num_replic = int.Parse(Console.ReadLine());
+                    //var client_address = Console.ReadLine();
+                    Console.Write("Number of Servers: ");
+                    num_replic = int.Parse(Console.ReadLine());
+                    var a = client_address[client_address.Length - 1];
+                    if (client_address[client_address.Length - 1].Equals('0') && num_replic <= MAX_SERVERS)
+                        break;
+                    else Console.WriteLine("#Error:Address must end with '0' and number of Servers must be lower than {0}.",MAX_SERVERS);
+                }
                 try
                 {
                     var port_client = int.Parse(client_address.Split(':')[1]);
