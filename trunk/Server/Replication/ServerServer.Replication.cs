@@ -75,29 +75,6 @@ namespace Server
 
         #endregion
 
-        public void PingReplicationServers()
-        {
-            Console.WriteLine("#REP: Ping Replicated Servers");
-            var failed_servers = new List<string>();
-            foreach (var item in Server.State.ReplicationServers)
-            {
-                var obj = (IServerServer)Activator.GetObject(
-                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
-
-                try
-                {
-                    obj.Ping();
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
-                    failed_servers.Add(item);  
-                }
-            }
-            UpdateAvailableServers(failed_servers);
-            Console.WriteLine("#End REP");
-        }
-
         public void InitReplication(List<string> destinations)
         {
             Console.WriteLine("#REP: Looking for Replicated Servers");

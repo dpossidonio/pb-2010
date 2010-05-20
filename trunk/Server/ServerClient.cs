@@ -34,12 +34,12 @@ namespace Server
             Client = (IClient)Activator.GetObject(typeof(IClient),
                         string.Format("tcp://{0}/IClient", Server.State.Profile.IP));
             //REPLICAÇÂO -isto tb pode ir para a mesma classe ServerServer?
-            ThreadPool.QueueUserWorkItem((object o) =>
-            {
-                Server.ReplicaState.ChangeState();
-                Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages,
-                    Server.State.Contacts, Server.State.FriendRequests, Server.State.PendingInvitations, Server.State.Server_version);
-            });
+           // ThreadPool.QueueUserWorkItem((object o) =>
+           // {
+              //  Server.ReplicaState.ChangeState();
+            //    Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages,
+            //        Server.State.Contacts, Server.State.FriendRequests, Server.State.PendingInvitations, Server.State.Server_version);
+           // });
         }
 
         #region IServerClient Members
@@ -54,7 +54,7 @@ namespace Server
             var m = Server.State.MakeMessage(message);
             try
             {
-              Server.State.AddMessage(m);
+               Server.State.AddMessage(m);
                 ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
             }
             catch (ServiceNotAvailableException)
@@ -182,6 +182,8 @@ namespace Server
         {
             Console.WriteLine("Client: Connect IP:" + ip);
             Server.State.Profile.IP = ip;
+            //Novo Master
+            Server.ReplicaState.ChangeState();
             ConnectClient();
         }
 

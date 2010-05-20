@@ -137,7 +137,7 @@ namespace Client
                 //EM MODO DEBUG com breakpoint's no Servidor Não!
                 catch (SocketException)
                 {
-                    Client.ConnectToServer();
+                    if(ReConnectClient())
                     this.SendMessageButton_Click(sender, e);
                 }
             }
@@ -164,7 +164,7 @@ namespace Client
                 ServiceNotAvailableShow();
             }
             catch (Exception) {
-                Client.ConnectToServer();
+                if(ReConnectClient())
                 listContacts_Click(sender, e);
             }
         }
@@ -182,7 +182,7 @@ namespace Client
                     ServiceNotAvailableShow();
                 }
                 catch (Exception) {
-                    Client.ConnectToServer();
+                    if(ReConnectClient())
                     RefreshViewButton_Click(sender, e);
                 }
             }
@@ -276,7 +276,7 @@ namespace Client
                     LoadProfile(Client.Profile);
                 }
                 catch (Exception) {
-                    Client.ConnectToServer();
+                    if(ReConnectClient())
                     UpdateProfileButton_Click(sender, e);
                 }
             }
@@ -331,7 +331,7 @@ namespace Client
                         ServiceNotAvailableShow();
                     }
                     catch (Exception) {
-                        Client.ConnectToServer();
+                        if(ReConnectClient())
                         SendFriendReqButton_Click(sender, e);
                     }
                 }
@@ -357,7 +357,7 @@ namespace Client
                     ServiceNotAvailableShow();
                 }
                 catch (Exception) {
-                    Client.ConnectToServer();
+                    if(ReConnectClient())
                      AcceptButton_Click(sender,  e);
                 }
             }
@@ -379,7 +379,7 @@ namespace Client
                     ServiceNotAvailableShow();
                 }
                 catch (Exception) {
-                    Client.ConnectToServer();
+                    if(ReConnectClient())
                     declineButton_Click(sender,e);
                 }
                 
@@ -399,6 +399,20 @@ namespace Client
             Status = "OK";
             UpdateServerInformation();
             }));
+        }
+
+        public bool ReConnectClient() {
+            try
+            {
+                Client.ConnectToServer();
+                return true;
+            }
+            catch (NoServersAvailableException) {
+                Status = "Disconnected";
+                MessageBox.Show("Could not locate Server");
+                UpdateServerInformation();
+                return false;
+            }
         }
 
         #endregion
