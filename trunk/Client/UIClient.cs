@@ -14,6 +14,8 @@ namespace Client
         private string Status;
         private bool Connected { get; set; }
         private Client Client;
+        public List<Interest> InterestsToUpdate = new List<Interest>();
+
 
         public UIClient(string address, IList<string> server_address)
         {
@@ -104,11 +106,14 @@ namespace Client
         {
             this.Invoke(new Action(delegate()
             {
-                WallTextBox.Clear();
+                richWallTextBox.Clear();
+                
                 foreach (var m in Client.Messages.OrderBy(x => x.Time))
                 {
-                    WallTextBox.Text += m.Time.ToShortTimeString() + " - From: " + m.FromUserName + " - " + m.Post + "\r\n";
+                    richWallTextBox.Text += m.Time.ToShortTimeString() + " - From: " + m.FromUserName + " - " + m.Post + "\r\n";
                 }
+                richWallTextBox.SelectionStart = richWallTextBox.Text.Length;
+                richWallTextBox.ScrollToCaret();
             }));
         }
 
@@ -159,7 +164,8 @@ namespace Client
                 ServiceNotAvailableShow();
             }
             catch (Exception) {
-            
+                Client.ConnectToServer();
+                listContacts_Click(sender, e);
             }
         }
 
@@ -176,7 +182,8 @@ namespace Client
                     ServiceNotAvailableShow();
                 }
                 catch (Exception) {
-                
+                    Client.ConnectToServer();
+                    RefreshViewButton_Click(sender, e);
                 }
             }
         }
@@ -192,7 +199,8 @@ namespace Client
                 UserNameTextBox.Text = p.UserName;
                 AgeComboBox.SelectedIndex = p.Age - 1;
                 GenderComboBox.SelectedIndex = p.Gender.GetHashCode();
-                UpdateInterests();
+
+                UpdateInterests(Client.Profile.Interests);
             }));
         }
 
@@ -203,13 +211,15 @@ namespace Client
                 InterestsComboBox.Items.Add(interest);
             }
         }
-        private void UpdateInterests()
+
+
+        private void UpdateInterests(List<Interest> list)
         {
             var all_interests = Enum.GetNames(typeof(CommonTypes.Interest)).ToList();
             var profile_interests = new List<string>();
             InterestsTextBox.Text = "";
    
-            foreach (var item in Client.Profile.Interests)
+            foreach (var item in list)
             {
                 profile_interests.Add(item.ToString());        
                 InterestsTextBox.Text += item.ToString() + ",";
@@ -222,12 +232,19 @@ namespace Client
         {
             if (Connected && InterestsComboBox.SelectedItem != null)
             {
-                if (Client.Profile.Interests.Count < 6)
+                //if (Client.Profile.Interests.Count < 6)
+                //{
+                //    var a = Enum.Parse(typeof(CommonTypes.Interest), InterestsComboBox.SelectedItem.ToString());
+                //    Client.Profile.Interests.Add((Interest)a);
+                //    InterestsComboBox.Items.Remove(InterestsComboBox.SelectedItem);
+                //    UpdateInterests();
+                //}
+                if ((InterestsToUpdate.Count + Client.Profile.Interests.Count) < 6)
                 {
-                    var a = Enum.Parse(typeof(CommonTypes.Interest), InterestsComboBox.SelectedItem.ToString());
-                    Client.Profile.Interests.Add((Interest)a);
+                    Interest a = (Interest)Enum.Parse(typeof(CommonTypes.Interest), InterestsComboBox.SelectedItem.ToString());
+                    InterestsToUpdate.Add(a);
                     InterestsComboBox.Items.Remove(InterestsComboBox.SelectedItem);
-                    UpdateInterests();
+                    UpdateInterests(Client.Profile.Interests.Union(InterestsToUpdate).ToList());
                 }
                 else MessageBox.Show("It's only possible to add 6 Interests!");
             }
@@ -237,21 +254,30 @@ namespace Client
         {
             if (Connected)
             {
+                var new_profile = new Profile();
                 //Eliminar se o nome for único e inalteravel
-                Client.Profile.UserName = UserNameTextBox.Text;
+                new_profile.UserName = UserNameTextBox.Text;
                 //
-                Client.Profile.Age = AgeComboBox.SelectedIndex + 1;
-                Client.Profile.Gender = (Gender)Enum.Parse(typeof(Gender), (string)GenderComboBox.SelectedValue);
+                new_profile.Age = AgeComboBox.SelectedIndex + 1;
+                new_profile.Gender = (Gender)Enum.Parse(typeof(Gender), (string)GenderComboBox.SelectedValue);
+                new_profile.IP = Client.Profile.IP;
+                new_profile.Interests = Client.Profile.Interests.Union(InterestsToUpdate).ToList();
+                new_profile.PostSeqNumber = Client.Profile.PostSeqNumber;
                 try
                 {
-                    Client.Server.UpdateProfile(Client.Profile);
+                    Client.Server.UpdateProfile(new_profile);
+                    Client.Profile = new_profile;
+                    InterestsToUpdate.Clear();
                 }
                 catch (ServiceNotAvailableException)
                 {
                     ServiceNotAvailableShow();
+                    InterestsToUpdate.Clear();
+                    LoadProfile(Client.Profile);
                 }
                 catch (Exception) {
-                //
+                    Client.ConnectToServer();
+                    UpdateProfileButton_Click(sender, e);
                 }
             }
         }
@@ -304,8 +330,9 @@ namespace Client
                     {
                         ServiceNotAvailableShow();
                     }
-                    catch (Exception) { 
-                    //
+                    catch (Exception) {
+                        Client.ConnectToServer();
+                        SendFriendReqButton_Click(sender, e);
                     }
                 }
             }
@@ -330,7 +357,8 @@ namespace Client
                     ServiceNotAvailableShow();
                 }
                 catch (Exception) {
-                    //
+                    Client.ConnectToServer();
+                     AcceptButton_Click(sender,  e);
                 }
             }
         }
@@ -351,7 +379,8 @@ namespace Client
                     ServiceNotAvailableShow();
                 }
                 catch (Exception) {
-                /////
+                    Client.ConnectToServer();
+                    declineButton_Click(sender,e);
                 }
                 
             }
@@ -359,13 +388,10 @@ namespace Client
 
         public void ServiceNotAvailableShow() {
             Status = "SERVICE NOT AVAILABLE";
-            MessageBox.Show("Could not locate server.");
+            MessageBox.Show("Service Not Available!");
             UpdateServerInformation();
         }
 
         #endregion
-
-
-
     }
 }

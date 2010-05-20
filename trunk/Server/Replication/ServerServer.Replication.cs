@@ -292,6 +292,9 @@ namespace Server
 
         public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_version_id)
         {
+            Console.WriteLine("My Version-: {0} New Master Version: {1}", Server.State.Server_version,server_version_id);
+            
+            Server.ReplicaState.State = new SlaveState();
             Console.WriteLine("<--#START FULL Updating State from Master");
             Server.State.CommitProfile(p);
             Server.State.Messages = m;
@@ -304,7 +307,7 @@ namespace Server
 
         public void UpdateMessages(Message msg)
         {
-            //Server.State.VerifyFreeze();
+            Server.State.VerifyFreeze();
             try
             {
                 Server.State.CommitMessage(msg);

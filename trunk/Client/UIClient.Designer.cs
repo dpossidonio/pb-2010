@@ -58,7 +58,6 @@
             this.Server2IPtextBox = new System.Windows.Forms.TextBox();
             this.Server3IPtextBox = new System.Windows.Forms.TextBox();
             this.Server1IPtextBox = new System.Windows.Forms.TextBox();
-            this.WallTextBox = new System.Windows.Forms.TextBox();
             this.MessageTextBox = new System.Windows.Forms.TextBox();
             this.IPLabel = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
@@ -70,6 +69,7 @@
             this.ConnectButton = new System.Windows.Forms.Button();
             this.Msglabel = new System.Windows.Forms.Label();
             this.tabControl = new System.Windows.Forms.TabControl();
+            this.richWallTextBox = new System.Windows.Forms.RichTextBox();
             this.tabPage3.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -315,12 +315,12 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.richWallTextBox);
             this.tabPage1.Controls.Add(this.listContacts);
             this.tabPage1.Controls.Add(this.IPtextBox);
             this.tabPage1.Controls.Add(this.Server2IPtextBox);
             this.tabPage1.Controls.Add(this.Server3IPtextBox);
             this.tabPage1.Controls.Add(this.Server1IPtextBox);
-            this.tabPage1.Controls.Add(this.WallTextBox);
             this.tabPage1.Controls.Add(this.MessageTextBox);
             this.tabPage1.Controls.Add(this.IPLabel);
             this.tabPage1.Controls.Add(this.label5);
@@ -380,16 +380,6 @@
             this.Server1IPtextBox.Size = new System.Drawing.Size(104, 20);
             this.Server1IPtextBox.TabIndex = 7;
             this.Server1IPtextBox.Text = "127.0.0.1:8001";
-            // 
-            // WallTextBox
-            // 
-            this.WallTextBox.Location = new System.Drawing.Point(20, 101);
-            this.WallTextBox.Multiline = true;
-            this.WallTextBox.Name = "WallTextBox";
-            this.WallTextBox.ReadOnly = true;
-            this.WallTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.WallTextBox.Size = new System.Drawing.Size(610, 124);
-            this.WallTextBox.TabIndex = 4;
             // 
             // MessageTextBox
             // 
@@ -494,12 +484,23 @@
             this.tabControl.Size = new System.Drawing.Size(650, 264);
             this.tabControl.TabIndex = 0;
             // 
+            // richTextBox
+            // 
+            this.richWallTextBox.HideSelection = false;
+            this.richWallTextBox.Location = new System.Drawing.Point(20, 96);
+            this.richWallTextBox.Name = "richTextBox";
+            this.richWallTextBox.ReadOnly = true;
+            this.richWallTextBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
+            this.richWallTextBox.Size = new System.Drawing.Size(606, 136);
+            this.richWallTextBox.TabIndex = 1;
+            this.richWallTextBox.Text = "";
+            // 
             // UIClient
             // 
             this.AcceptButton = this.SendMessageButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(674, 289);
+            this.ClientSize = new System.Drawing.Size(689, 286);
             this.Controls.Add(this.tabControl);
             this.Name = "UIClient";
             this.Text = "PADIbook - Client";
@@ -535,7 +536,6 @@
         private System.Windows.Forms.TextBox Server2IPtextBox;
         private System.Windows.Forms.TextBox Server3IPtextBox;
         private System.Windows.Forms.TextBox Server1IPtextBox;
-        private System.Windows.Forms.TextBox WallTextBox;
         private System.Windows.Forms.TextBox MessageTextBox;
         private System.Windows.Forms.Label IPLabel;
         private System.Windows.Forms.Label label5;
@@ -558,6 +558,7 @@
         private System.Windows.Forms.Button acceptButton;
         private System.Windows.Forms.ComboBox friendsReqComboBox;
         private System.Windows.Forms.Button listContacts;
+        private System.Windows.Forms.RichTextBox richWallTextBox;
 
 
 
