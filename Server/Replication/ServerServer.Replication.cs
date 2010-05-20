@@ -57,7 +57,7 @@ namespace Server
         }
 
 
-        private delegate void RemoteAsyncDelegateAll(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
+        private delegate void RemoteAsyncDelegateAll(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId);
         private static void OurRemoteAsyncCallBackAll(IAsyncResult ar)
         {
             RemoteAsyncDelegateAll del = (RemoteAsyncDelegateAll)((AsyncResult)ar).AsyncDelegate;
@@ -149,7 +149,7 @@ namespace Server
             Console.WriteLine("#End REP");
         }
 
-        public void SetSlave(List<string> replicas, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
+        public void SetSlave(List<string> replicas, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId)
         {
             Console.WriteLine("#Start Replicas Setup ");
             var failed_servers = new List<string>();
@@ -161,7 +161,7 @@ namespace Server
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
                     RemoteAsyncDelegateAll RemoteDel = new RemoteAsyncDelegateAll(obj.UpdateSlave);
-                    IAsyncResult RemAr = RemoteDel.BeginInvoke(p, m, c, fr, pi, RemoteCallback, null);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(p, m, c, fr, pi,server_versionId, RemoteCallback, null);
                 }
                 catch (Exception)
                 {
@@ -285,9 +285,12 @@ namespace Server
         /// </summary>
 
         public void Ping() {}
-        public void StatusRequest(string ip) { }
+        public void StatusRequest(string ip) {
+            Server.State.ReplicationServers.Add(ip);
 
-        public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
+        }
+
+        public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_version_id)
         {
             Console.WriteLine("<--#START FULL Updating State from Master");
             Server.State.CommitProfile(p);
@@ -295,6 +298,7 @@ namespace Server
             Server.State.Contacts = c;
             Server.State.FriendRequests = fr;
             Server.State.PendingInvitations = pi;
+            Server.State.Server_version = server_version_id;
             Console.WriteLine("<--#END FULL Updating State from Master");
         }
 
@@ -304,16 +308,7 @@ namespace Server
             try
             {
                 Server.State.CommitMessage(msg);
-                if (msg.FromUserName == Server.State.Profile.UserName)
-                {
-                    Server.State.Profile.PostSeqNumber = msg.SeqNumber;
-                    Server.State.UpdateProfile(Server.State.Profile); //obriga a serializar o objecto
-                }
-                else
-                {
-                    Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName)).LastMsgSeqNumber = msg.SeqNumber;
-                    Server.State.Contacts = Server.State.Contacts; //obriga a serializar o objecto
-                }
+
                 Console.WriteLine("#Message Commited!");
             }
             catch (ServiceNotAvailableException)

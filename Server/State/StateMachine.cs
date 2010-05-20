@@ -17,30 +17,31 @@ namespace Server
         //regista profile
         void ReplicateProfile(StateContext context, CommonTypes.Profile profile);
         void ReplicateContacts(StateContext context, CommonTypes.Contact contac);
-        void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b);
-        void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact,bool b);
+        void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact, bool b);
+        void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact, bool b);
         //fazer o set do slave
         void Commit(StateContext context);
-        void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
+        void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId);
     }
 
     public class StateContext
     {
         //variaveis do state
         public IState State { get; set; }
-        
+
         //contrutor tem de ser sempre chamado com estado concreto com que o servidor vai ser lançado
         public StateContext(IState state) { State = state; }
+        public Message MessageToCommit { get; set; }
 
         public void RequestStateInfo() { State.Info(this); }
         public void ChangeState() { State.Change(this); }
         public void RegisterMessage(CommonTypes.Message msg) { State.AddMessage(this, msg); }
         public void RegisterProfile(CommonTypes.Profile profile) { State.ReplicateProfile(this, profile); }
         public void RegisterContact(CommonTypes.Contact cont) { State.ReplicateContacts(this, cont); }
-        public void RegisterFriendRequest(CommonTypes.Contact contact,bool b) { State.ReplicateFriendRequest(this, contact,b); }
-        public void RegisterPendingInvitation(CommonTypes.Contact contact,bool b) { State.ReplicatePendingInvitation(this, contact,b); }
+        public void RegisterFriendRequest(CommonTypes.Contact contact, bool b) { State.ReplicateFriendRequest(this, contact, b); }
+        public void RegisterPendingInvitation(CommonTypes.Contact contact, bool b) { State.ReplicatePendingInvitation(this, contact, b); }
         public void CommitChanges() { State.Commit(this); }
-        public void InitReplica(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) { State.SetReplica(this, p, m, c,fr,pi); }
+        public void InitReplica(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_versionId) { State.SetReplica(this, p, m, c, fr, pi, server_versionId); }
     }
 
     //Implementação do estado concreto Master
@@ -52,30 +53,32 @@ namespace Server
         {
             Console.WriteLine("--------------------------------------------------------------");
             Console.WriteLine("-----------------  IM IN MASTER STATE ------------------------");
-            Console.WriteLine("-------------------- {0} --------------------------",Server.State.ServerIP);
-            Server.State.PrintInfo();        
+            Console.WriteLine("-------------------- {0} --------------------------", Server.State.ServerIP);
+            Server.State.PrintInfo();
         }
 
         public void Change(StateContext context)
         {
-            context.State = new SlaveState(); 
+            context.State = new SlaveState();
         }
 
         public void AddMessage(StateContext stateContext, CommonTypes.Message msg)
         {
             Console.WriteLine("MASTER: UPDATING THE MESSAGES IN SLAVES");
+            stateContext.MessageToCommit = msg;
             Server.sc.ServerServer.ReplicateMessage(Server.State.ReplicationServers, msg);
         }
 
-        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
+        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, 
+            IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId)
         {
             Console.WriteLine("MASTER: UPDATING ALL SLAVES CONTENT");
-            Server.sc.ServerServer.SetSlave(Server.State.ReplicationServers, p, m, c,fr,pi);
+            Server.sc.ServerServer.SetSlave(Server.State.ReplicationServers, p, m, c, fr, pi,server_versionId);
         }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
         {
-            Server.sc.ServerServer.SetProfile(Server.State.ReplicationServers, profile);           
+            Server.sc.ServerServer.SetProfile(Server.State.ReplicationServers, profile);
         }
 
         public void ReplicateContacts(StateContext context, CommonTypes.Contact contact)
@@ -83,19 +86,34 @@ namespace Server
             Server.sc.ServerServer.SetContact(Server.State.ReplicationServers, contact);
         }
 
-        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b)
+        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact, bool b)
         {
-            Server.sc.ServerServer.SetFriendRequest(Server.State.ReplicationServers, contact,b);
-            
+            Server.sc.ServerServer.SetFriendRequest(Server.State.ReplicationServers, contact, b);
+
         }
 
-        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact,bool b)
+        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact, bool b)
         {
-            Server.sc.ServerServer.SetFriendInvitation(Server.State.ReplicationServers, contact,b);  
+            Server.sc.ServerServer.SetFriendInvitation(Server.State.ReplicationServers, contact, b);
         }
 
         public void Commit(StateContext context)
         {
+            if (context.MessageToCommit != null)
+            {
+                var msg = context.MessageToCommit;
+                context.MessageToCommit = null;
+                if (msg.FromUserName == Server.State.Profile.UserName)
+                {
+                    Server.State.Profile.PostSeqNumber = msg.SeqNumber;
+                    Server.State.UpdateProfile(Server.State.Profile); //obriga a serializar o objecto
+                }
+                else
+                {
+                    Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName)).LastMsgSeqNumber = msg.SeqNumber;
+                    Server.State.Contacts = Server.State.Contacts; //obriga a serializar o objecto
+                }             
+            }
         }
 
         #endregion
@@ -106,7 +124,7 @@ namespace Server
     {
         #region IState Members
 
-        public void Info(StateContext context) 
+        public void Info(StateContext context)
         {
             Console.WriteLine("--------------------------------------------------------------");
             Console.WriteLine("-----------------  IM IN SLAVE STATE -------------------------");
@@ -117,22 +135,23 @@ namespace Server
         public void Change(StateContext context)
         {
             Console.WriteLine("I WAS IN SLAVE STATE - NOW IM GOING TO MASTER STATE");
-            context.State = new MasterState(); 
+            context.State = new MasterState();
         }
 
         public void AddMessage(StateContext stateContext, CommonTypes.Message msg)
         {
             Console.WriteLine("SLAVE: ADDING THIS MSG: " + msg.Post);
             Server.State.CommitMessage(msg);
-            throw new NotImplementedException();
         }
 
-        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi) {
-            Console.WriteLine("SLAVE: FULL Update from Master."); 
+        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m,
+            IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_versionId)
+        {
+            Console.WriteLine("SLAVE: FULL Update from Master.");
         }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
-        {      
+        {
             Console.WriteLine("SLAVE: Saving Profile.");
             Server.State.CommitProfile(profile);
         }
@@ -143,19 +162,17 @@ namespace Server
             Server.State.CommitContact(contact);
         }
 
-        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact,bool b)
+        public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact, bool b)
         {
             Console.WriteLine("SLAVE: Adding/Updating FriendRequest.");
         }
 
-        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact,bool b)
+        public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact, bool b)
         {
             Console.WriteLine("SLAVE: Adding/Updating PendingInvitation.");
         }
 
-        public void Commit(StateContext context)
-        {
-        }
+        public void Commit(StateContext context){}
 
         #endregion
     }
@@ -179,10 +196,11 @@ namespace Server
 
         public void AddMessage(StateContext stateContext, CommonTypes.Message msg)
         {
-            throw new ServiceNotAvailableException(1,Server.sc);
+            throw new ServiceNotAvailableException(1, Server.sc);
         }
 
-        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi)
+        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, 
+            IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId)
         {
             Console.WriteLine("SLAVE: FULL Update from Master.");
 

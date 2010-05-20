@@ -37,7 +37,8 @@ namespace Server
             ThreadPool.QueueUserWorkItem((object o) =>
             {
                 Server.ReplicaState.ChangeState();
-                Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages, Server.State.Contacts, Server.State.FriendRequests, Server.State.PendingInvitations);
+                Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages,
+                    Server.State.Contacts, Server.State.FriendRequests, Server.State.PendingInvitations, Server.State.Server_version);
             });
         }
 
@@ -53,7 +54,7 @@ namespace Server
             var m = Server.State.MakeMessage(message);
             try
             {
-                Server.State.AddMessage(m);
+               Server.State.AddMessage(m);
                 ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
             }
             catch (ServiceNotAvailableException)
@@ -135,18 +136,19 @@ namespace Server
 
         public void UpdateProfile(Profile profile)
         {
-            try{
-            Console.WriteLine("Client: Update Profile");
-            var seq_number = Server.State.Profile.PostSeqNumber;
-            Server.State.UpdateProfile(profile);
-            Server.State.Profile.PostSeqNumber = seq_number;
-    
-            }
-            catch (ServiceNotAvailableException)
+            ThreadPool.QueueUserWorkItem((object o) =>
             {
-                Console.WriteLine("Service Not Available");
-                throw;
-            } 
+                try
+                {
+                    Console.WriteLine("Client: Update Profile");
+                    Server.State.UpdateProfile(profile);
+                }
+                catch (ServiceNotAvailableException)
+                {
+                    Console.WriteLine("Service Not Available");
+                    throw;
+                }
+            }); 
         }
 
         /// <summary>

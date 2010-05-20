@@ -13,7 +13,8 @@ namespace CommonTypes
         //Replicação
         void Ping();
         void StatusRequest(string ip);
-        void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi);
+        void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c,
+            IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_version_id);
         void UpdateMessages(Message msg);
         void UpdateProfile(Profile p);
         void UpdateContacts(Contact c);

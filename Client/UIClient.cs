@@ -82,6 +82,10 @@ namespace Client
                     Connected = true;
                     
                 }
+                catch (ServiceNotAvailableException)
+                {
+                    ServiceNotAvailableShow();
+                }
                 catch (SocketException)
                 {
                     MessageBox.Show("Could not locate server.");
@@ -116,20 +120,20 @@ namespace Client
                 {
                     //ao mandar uma msg ele retorna a msg k mandou que é adicionada à lista de msg local e publicada na wall
                     var m = Client.Server.Post(MessageTextBox.Text);
+                    Client.Profile.PostSeqNumber = m.SeqNumber;
                     MessageTextBox.Text = "";
                     Client.Messages.Add(m);
                     UpdateMessageBox();               
                }
-                    //EM MODO DEBUG com breakpoint's no Servidor Não!
-                //catch (SocketException)
-                //{
-                //    Client.ConnectToServer();
-                //    this.SendMessageButton_Click(sender, e);
-                //}
                 catch (ServiceNotAvailableException)
                 {
-                    Status = "SERVICE NOT AVAILABLE";
-                    UpdateServerInformation();
+                    ServiceNotAvailableShow();
+                }
+                //EM MODO DEBUG com breakpoint's no Servidor Não!
+                catch (SocketException)
+                {
+                    Client.ConnectToServer();
+                    this.SendMessageButton_Click(sender, e);
                 }
             }
         }
@@ -152,8 +156,10 @@ namespace Client
             }
             catch (ServiceNotAvailableException)
             {
-                Status = "SERVICE NOT AVAILABLE";
-                UpdateServerInformation();
+                ServiceNotAvailableShow();
+            }
+            catch (Exception) {
+            
             }
         }
 
@@ -167,8 +173,10 @@ namespace Client
                 }
                 catch (ServiceNotAvailableException)
                 {
-                    Status = "SERVICE NOT AVAILABLE";
-                    UpdateServerInformation();
+                    ServiceNotAvailableShow();
+                }
+                catch (Exception) {
+                
                 }
             }
         }
@@ -240,8 +248,10 @@ namespace Client
                 }
                 catch (ServiceNotAvailableException)
                 {
-                    Status = "SERVICE NOT AVAILABLE";
-                    UpdateServerInformation();
+                    ServiceNotAvailableShow();
+                }
+                catch (Exception) {
+                //
                 }
             }
         }
@@ -281,7 +291,7 @@ namespace Client
         {
             if (Connected)
             {
-                if (serverTextBox.Text.Equals("") || Client.Profile.UserName.Equals(""))
+                if (serverTextBox.Text.Equals("") || Client.Profile.UserName.Equals("") || serverTextBox.Text.Length != 14)
                     MessageBox.Show("Fill out all the fields!!");
                 else
                 {
@@ -292,8 +302,10 @@ namespace Client
                     }
                     catch (ServiceNotAvailableException)
                     {
-                        Status = "SERVICE NOT AVAILABLE";
-                        UpdateServerInformation();
+                        ServiceNotAvailableShow();
+                    }
+                    catch (Exception) { 
+                    //
                     }
                 }
             }
@@ -315,8 +327,10 @@ namespace Client
                 }
                 catch (ServiceNotAvailableException)
                 {
-                    Status = "SERVICE NOT AVAILABLE";
-                    UpdateServerInformation();
+                    ServiceNotAvailableShow();
+                }
+                catch (Exception) {
+                    //
                 }
             }
         }
@@ -334,11 +348,19 @@ namespace Client
                 }
                 catch (ServiceNotAvailableException)
                 {
-                    Status = "SERVICE NOT AVAILABLE";
-                    UpdateServerInformation();
+                    ServiceNotAvailableShow();
+                }
+                catch (Exception) {
+                /////
                 }
                 
             }
+        }
+
+        public void ServiceNotAvailableShow() {
+            Status = "SERVICE NOT AVAILABLE";
+            MessageBox.Show("Could not locate server.");
+            UpdateServerInformation();
         }
 
         #endregion
