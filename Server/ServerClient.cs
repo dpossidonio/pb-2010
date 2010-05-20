@@ -59,7 +59,7 @@ namespace Server
             }
             catch (ServiceNotAvailableException)
             {
-                Console.WriteLine("Service Not Available");
+                Console.WriteLine("Post Error:Service Not Available");
                 throw;
             }
             return m;
@@ -77,7 +77,7 @@ namespace Server
             }
             catch (ServiceNotAvailableException)
             {
-                Console.WriteLine("Service Not Available");
+                Console.WriteLine("Error Friend Request:Service Not Available");
                 throw;
             }
         }
@@ -96,7 +96,7 @@ namespace Server
                 }
                 catch (ServiceNotAvailableException)
                 {
-                    Console.WriteLine("Service Not Available");
+                    Console.WriteLine("Error Friend Request:Service Not Available");
                     throw;
                 }            
             }
@@ -129,7 +129,7 @@ namespace Server
             }
             catch (ServiceNotAvailableException)
             {
-                Console.WriteLine("Service Not Available");
+                Console.WriteLine("Error RefreshView: Service Not Available");
                 throw;
             }            
         }
@@ -143,7 +143,7 @@ namespace Server
                 }
                 catch (ServiceNotAvailableException)
                 {
-                    Console.WriteLine("Service Not Available");
+                    Console.WriteLine("Error UpdateProfile:Service Not Available");
                     throw;
                 }
         }

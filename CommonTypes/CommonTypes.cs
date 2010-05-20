@@ -63,6 +63,7 @@ namespace CommonTypes
         void UpdateFriendInvitation(IList<Contact> FriendRequests);
         void UpdatePosts(IList<Message> NewPosts);
         void UpdateFriends(Contact Friend);
+        void ServiceAvailable(IList<string> servers);
     }
 
     public enum Interest 
@@ -146,4 +147,7 @@ namespace CommonTypes
         }
     }
 
+    public class NoServersAvailableException : Exception {
+    
+    }
 }

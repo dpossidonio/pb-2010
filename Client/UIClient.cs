@@ -392,6 +392,15 @@ namespace Client
             UpdateServerInformation();
         }
 
+        public void ServiceAvailableShow()
+        {
+            this.Invoke(new Action(delegate()
+            {
+            Status = "OK";
+            UpdateServerInformation();
+            }));
+        }
+
         #endregion
     }
 }

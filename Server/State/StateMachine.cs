@@ -19,7 +19,6 @@ namespace Server
         void ReplicateContacts(StateContext context, CommonTypes.Contact contac);
         void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact, bool b);
         void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact, bool b);
-        //fazer o set do slave
         void Commit(StateContext context);
         void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId);
     }
@@ -72,7 +71,7 @@ namespace Server
         public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, 
             IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId)
         {
-            Console.WriteLine("MASTER: UPDATING ALL SLAVES CONTENT");
+            Console.WriteLine("MASTER: UPDATING SLAVES CONTENT");
             Server.sc.ServerServer.SetSlave(Server.State.ReplicationServers, p, m, c, fr, pi,server_versionId);
         }
 
@@ -202,8 +201,10 @@ namespace Server
         public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, 
             IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId)
         {
-            Console.WriteLine("SLAVE: FULL Update from Master.");
-
+            Console.WriteLine("Found new Replication Server.");
+            Server.ReplicaState.State = new MasterState();
+            Server.sc.ServerServer.SetSlave(Server.State.ReplicationServers, p, m, c, fr, pi, server_versionId);
+            Server.sc.Client.ServiceAvailable(Server.State.ReplicationServers);
         }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
