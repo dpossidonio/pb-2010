@@ -17,9 +17,10 @@ namespace Server
         private IList<Contact> _friendRequests;
         //Pedidos recebidos
         private IList<Contact> _pendingInvitations;
+        //Versao do servidor
+        private long _serverVersionID;
 
         private object lockObject = new Object();
-
         public string ServerIP { get; set; }
         private XmlSerializer Serializer;
         public List<string> ReplicationServers { get; set; }
@@ -44,6 +45,19 @@ namespace Server
             ReplicationServers = new List<string>();
         }
 
+        public long Server_version
+        {
+            get { return _serverVersionID; }
+            set
+            {
+                lock (Profile)
+                {
+                    _serverVersionID = value;
+
+                }
+            }
+        }
+
         public Profile Profile
         {
             get { return _profile; }
@@ -52,7 +66,7 @@ namespace Server
                 lock (Profile)
                 {
                     _profile = value;
-                    SerializeObject(Profile, "Profile");
+                   // SerializeObject(Profile, "Profile");
                 }
             }
         }
@@ -152,13 +166,14 @@ namespace Server
             ThreadPool.QueueUserWorkItem((object o) => Server.ReplicaState.RegisterContact(c));
         }
 
-        public void CommitContact(Contact c) {
+        public void CommitContact(Contact c)
+        {
             Server.ReplicaState.CommitChanges();
             lock (Contacts)
             {
                 Contacts.Add(c);
                 SerializeObject(Contacts, "Contacts");
-            }    
+            }
         }
 
         public void UpdateProfile(Profile p)
@@ -166,7 +181,8 @@ namespace Server
             Server.ReplicaState.RegisterProfile(p);
         }
 
-        public void CommitProfile(Profile p) {
+        public void CommitProfile(Profile p)
+        {
             Server.ReplicaState.CommitChanges();
 
             lock (Profile)
@@ -261,6 +277,7 @@ namespace Server
             Server.State.UpdateProfile((Profile)Server.State.DeserializeObject(Server.State.Profile, "Profile"));
             Server.State.PendingInvitations = (IList<Contact>)Server.State.DeserializeObject(Server.State.PendingInvitations, "PendingInvitations");
             Server.State.FriendRequests = (IList<Contact>)Server.State.DeserializeObject(Server.State.FriendRequests, "FriendRequests");
+            Server_version = GetPersistedServerVersion();
         }
 
         private void SerializeObject(Object obj, string file)
@@ -272,6 +289,7 @@ namespace Server
                 Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
                 Serializer.Serialize(tw, obj);
                 tw.Close();
+                Server.State.PersistServerVersion(++Server_version);
             }
         }
 
@@ -291,12 +309,42 @@ namespace Server
             }
             catch (FileNotFoundException)
             {
-
+                Server_version = 0;
                 SerializeObject(obj, file);
                 Object o = DeserializeObject(obj, file);
                 return o;
             }
         }
+
+        public void PersistServerVersion(long version)
+        {
+            var port = ServerIP.Split(':');
+            try
+            {
+                TextWriter tw = new StreamWriter(string.Format(@"./StateFiles/{0} - server_Version_id.xml", port[1]));
+                tw.WriteLine(Server_version.ToString());
+                tw.Close();
+            }
+            catch (Exception) {
+                Console.WriteLine("Invalid Directory.");
+            }
+        }
+
+
+        private long GetPersistedServerVersion()
+        {
+            var port = ServerIP.Split(':');
+            long res;
+            try
+            {
+                TextReader tr = new StreamReader(string.Format(@"./StateFiles/{0} - server_Version_id.xml", port[1]));
+                res = long.Parse(tr.ReadLine());
+                tr.Close();
+            }
+            catch (FileNotFoundException) { res = 0; }
+            return res;
+        }
+
 
         #endregion
 
@@ -310,7 +358,7 @@ namespace Server
             PrintPendingInvitations();
             PrintContacts();
             //PrintMessages();
-            Console.WriteLine("### Number os MESSAGES:"+Messages.Count);
+            Console.WriteLine("### Number os MESSAGES:" + Messages.Count);
         }
 
         public void PrintProfile()
@@ -331,6 +379,7 @@ namespace Server
 
         public void PrintServers()
         {
+            Console.WriteLine("SERVER VERSION: "+Server_version);
             Console.WriteLine("*************Replics*************");
             foreach (var item in ReplicationServers)
             {
@@ -361,7 +410,7 @@ namespace Server
 
         public void PrintPendingInvitations()
         {
-            Console.WriteLine("***********Pending Invitations********");
+            Console.WriteLine("********Pending Invitations*******");
             foreach (var item in PendingInvitations)
             {
                 Console.WriteLine(item.ToString());

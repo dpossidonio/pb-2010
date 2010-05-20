@@ -25,6 +25,7 @@ namespace Server
             //Console.WriteLine(a[2].ToString());
             string address = "";
             int num_rep = 0;
+            var rep_list = new List<string>();
             switch (args.Length)
             {
                 case 0:
@@ -36,13 +37,21 @@ namespace Server
                     //address = Console.ReadLine();
                     Console.Write("Enter number of Servers: ");
                     num_rep = int.Parse(Console.ReadLine());
+                    rep_list = GenerateReplicsAddress(address, num_rep);
+
                     break;
                 case 2:
                     address = args[0];
                     num_rep = int.Parse(args[1]);
+                    rep_list = GenerateReplicsAddress(address, num_rep);
+                    break;
+                case 3:
+                    address = args[0];
+                    num_rep = int.Parse(args[1]);
+                    rep_list.Add(args[2]);
                     break;
                 default:
-                    Console.WriteLine("Error: Invalid arguments \nServer.exe address number_of_replics");
+                    Console.WriteLine("Error: Invalid arguments \nServer.exe [Address] [number_of_replics] [Replication_Server_Address]");
                     Console.ReadLine();
                     System.Environment.Exit(1);
                     break;
@@ -51,14 +60,6 @@ namespace Server
 
             Console.WriteLine("Welcome - PADIbook Server v1.0");
             Console.Title = "Server:" + address;
-            //constroi uma lista com os end. das replicas servers
-            var rep_list = new List<string>();
-            for (int i = 1; i < num_rep + 1; i++)
-            {
-                var a = string.Format(address.Substring(0, address.Length - 1) + "{0}", i);
-                rep_list.Add(a);
-            }
-            rep_list.Remove(address);
 
             //init
             ReplicaState = new StateContext(new SlaveState());
@@ -112,6 +113,18 @@ namespace Server
                 }
             }
 
+        }
+
+        //constroi uma lista com os end. das replicas servers
+        public static List<string> GenerateReplicsAddress(string address,int num_rep) {
+            var rep_list = new List<string>();
+            for (int i = 1; i < num_rep + 1; i++)
+            {
+                var a = string.Format(address.Substring(0, address.Length - 1) + "{0}", i);
+                rep_list.Add(a);
+            }
+            rep_list.Remove(address);
+            return rep_list;
         }
 
     }
