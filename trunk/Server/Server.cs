@@ -35,11 +35,15 @@ namespace Server
                     //num_rep = 0;
                     //Console.Write("Enter [IP:Port] to run: ");
                     //address = Console.ReadLine();
-                    Console.Write("Enter number of Servers: ");
+                    Console.Write("Enter number of Servers To Generate the Address:");
                     num_rep = int.Parse(Console.ReadLine());
-                    rep_list = GenerateReplicsAddress(address, num_rep);
-
-                    break;
+                    Console.Write("or Enter address of one Server: 127.0.0.1:");
+                    var adr = Console.ReadLine();
+                    if (adr.Equals(""))
+                        rep_list = GenerateReplicsAddress(address, num_rep);
+                    else
+                        rep_list = new List<string>(){ "127.0.0.1:" + adr};
+                        break;
                 case 2:
                     address = args[0];
                     num_rep = int.Parse(args[1]);
@@ -66,7 +70,7 @@ namespace Server
             State = new ServerState(address);
             sc = new ServerClient();
             State.ReplicationServers = rep_list;
-
+            Server.sc.ServerServer.InitReplication(rep_list);
             while (true)
             {
                 var input = Console.ReadLine();
@@ -74,11 +78,11 @@ namespace Server
                     ReplicaState.RequestStateInfo();
                 if (input.Split(' ')[0].Equals("freeze"))
                 {
-                   // Console.WriteLine("Valores em segundos");
+                    // Console.WriteLine("Valores em segundos");
                     //Console.Write("Freeze Period: ");
-                  //  input = Console.ReadLine();
-                   // Console.Write("Delay: ");
-                  //  var input2 = Console.ReadLine();
+                    //  input = Console.ReadLine();
+                    // Console.Write("Delay: ");
+                    //  var input2 = Console.ReadLine();
                     try
                     {
                         State.Delay = int.Parse(input.Split(' ')[2]) * 1000;
@@ -87,7 +91,8 @@ namespace Server
                         Console.WriteLine(" Delay: {0}", State.Delay);
                         State.FreezeTimeOver = DateTime.Now.AddSeconds(State.FreezePeriod);
                     }
-                    catch (Exception) {
+                    catch (Exception)
+                    {
                         Console.WriteLine("freeze [freeze_Period] [delay]");
                     }
                 }
@@ -122,7 +127,8 @@ namespace Server
         }
 
         //constroi uma lista com os end. das replicas servers
-        public static List<string> GenerateReplicsAddress(string address,int num_rep) {
+        public static List<string> GenerateReplicsAddress(string address, int num_rep)
+        {
             var rep_list = new List<string>();
             for (int i = 1; i < num_rep + 1; i++)
             {

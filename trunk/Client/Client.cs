@@ -81,7 +81,6 @@ namespace Client
                 }
                 catch (SocketException)
                 {
-                    Console.WriteLine();
                 }
             }
         }
@@ -92,7 +91,7 @@ namespace Client
             IDictionary props = new Hashtable();
             var adr = this.ClientAddress;
             props["port"] = int.Parse(adr.Split(':')[1]);
-            props["timeout"] = 3500; // in miliseconds
+            props["timeout"] = 5000; // in miliseconds
             TcpChannel channel = new TcpChannel(props, null, provider);
             ChannelServices.RegisterChannel(channel, false);
             InitChannel = true;
@@ -126,6 +125,17 @@ namespace Client
         public override object InitializeLifetimeService()
         {
             return null;
+        }
+
+
+
+        public void ServiceAvailable(IList<string> servers)
+        {
+            foreach (var item in servers)
+            {
+                ServerAdress.Enqueue(item);
+            }
+            ClientForm.ServiceAvailableShow();
         }
 
         #endregion
