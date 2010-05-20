@@ -371,7 +371,7 @@ namespace Server
             PrintFriendRequests();
             PrintPendingInvitations();
             PrintContacts();
-            PrintMessages();
+           // PrintMessages();
             Console.WriteLine("### Number of MESSAGES:" + Messages.Count);
         }
 

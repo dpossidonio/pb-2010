@@ -190,7 +190,7 @@ namespace Server
 
         public void Change(StateContext context)
         {
-            throw new NotImplementedException();
+            context.State = new MasterState();
         }
 
         public void AddMessage(StateContext stateContext, CommonTypes.Message msg)
@@ -204,7 +204,13 @@ namespace Server
             Console.WriteLine("Found new Replication Server.");
             Server.ReplicaState.State = new MasterState();
             Server.sc.ServerServer.SetSlave(Server.State.ReplicationServers, p, m, c, fr, pi, server_versionId);
-            Server.sc.Client.ServiceAvailable(Server.State.ReplicationServers);
+            try
+            {
+                Server.sc.Client.ServiceAvailable(Server.State.ReplicationServers);
+            }
+            catch (Exception) {
+                Console.WriteLine("--->There is no Client Connected.");
+            }
         }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)

@@ -77,12 +77,14 @@ namespace Client
                      string.Format("tcp://{0}/IServerClient", ConnectedToServer));
                     Server.Connect(this.ClientAddress);
                     ClientForm.UpdateServerInformation();
-                    break;
+                    return;
                 }
                 catch (SocketException)
                 {
-                }
+                    //Servidor nao disponivel, tenta outro
+                }                           
             }
+                throw new NoServersAvailableException();
         }
 
         private void RegChannel()
