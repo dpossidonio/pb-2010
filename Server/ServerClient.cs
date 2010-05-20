@@ -54,7 +54,7 @@ namespace Server
             var m = Server.State.MakeMessage(message);
             try
             {
-               Server.State.AddMessage(m);
+              Server.State.AddMessage(m);
                 ThreadPool.QueueUserWorkItem((object o) => this.ServerServer.BroadCastMessage(m));
             }
             catch (ServiceNotAvailableException)
@@ -136,9 +136,7 @@ namespace Server
 
         public void UpdateProfile(Profile profile)
         {
-            ThreadPool.QueueUserWorkItem((object o) =>
-            {
-                try
+               try
                 {
                     Console.WriteLine("Client: Update Profile");
                     Server.State.UpdateProfile(profile);
@@ -148,7 +146,6 @@ namespace Server
                     Console.WriteLine("Service Not Available");
                     throw;
                 }
-            }); 
         }
 
         /// <summary>

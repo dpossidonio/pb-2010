@@ -72,18 +72,24 @@ namespace Server
                 var input = Console.ReadLine();
                 if (input.Equals("info"))
                     ReplicaState.RequestStateInfo();
-                if (input.Equals("freeze"))
+                if (input.Split(' ')[0].Equals("freeze"))
                 {
-                    Console.WriteLine("Valores em segundos");
-                    Console.Write("Freeze Period: ");
-                    input = Console.ReadLine();
-                    Console.Write("Delay: ");
-                    var input2 = Console.ReadLine();
-                    State.Delay = int.Parse(input2)*1000;
-                    State.FreezePeriod = int.Parse(input);
-                    Console.Write("Freeze Period: {0}", State.FreezePeriod);
-                    Console.Write("Delay: {0}", State.Delay);
-                    State.FreezeTimeOver = DateTime.Now.AddSeconds(State.FreezePeriod);
+                   // Console.WriteLine("Valores em segundos");
+                    //Console.Write("Freeze Period: ");
+                  //  input = Console.ReadLine();
+                   // Console.Write("Delay: ");
+                  //  var input2 = Console.ReadLine();
+                    try
+                    {
+                        State.Delay = int.Parse(input.Split(' ')[2]) * 1000;
+                        State.FreezePeriod = int.Parse(input.Split(' ')[1]);
+                        Console.Write("Freeze Period: {0}", State.FreezePeriod);
+                        Console.WriteLine(" Delay: {0}", State.Delay);
+                        State.FreezeTimeOver = DateTime.Now.AddSeconds(State.FreezePeriod);
+                    }
+                    catch (Exception) {
+                        Console.WriteLine("freeze [freeze_Period] [delay]");
+                    }
                 }
 
                 //chord
