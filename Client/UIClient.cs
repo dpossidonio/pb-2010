@@ -408,7 +408,9 @@ namespace Client
                 return true;
             }
             catch (NoServersAvailableException) {
+
                 Status = "Disconnected";
+                Client.ConnectedToServer = "";
                 MessageBox.Show("Could not locate Server");
                 UpdateServerInformation();
                 return false;
