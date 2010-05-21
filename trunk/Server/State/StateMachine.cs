@@ -19,9 +19,8 @@ namespace Server
         void ReplicateContacts(StateContext context, CommonTypes.Contact contac);
         void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact, bool b);
         void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact, bool b);
-        ServerStateMachine GetReplicaStatus(StateContext context);
         void Commit(StateContext context);
-        void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId);
+        void SetReplica(StateContext context,string addr);
     }
 
     public class StateContext
@@ -41,14 +40,12 @@ namespace Server
         public void RegisterFriendRequest(CommonTypes.Contact contact, bool b) { State.ReplicateFriendRequest(this, contact, b); }
         public void RegisterPendingInvitation(CommonTypes.Contact contact, bool b) { State.ReplicatePendingInvitation(this, contact, b); }
         public void CommitChanges() { State.Commit(this); }
-        public void InitReplica(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_versionId) { State.SetReplica(this, p, m, c, fr, pi, server_versionId); }
-        public ServerStateMachine GetReplicaState() { return State.GetReplicaStatus(this) ; }
+        public void InitReplica(string addr) { State.SetReplica(this, addr); }
     }
 
     //Implementação do estado concreto Master
     public class MasterState : IState
     {
-        public ServerStateMachine _state = ServerStateMachine.Master;
         #region IStateMembers
 
         public void Info(StateContext context)
@@ -71,11 +68,10 @@ namespace Server
             Server.sc.ServerServer.ReplicateMessage(msg);
         }
 
-        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, 
-            IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId)
+        public void SetReplica(StateContext context, string replica)
         {
             Console.WriteLine("MASTER: UPDATING SLAVES CONTENT");
-            Server.sc.ServerServer.SetSlave();
+            Server.sc.ServerServer.SetSlave(replica);
         }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
@@ -118,18 +114,12 @@ namespace Server
             }
         }
 
-        public ServerStateMachine GetReplicaStatus(StateContext context)
-        {
-            return _state;
-        }
-
         #endregion
     }
 
     //Implementação do estado concreto Slave
     public class SlaveState : IState
     {
-        public ServerStateMachine _state = ServerStateMachine.Slave;
         #region IState Members
 
         public void Info(StateContext context)
@@ -152,10 +142,9 @@ namespace Server
             Server.State.CommitMessage(msg);
         }
 
-        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m,
-            IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_versionId)
+        public void SetReplica(StateContext context,string replica)
         {
-            Console.WriteLine("SLAVE: FULL Update from Master.");
+            //Console.WriteLine("SLAVE: FULL Update from Master.");
         }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
@@ -182,16 +171,11 @@ namespace Server
 
         public void Commit(StateContext context){}
 
-        public ServerStateMachine GetReplicaStatus(StateContext context)
-        {
-            return _state;
-        }
         #endregion
     }
 
     public class UnnavailableState : IState
     {
-        public ServerStateMachine _state = ServerStateMachine.Unnavailable;
         #region IState Members
 
         public void Info(StateContext context)
@@ -212,12 +196,11 @@ namespace Server
             throw new ServiceNotAvailableException(1, Server.sc);
         }
 
-        public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, 
-            IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId)
+        public void SetReplica(StateContext context,string replica)
         {
             Console.WriteLine("Found new Replication Server.");
 
-            Server.sc.ServerServer.SetSlave();
+            Server.sc.ServerServer.SetSlave(replica);
             try
             {
                 Server.sc.Client.ServiceAvailable(Server.State.ReplicationServers);
@@ -254,10 +237,6 @@ namespace Server
             throw new ServiceNotAvailableException(1, Server.sc);
         }
 
-        public ServerStateMachine GetReplicaStatus(StateContext context)
-        {
-            return _state;
-        }
         #endregion
     }
 }
