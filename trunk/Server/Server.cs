@@ -70,7 +70,7 @@ namespace Server
             State = new ServerState(address);
             sc = new ServerClient();
             State.ReplicationServers = rep_list;
-            Server.sc.ServerServer.InitReplication(rep_list);
+            Server.sc.ServerServer.InitReplication();
             while (true)
             {
                 var input = Console.ReadLine();

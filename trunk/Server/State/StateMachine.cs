@@ -65,35 +65,35 @@ namespace Server
         {
             Console.WriteLine("MASTER: UPDATING THE MESSAGES IN SLAVES");
             stateContext.MessageToCommit = msg;
-            Server.sc.ServerServer.ReplicateMessage(Server.State.ReplicationServers, msg);
+            Server.sc.ServerServer.ReplicateMessage(msg);
         }
 
         public void SetReplica(StateContext context, CommonTypes.Profile p, IList<CommonTypes.Message> m, 
             IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId)
         {
             Console.WriteLine("MASTER: UPDATING SLAVES CONTENT");
-            Server.sc.ServerServer.SetSlave(Server.State.ReplicationServers, p, m, c, fr, pi,server_versionId);
+            Server.sc.ServerServer.SetSlave();
         }
 
         public void ReplicateProfile(StateContext context, CommonTypes.Profile profile)
         {
-            Server.sc.ServerServer.SetProfile(Server.State.ReplicationServers, profile);
+            Server.sc.ServerServer.SetProfile( profile);
         }
 
         public void ReplicateContacts(StateContext context, CommonTypes.Contact contact)
         {
-            Server.sc.ServerServer.SetContact(Server.State.ReplicationServers, contact);
+            Server.sc.ServerServer.SetContact(contact);
         }
 
         public void ReplicateFriendRequest(StateContext context, CommonTypes.Contact contact, bool b)
         {
-            Server.sc.ServerServer.SetFriendRequest(Server.State.ReplicationServers, contact, b);
+            Server.sc.ServerServer.SetFriendRequest(contact, b);
 
         }
 
         public void ReplicatePendingInvitation(StateContext context, CommonTypes.Contact contact, bool b)
         {
-            Server.sc.ServerServer.SetFriendInvitation(Server.State.ReplicationServers, contact, b);
+            Server.sc.ServerServer.SetFriendInvitation(contact, b);
         }
 
         public void Commit(StateContext context)
@@ -203,7 +203,7 @@ namespace Server
         {
             Console.WriteLine("Found new Replication Server.");
 
-            Server.sc.ServerServer.SetSlave(Server.State.ReplicationServers, p, m, c, fr, pi, server_versionId);
+            Server.sc.ServerServer.SetSlave();
             try
             {
                 Server.sc.Client.ServiceAvailable(Server.State.ReplicationServers);

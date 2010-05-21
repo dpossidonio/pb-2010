@@ -88,7 +88,7 @@ namespace Client
                 {
                     ServiceNotAvailableShow();
                 }
-                catch (SocketException)
+                catch (Exception)
                 {
                     MessageBox.Show("Could not locate server.");
                 }
