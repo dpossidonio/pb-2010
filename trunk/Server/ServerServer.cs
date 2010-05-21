@@ -83,7 +83,7 @@ namespace Server
         public void BroadCastMessage(Message msg)
         {
             Console.WriteLine("#Start BroadCasting Message with SeqNumber:" + msg.SeqNumber);
-            foreach (var item in Server.State.Contacts)
+            foreach (var item in Server.State.Contacts.Where(x => x.IsOnLine == true))
             {
                 //TODO: IP do Servidor do Cliente ou IP do Clente??
                 //var friend_server_ip = item.IP.Substring(0, item.IP.Length - 1) + "1";
@@ -99,6 +99,7 @@ namespace Server
                 catch (Exception)
                 {
                     Console.WriteLine("-->The Server with the address {0} does not respond.", item.IP);
+                    item.IsOnLine = false;
                 }
             }
             Console.WriteLine("#End BroadCasting Message");
@@ -134,28 +135,26 @@ namespace Server
         {
             Server.State.VerifyFreeze();
             Console.WriteLine("<--Received confirmation of a FR send to:" + c.Username + ",address:" + c.IP + ",SeqNumber:" + c.LastMsgSeqNumber);
-                var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";
-                var msg = Server.State.MakeMessage(s);
-                Server.State.AddMessage(msg);
-                Server.State.RemoveFriendRequest(c);
-                var lm = new List<Message>();
-                lm.Add(msg);
-                try
+            var s = "YUPI!! I have a new friend: " + c.Username + "(" + c.IP.Trim() + ").";
+            var msg = Server.State.MakeMessage(s);
+            Server.State.AddMessage(msg);
+            Server.State.RemoveFriendRequest(c);
+            var lm = new List<Message>();
+            lm.Add(msg);
+            try
+            {
+                if (ServerClient.Client != null)
                 {
-                    if (ServerClient.Client != null)
-                    {
-                        ServerClient.Client.UpdatePosts(lm);
-                        ServerClient.Client.UpdateFriends(c);
-                    }
+                    ServerClient.Client.UpdatePosts(lm);
+                    ServerClient.Client.UpdateFriends(c);
                 }
-                catch (Exception)
-                {
-                    Console.WriteLine("Server: Client is not reachable!");
-                }
-
-                BroadCastMessage(msg);
-                Server.State.AddContact(c);
-            
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Server: Client is not reachable!");
+            }
+            BroadCastMessage(msg);
+            Server.State.AddContact(c);
         }
 
         public void ReceiveMessage(Message msg)
@@ -163,6 +162,7 @@ namespace Server
             Server.State.VerifyFreeze();
             Console.WriteLine("<--Received post from:{0} SeqNumber:{1} Post:{2}", msg.FromUserName, msg.SeqNumber, msg.Post);
             Contact c = Server.State.Contacts.First(x => x.Username.Equals(msg.FromUserName));
+            c.IsOnLine = true;
             if (msg.SeqNumber == c.LastMsgSeqNumber + 1)
             {
                 try
@@ -182,7 +182,8 @@ namespace Server
                         Console.WriteLine("Server: Client is not reachable!");
                     }
                 }
-                catch (Exception) {
+                catch (Exception)
+                {
                     throw new ServiceNotAvailableException(1, this.ServerClient);
                 }
             }
@@ -219,8 +220,9 @@ namespace Server
                     if (ServerClient.Client != null)
                         ServerClient.Client.UpdatePosts(msgs);
                 }
-                catch (Exception) {
-                    Console.WriteLine("Server: Client is not reachable!"); 
+                catch (Exception)
+                {
+                    Console.WriteLine("Server: Client is not reachable!");
                 }
             }
         }

@@ -202,14 +202,16 @@ namespace Server
             IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId)
         {
             Console.WriteLine("Found new Replication Server.");
-            Server.ReplicaState.State = new MasterState();
+
             Server.sc.ServerServer.SetSlave(Server.State.ReplicationServers, p, m, c, fr, pi, server_versionId);
             try
             {
                 Server.sc.Client.ServiceAvailable(Server.State.ReplicationServers);
+                Server.ReplicaState.State = new MasterState();
             }
             catch (Exception) {
                 Console.WriteLine("--->There is no Client Connected.");
+                Server.ReplicaState.State = new SlaveState();
             }
         }
 

@@ -169,6 +169,7 @@ namespace Server
             //Conhece apenas o endereço do servidor do client
             myContact.IP = Server.State.ServerIP;
             myContact.Username = Server.State.Profile.UserName;
+            myContact.IsOnLine = true;
             //Enviar o numero de sequencia da ultima mensagem? ou 0 para o amigo pedir todas os post's
             myContact.LastMsgSeqNumber = Server.State.Profile.PostSeqNumber;
             return myContact;

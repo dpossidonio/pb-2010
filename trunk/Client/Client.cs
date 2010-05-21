@@ -89,11 +89,12 @@ namespace Client
 
         private void RegChannel()
         {
+            RemotingConfiguration.Configure("App.config", true);
             BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
             IDictionary props = new Hashtable();
             var adr = this.ClientAddress;
             props["port"] = int.Parse(adr.Split(':')[1]);
-            props["timeout"] = 5000; // in miliseconds
+            props["timeout"] = 6000; // in miliseconds
             TcpChannel channel = new TcpChannel(props, null, provider);
             ChannelServices.RegisterChannel(channel, false);
             InitChannel = true;
