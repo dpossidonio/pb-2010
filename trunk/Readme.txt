@@ -30,3 +30,19 @@ Repetir os passos (1 a 5) para iniciar mais aplicações do tipo Client e Server.
 
 Nota: Como ainda não foi criado o anel que liga todos os servidores primários de cada cliente, algumas operações requerem que 
 seja preenchido na tab Profile pelo menos o username.
+
+
+PROCURAS:
+
+1- Definir nome do utilizador, restantes campos são opcionais;
+2- Na consola do servidor primário inserir "join";
+3- Inserir o endereço de um servidor que já esteja no anel, no caso inicial é indiferente;
+4- comando "ring" 
+	apresenta informação do anel sucessores e predecessor
+5- comando "ringdata" 
+	apresenta a informação que o nó detém no anel
+6- comando "finger"
+	apresenta o condeudo das tabelas finger
+7- comando "lookup" seguido do valor aprocurar
+	devolve o nó responsável por tal informação
+	

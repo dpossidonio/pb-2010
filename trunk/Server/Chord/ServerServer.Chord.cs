@@ -8,7 +8,8 @@ namespace Server
     public partial class ServerServer : MarshalByRefObject, IServerServer
     {
         public ChordNode node;
-        public FingerTable finger = new FingerTable();
+        Dictionary<uint, string> finger = new Dictionary<uint, string>();
+        bool fingerRDY = false;
         //Threads
         private Thread trdUpdateSearchInformation;
         private Thread trdVerifySucessorLife;
@@ -64,16 +65,7 @@ namespace Server
             return node.SucessorIP;
         }
         //dados a preencher na tabela finger
-        public object[] GetServerNIp(int timetolive)
-        {
-            if (timetolive == 0)
-            {
-                object[] o = { node.IDName, GetServerIP() };
-                return o;
-            }
-            else
-                return node.Sucessor2.GetServerNIp(timetolive--);
-        }
+        
 
         /// <summary>
         /// Threads TODO Functions
@@ -102,10 +94,71 @@ namespace Server
         {
             while (true)
             {
+                Thread.Sleep(60000);
                 //preencher a fingertable quando faço join
-
+                FillFingerTable();
+                fingerRDY = true;
                 Thread.Sleep(Constants.fillfinger);
 
+            }
+        }
+        private void ThreadsStart()
+        {
+            //treads do chord
+            trdUpdateSearchInformation = new Thread(new ThreadStart(ThreadTODO_UpdateSearchInformation));
+            trdUpdateSearchInformation.IsBackground = true;
+            trdUpdateSearchInformation.Start();
+            trdVerifySucessorLife = new Thread(new ThreadStart(ThreadTODO_VerifySucessorLife));
+            trdVerifySucessorLife.IsBackground = true;
+            trdVerifySucessorLife.Start();
+            trdFinger = new Thread(new ThreadStart(ThreadTODO_Finger));
+            trdFinger.IsBackground = true;
+            trdFinger.Start();
+        }
+
+        /// <summary>
+        /// Funções da fingertable
+        /// </summary>
+        public bool AddToFinger(uint id, string ip)
+        {
+            if (finger.Count < Constants.maxfingersize && !finger.ContainsKey(id))
+            {
+                finger.Add(id, ip);
+                return true;
+            }
+            else
+                return false;
+        }
+        public object[] GetServerNIp(int timetolive)
+        {
+            if (timetolive == 0)
+            {
+                object[] o = { node.IDName, GetServerIP() };
+                return o;
+            }
+            if (timetolive == 1)
+            {
+                object[] o = { node.SucessorIDByName, node.SucessorIP };
+                return o;
+            }
+            if (timetolive == 2)
+            {
+                object[] o = { node.Sucessor2IDByName, node.Sucessor2IP };
+                return o;
+            }
+            else
+            {
+                timetolive--;
+                return node.Sucessor2.GetServerNIp(timetolive);
+            }
+        }
+        public void FillFingerTable()
+        {
+            for (int i = 0; i < Constants.maxfingersize; i++)
+            {
+                object[] o = GetServerNIp(i);
+                if (!AddToFinger((uint)o[0], (string)o[1]))
+                    break;
             }
         }
 
@@ -152,6 +205,15 @@ namespace Server
                 }
             }
 
+            return s;
+        }
+        public string PrintFingerTable()
+        {
+            string s = "\tFingerTable Content\r\n";
+            foreach (var v in finger)
+            {
+                s += string.Format("ID: {0}\tIP: {1}\r\n", v.Key, v.Value);
+            }
             return s;
         }
 
@@ -229,15 +291,11 @@ namespace Server
             }
             return all;
         }
-
-        /// <summary>
-        /// INBOUND & OUTBOUND
-        /// </summary>
         public string Lookup(uint ID)
         {
             //o servidor contactado ainda nao tinha um ID
             if (node.IDName == 0) node.SetIDName(Server.State.Profile.UserName);
-
+            //if (fingerRDY) return FingerSearch(ID);
             //anel composto por um único elemento, logo sou eu o responsável
             if (node.SucessorIDByName == 0 && node.Sucessor2IDByName == 0 && node.PredecessorIDByName == 0)
             {
@@ -312,21 +370,29 @@ namespace Server
 
             return node.Sucessor2.Lookup(ID);
         }
-
+        public string FingerSearch(uint ID)
+        {
+            uint idanterior=0;
+            string ipanterior="";
+            foreach (var v in finger)
+            {
+                if (ID == v.Key)
+                    return v.Value;
+                if (idanterior !=0 && ID > idanterior && ID < v.Key)
+                    return ipanterior;
+                idanterior = v.Key;
+                ipanterior = v.Value;
+            }
+            IServerServer iss = RetServerFromIp(ipanterior);
+            return iss.Lookup(ID);
+        }
         /// <summary>
         /// OUTBOUND
         /// </summary>
 
         public string ChordJoin(string ip)
         {
-            //treads do chord
-            trdUpdateSearchInformation = new Thread(new ThreadStart(ThreadTODO_UpdateSearchInformation));
-            trdUpdateSearchInformation.IsBackground = true;
-            trdUpdateSearchInformation.Start();
-            trdVerifySucessorLife = new Thread(new ThreadStart(ThreadTODO_VerifySucessorLife));
-            trdVerifySucessorLife.IsBackground = true;
-            trdVerifySucessorLife.Start();
-
+            ThreadsStart();
             if (!node.HasSucessor() && !node.HasSucessor2() && !node.HasPredecessor())
             {
                 node.SetIDName(Server.State.Profile.UserName);
@@ -611,6 +677,7 @@ namespace Server
 
         public object[] ChordNodeRequestingToJoin(string ip)
         {
+            ThreadsStart();
             //tá implementado de forma a que o nó que pede para entrar é posto à frente do nó que já estava no anel
             var v = RetServerFromIp(ip);
             //não tenho sucessores ou seja nao tou num anel sou eu o anel :P
