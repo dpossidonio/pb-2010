@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Profile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <IP>127.0.0.1:8040</IP>
+  <UserName>E</UserName>
+  <Gender>Female</Gender>
+  <Age>25</Age>
+  <Interests>
+    <Interest>Comics</Interest>
+    <Interest>Hobbies</Interest>
+    <Interest>Jobs</Interest>
+  </Interests>
+  <PostSeqNumber>0</PostSeqNumber>
+</Profile>
