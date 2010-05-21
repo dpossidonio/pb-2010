@@ -10,16 +10,17 @@ namespace Server
     public partial class ServerServer : MarshalByRefObject, IServerServer
     {
         public ServerClient ServerClient;
-        public ChordNode node;
-
-        //diz respeito à procura
-        Dictionary<string, List<string>> iddMSexo;
 
         public ServerServer(ServerClient sc)
         {
             ServerClient = sc;
             node = new ChordNode();
-            iddMSexo = new Dictionary<string, List<string>>();
+            //coisas do chord
+            iddSex = new Dictionary<uint, List<string>>();
+            interest = new Dictionary<uint, List<string>>();
+            repiddSex = new Dictionary<uint, List<string>>();
+            repinterest = new Dictionary<uint, List<string>>();
+            
         }
 
         /// <summary>

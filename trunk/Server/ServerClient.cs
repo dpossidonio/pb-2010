@@ -192,6 +192,22 @@ namespace Server
             return null;
         }
         #endregion
-    
+        
+        /// <summary>
+        /// Searching Functions
+        /// </summary>
+        /// <param name="name"></param>
+        public List<string> SCSearchByName(string s)
+        {
+            return ServerServer.SearchByName(s);
+        }
+        public List<string> SCSearchBySexAge(string s)
+        {
+            return ServerServer.SearchBySexAge(s);
+        }
+        public List<string> SCSearchByInterest(string s)
+        {
+            return ServerServer.SearchByInterest(s);
+        }
     }
 }

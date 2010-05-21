@@ -3,13 +3,22 @@ using System.Collections.Generic;
 
 namespace CommonTypes
 {
+    public static class Constants
+    {
+        //definido para 15min
+        public const int timeToUpdateNodesInformation = 15 * 60 * 1000;
+        public const int pingsucessor = 4 * 60 * 1000;
+        public const int fillfinger = 5 * 60 * 1000;
+        public const int maxfingersize = 10;
+    }
 
-    public interface IServerServer {
+    public interface IServerServer
+    {
         void ReceiveFriendRequestOK(Contact c);
         void ReceiveFriendRequest(Contact c);
         void ReceiveMessage(Message msg);
         IList<Message> RequestMessages(int lastSeqNumber);
-  
+
         //Replicação
         IList<string> StatusRequest(string ip);
         void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c,
@@ -17,12 +26,20 @@ namespace CommonTypes
         void UpdateMessages(Message msg);
         void UpdateProfile(Profile p);
         void UpdateContacts(Contact c);
-        void UpdateFriendRequest(Contact c,bool b);
-        void UpdatePendingInvitation(Contact c,bool b);
+        void UpdateFriendRequest(Contact c, bool b);
+        void UpdatePendingInvitation(Contact c, bool b);
 
         //ChordFunctions
+        void PingNode();
         object[] ChordNodeRequestingToJoin(string ip);
         void ChordNodeRequestingToLeave(string ips2);
+        void RegisterIDsFromOthers(uint ID, string ip, string type);
+        void DeleteIDsFromOthers(uint ID, string ip, string type);
+        void AddIDsSexIdd(uint ID, List<string> list);
+        void AddIDsInterest(uint ID, List<string> list);
+        void ReplicateMyIDsOnSucessor(Dictionary<uint, List<string>> sexage, Dictionary<uint, List<string>> interests);
+        object[] GetReplicateMyIDsOnSucessor();
+        object[] GetServerNIp(int timetolive);//uid,ip
 
         void SetSucessor(string iss);
         void SetSucessor2(string iss);
@@ -33,11 +50,19 @@ namespace CommonTypes
         void SetPredecessorData(string ip);
 
         string GetServerIP();
+        string GetServerName();
+        string GetSucessorIP();
         uint GetServerIDName();
         uint GetServerIDSexAge();
         List<uint> GetServerIDInterest();
 
         string Lookup(uint id);
+        List<string> SearchByName(string name);
+        List<string> SearchBySexAge(string s);
+        List<string> SearchByInterest(string s);
+
+        List<string> GetIPsForSexAge(uint id);
+        List<string> GetIPsForInterests(uint id);
     }
 
     public interface IServerClient
@@ -55,6 +80,9 @@ namespace CommonTypes
         void RefreshView();
 
         //Search(string campo);
+        List<string> SCSearchByName(string s);
+        List<string> SCSearchBySexAge(string s);
+        List<string> SCSearchByInterest(string s);
     }
 
     public interface IClient
@@ -75,6 +103,11 @@ namespace CommonTypes
     public enum Gender 
     {
         Male = 0, Female 
+    }
+
+    public enum ServerStateMachine
+    {
+        Unnavailable = 0, Slave, Master
     }
 
     [Serializable]

@@ -4,6 +4,28 @@ using System.Collections.Generic;
 
 namespace Server
 {
+    public class FingerTable
+    {
+        Dictionary<uint, string> finger;
+
+        public FingerTable()
+        {
+            finger = new Dictionary<uint, string>();
+        }
+
+        public bool Add(uint id, string ip)
+        {
+            if (finger.Count < Constants.maxfingersize && !finger.ContainsKey(id))
+            {
+                finger.Add(id, ip);
+                return true;
+            }
+            else
+                return false;
+
+        }
+    }
+
     class Node
     {
         IServerServer _iserverserver;
