@@ -3,15 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using CommonTypes;
 using System.Runtime.Remoting.Messaging;
+using System.Threading;
 
 namespace Server
 {
     public partial class ServerServer : MarshalByRefObject, IServerServer
     {
 
-        /// <summary>
-        /// OUTBOUND
-        /// </summary>
+        public void StartReplication() {
+            //só deve ser um servidor que ele conhece do grupo
+            //
+            try
+            {
+                string int_server = Server.State.ReplicationServers.First();
+                //fala com um (este pode não ser o master)
+                InitReplication(Server.State.ReplicationServers);
+                //fala com outros se houver
+                InitReplication(Server.State.ReplicationServers.Except(new List<string>() { int_server }).ToList());
+            }
+            catch (InvalidOperationException) {
+                Console.WriteLine("#StartReplication: No Serveres where found.");
+            }
+        }
 
         #region Delegates & Asyncs
 
@@ -57,7 +70,7 @@ namespace Server
         }
 
 
-        private delegate void RemoteAsyncDelegateAll(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_versionId, List<string> replicas);
+        private delegate void RemoteAsyncDelegateAll(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_versionId);
         private static void OurRemoteAsyncCallBackAll(IAsyncResult ar)
         {
             RemoteAsyncDelegateAll del = (RemoteAsyncDelegateAll)((AsyncResult)ar).AsyncDelegate;
@@ -65,30 +78,36 @@ namespace Server
             return;
         }
 
-        private delegate void RemoteAsyncDelegateInitQuorum(string ip);
-        private static void OurRemoteAsyncDelegateInitQuorum(IAsyncResult ar)
-        {
-            RemoteAsyncDelegateInitQuorum del = (RemoteAsyncDelegateInitQuorum)((AsyncResult)ar).AsyncDelegate;
-            del.EndInvoke(ar);
-            return;
-        }
+        //private delegate List<string> RemoteAsyncDelegateInitQuorum(string ip);
+        //private static List<string> OurRemoteAsyncDelegateInitQuorum(IAsyncResult ar)
+        //{
+        //    RemoteAsyncDelegateInitQuorum del = (RemoteAsyncDelegateInitQuorum)((AsyncResult)ar).AsyncDelegate;
+        //    del.EndInvoke(ar);
+        //    return;
+        //}
 
         #endregion
 
-        public void InitReplication()
+
+        /// <summary>
+        /// OUTBOUND
+        /// </summary>
+        
+        #region OUTBOUND Replication Members
+       
+        public void InitReplication(IList<string> servers)
         {
             Console.WriteLine("#REP: Looking for Replicated Servers");
             var failed_servers = new List<string>();
-            foreach (var item in Server.State.ReplicationServers)
+            foreach (var item in servers)
             {
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
 
                 try
                 {
-                    AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncDelegateInitQuorum);
-                    RemoteAsyncDelegateInitQuorum RemoteDel = new RemoteAsyncDelegateInitQuorum(obj.StatusRequest);
-                    IAsyncResult RemAr = RemoteDel.BeginInvoke(Server.State.ServerIP, RemoteCallback, null);
+                    Server.State.ReplicationServers = Server.State.ReplicationServers.Union(obj.StatusRequest(Server.State.ServerIP)).ToList();
+                    Console.WriteLine("%%%%FOUND SERVER:"+item);
                 }
                 catch (Exception)
                 {
@@ -126,30 +145,27 @@ namespace Server
             Console.WriteLine("#End REP");
         }
 
-        public void SetSlave()
+        public void SetSlave(string replica_addr)
         {
-            Console.WriteLine("#Start Replicas Setup ");
+            Console.WriteLine("#Start FULL Update Replica");
             var failed_servers = new List<string>();
-            foreach (var item in Server.State.ReplicationServers)
-            {
                 var obj = (IServerServer)Activator.GetObject(
-                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
+                typeof(IServerServer), string.Format("tcp://{0}/IServerServer", replica_addr));
                 try
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
                     RemoteAsyncDelegateAll RemoteDel = new RemoteAsyncDelegateAll(obj.UpdateSlave);
                     IAsyncResult RemAr = RemoteDel.BeginInvoke(Server.State.Profile, Server.State.Messages, Server.State.Contacts, 
-                        Server.State.FriendRequests, Server.State.PendingInvitations,Server.State.Server_version,Server.State.ReplicationServers,
+                        Server.State.FriendRequests, Server.State.PendingInvitations,Server.State.Server_version,
                         RemoteCallback, null);
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", item);
-                    failed_servers.Add(item);
+                    Console.WriteLine("-->The Replicated Server with the address {0} does not respond.", replica_addr);
+                    failed_servers.Add(replica_addr);
                 }
-            }
+            
             UpdateAvailableServers(failed_servers);
-
             Console.WriteLine("#End Replicas Setup");
         }
 
@@ -259,20 +275,27 @@ namespace Server
             Console.WriteLine("#End REP FriendInvitation");
         }
 
+        #endregion OUTBOUND Replication Members
+
         /// <summary>
         /// INBOUND
         /// </summary>
 
-        public void Ping() {}
-        public void StatusRequest(string ip) {
-            Server.State.ReplicationServers.Add(ip);
+        #region INBOUND Replication Members
 
+        public IList<string> StatusRequest(string addr) {
+            Server.State.ReplicationServers = Server.State.ReplicationServers.Union(new List<string>() { addr }).ToList();
+
+            ThreadPool.QueueUserWorkItem((object o)=> Server.ReplicaState.InitReplica(addr));
+
+            return Server.State.ReplicationServers.Except(new List<string>() { addr }).ToList();
         }
 
-        public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_version_id, List<string> replicas)
+        public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, 
+            IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_version_id)
         {
             Console.WriteLine("My Version-: {0} New Master Version: {1}", Server.State.Server_version,server_version_id);
-            Server.State.ReplicationServers = Server.State.ReplicationServers.Union(replicas).Except(new List<string>(){Server.State.ServerIP}).ToList();
+     
             if (server_version_id > Server.State.Server_version)
             {
                 Server.ReplicaState.State = new SlaveState();
@@ -290,7 +313,7 @@ namespace Server
 
         public void UpdateMessages(Message msg)
         {
-            //Server.State.VerifyFreeze();
+            Server.State.VerifyFreeze();
             try
             {
                 Server.State.CommitMessage(msg);
@@ -367,6 +390,8 @@ namespace Server
                 throw;
             }
         }
+
+        #endregion INBOUND Replication Members
 
         /// <summary>
         ///  UTIL

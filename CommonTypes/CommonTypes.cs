@@ -3,43 +3,26 @@ using System.Collections.Generic;
 
 namespace CommonTypes
 {
-    public static class Constants
-    {
-        //definido para 15min
-        public const int timeToUpdateNodesInformation = 15 * 60 * 1000;
-        public const int pingsucessor = 5 * 60 * 1000;
 
-    }
-
-    public interface IServerServer
-    {
+    public interface IServerServer {
         void ReceiveFriendRequestOK(Contact c);
         void ReceiveFriendRequest(Contact c);
         void ReceiveMessage(Message msg);
         IList<Message> RequestMessages(int lastSeqNumber);
-
+  
         //Replicação
-        void Ping();
-        void StatusRequest(string ip);
+        IList<string> StatusRequest(string ip);
         void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c,
-            IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_version_id, List<string> replicas);
+            IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_version_id);
         void UpdateMessages(Message msg);
         void UpdateProfile(Profile p);
         void UpdateContacts(Contact c);
-        void UpdateFriendRequest(Contact c, bool b);
-        void UpdatePendingInvitation(Contact c, bool b);
+        void UpdateFriendRequest(Contact c,bool b);
+        void UpdatePendingInvitation(Contact c,bool b);
 
         //ChordFunctions
-        void PingNode();
         object[] ChordNodeRequestingToJoin(string ip);
         void ChordNodeRequestingToLeave(string ips2);
-        void RegisterIDsFromOthers(uint ID, string ip, string type);
-        void DeleteIDsFromOthers(uint ID, string ip, string type);
-        void AddIDsSexIdd(uint ID, List<string> list);
-        void AddIDsInterest(uint ID, List<string> list);
-        string GetSucessorIP();
-        void ReplicateMyIDsOnSucessor(Dictionary<uint, List<string>> sexage, Dictionary<uint, List<string>> interests);
-        object[] GetReplicateMyIDsOnSucessor();
 
         void SetSucessor(string iss);
         void SetSucessor2(string iss);
@@ -55,12 +38,6 @@ namespace CommonTypes
         List<uint> GetServerIDInterest();
 
         string Lookup(uint id);
-        List<string> SearchByName(string name);
-        List<string> SearchBySexAge(string s);
-        List<string> SearchByInterest(string s);
-
-        List<string> GetIPsForSexAge(uint id);
-        List<string> GetIPsForInterests(uint id);
     }
 
     public interface IServerClient
@@ -78,9 +55,6 @@ namespace CommonTypes
         void RefreshView();
 
         //Search(string campo);
-        List<string> SCSearchByName(string s);
-        List<string> SCSearchBySexAge(string s);
-        List<string> SCSearchByInterest(string s);
     }
 
     public interface IClient
@@ -91,21 +65,20 @@ namespace CommonTypes
         void ServiceAvailable(IList<string> servers);
     }
 
-    public enum Interest
-    {
-        Cars = 1, Comics, Finance, Games, Hobbies, Jobs, Literature, Life, Medicine,
-        Movies, Music, Nature, Painting, Personal, Politics, Religion, Science,
-        Sports, Travel
+    public enum Interest 
+    { 
+        Cars=1,Comics,Finance,Games,Hobbies,Jobs,Literature,Life,Medicine,
+        Movies,Music,Nature,Painting,Personal,Politics,Religion,Science,
+        Sports,Travel
     }
 
-    public enum Gender
+    public enum Gender 
     {
-        Male = 0, Female
+        Male = 0, Female 
     }
 
     [Serializable]
-    public class Profile
-    {
+    public class Profile {
 
         public string IP { get; set; }
         public string UserName { get; set; }
@@ -122,14 +95,8 @@ namespace CommonTypes
         }
     }
 
-    public enum ServerStateMachine
-    {
-        Unnavailable = 0, Slave, Master
-    }
-
     [Serializable]
-    public class Message
-    {
+    public class Message {
         public int SeqNumber { get; set; }
         public string FromUserName { get; set; }
         public string Post { get; set; }
@@ -137,14 +104,12 @@ namespace CommonTypes
     }
 
     [Serializable]
-    public class Contact
-    {
+    public class Contact {
         public int LastMsgSeqNumber { get; set; }
         public string IP { get; set; }
         public string Username { get; set; }
         public bool IsOnLine { get; set; }
-        public override string ToString()
-        {
+        public override string ToString() {
             return string.Format("{0}  ,  {1}", Username, IP);
         }
     }
@@ -181,8 +146,7 @@ namespace CommonTypes
         }
     }
 
-    public class NoServersAvailableException : Exception
-    {
-
+    public class NoServersAvailableException : Exception {
+    
     }
 }

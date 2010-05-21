@@ -10,29 +10,23 @@ namespace Server
     public partial class ServerServer : MarshalByRefObject, IServerServer
     {
         public ServerClient ServerClient;
-       
+        public ChordNode node;
+
+        //diz respeito à procura
+        Dictionary<string, List<string>> iddMSexo;
 
         public ServerServer(ServerClient sc)
         {
             ServerClient = sc;
             node = new ChordNode();
-            //coisas do chord
-            iddSex = new Dictionary<uint, List<string>>();
-            interest = new Dictionary<uint, List<string>>();
-            repiddSex = new Dictionary<uint, List<string>>();
-            repinterest = new Dictionary<uint, List<string>>();
-            //treads do chord
-            trdUpdateSearchInformation = new Thread(new ThreadStart(ThreadTODO_UpdateSearchInformation));
-            trdUpdateSearchInformation.IsBackground = true;
-            trdUpdateSearchInformation.Start();
-            trdVerifySucessorLife = new Thread(new ThreadStart(ThreadTODO_VerifySucessorLife));
-            trdVerifySucessorLife.IsBackground = true;
-            trdVerifySucessorLife.Start();
+            iddMSexo = new Dictionary<string, List<string>>();
         }
 
         /// <summary>
         /// OUTBOUND
         /// </summary>
+        /// 
+        #region OUTBOUND ServerServer Members
 
         public void SendFriendRequest(string IP)
         {
@@ -91,7 +85,7 @@ namespace Server
         public void BroadCastMessage(Message msg)
         {
             Console.WriteLine("#Start BroadCasting Message with SeqNumber:" + msg.SeqNumber);
-            foreach (var item in Server.State.Contacts.Where(x => x.IsOnLine == true))
+            foreach (var item in Server.State.Contacts.Where(x => x.IsOnLine == true).ToList())
             {
                 //TODO: IP do Servidor do Cliente ou IP do Clente??
                 //var friend_server_ip = item.IP.Substring(0, item.IP.Length - 1) + "1";
@@ -113,9 +107,14 @@ namespace Server
             Console.WriteLine("#End BroadCasting Message");
         }
 
+        #endregion OUTBOUND ServerServer Members
+
         /// <summary>
         /// INBOUND
         /// </summary>
+        /// 
+
+         #region INBOUND ServerServer Members
 
         public void ReceiveFriendRequest(Contact c)
         {
@@ -180,7 +179,6 @@ namespace Server
                     lm.Add(msg);
                     try
                     {
-
                         if (ServerClient.Client != null)
                             ServerClient.Client.UpdatePosts(lm);
                     }
@@ -233,6 +231,7 @@ namespace Server
                 }
             }
         }
+         #endregion INBOUND ServerServer Members
 
     }
 }

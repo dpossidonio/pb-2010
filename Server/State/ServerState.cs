@@ -19,11 +19,24 @@ namespace Server
         private IList<Contact> _pendingInvitations;
         //Versao do servidor
         private long _serverVersionID;
+        //lista de servidores replicados
+        private List<string> _replicationServers;
 
         private object lockObject = new Object();
         public string ServerIP { get; set; }
         private XmlSerializer Serializer;
-        public List<string> ReplicationServers { get; set; }
+
+        public List<string> ReplicationServers
+        {
+            get { return _replicationServers; }
+            set
+            {
+                lock (lockObject)
+                {
+                    _replicationServers = value;
+                }
+            }
+        }
         public int Delay { get; set; }
         public int FreezePeriod { get; set; }
         public DateTime FreezeTimeOver { get; set; }
@@ -50,7 +63,7 @@ namespace Server
             get { return _serverVersionID; }
             set
             {
-                lock (Profile)
+                lock (lockObject)
                 {
                     _serverVersionID = value;
 
@@ -66,7 +79,7 @@ namespace Server
                 lock (Profile)
                 {
                     _profile = value;
-                   // SerializeObject(Profile, "Profile");
+                    // SerializeObject(Profile, "Profile");
                 }
             }
         }
@@ -130,7 +143,7 @@ namespace Server
             m.FromUserName = this.Profile.UserName;
             m.Post = msg;
             m.Time = DateTime.Now;
-            m.SeqNumber = ++this.Profile.PostSeqNumber;
+            m.SeqNumber = this.Profile.PostSeqNumber + 1;
             return m;
         }
 
@@ -289,9 +302,9 @@ namespace Server
                 TextWriter tw = new StreamWriter(string.Format(@"./StateFiles/{0} - {1}.xml", port[1], file));
                 Serializer = new System.Xml.Serialization.XmlSerializer(obj.GetType());
                 Serializer.Serialize(tw, obj);
-                tw.Close();
-                Server.State.PersistServerVersion(++Server_version);
+                tw.Close();               
             }
+            Server.State.PersistServerVersion(++Server_version);
         }
 
         private Object DeserializeObject(Object obj, string file)
@@ -326,7 +339,8 @@ namespace Server
                 tw.WriteLine(Server_version.ToString());
                 tw.Close();
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 Console.WriteLine("Invalid Directory.");
             }
         }
@@ -358,8 +372,8 @@ namespace Server
             PrintFriendRequests();
             PrintPendingInvitations();
             PrintContacts();
-            //PrintMessages();
-            Console.WriteLine("### Number os MESSAGES:" + Messages.Count);
+           // PrintMessages();
+            Console.WriteLine("### Number of MESSAGES:" + Messages.Count);
         }
 
         public void PrintProfile()
@@ -380,7 +394,7 @@ namespace Server
 
         public void PrintServers()
         {
-            Console.WriteLine("SERVER VERSION: "+Server_version);
+            Console.WriteLine("SERVER VERSION: " + Server_version);
             Console.WriteLine("*************Replics*************");
             foreach (var item in ReplicationServers)
             {

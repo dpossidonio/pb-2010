@@ -70,22 +70,9 @@
             this.Msglabel = new System.Windows.Forms.Label();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.richWallTextBox = new System.Windows.Forms.RichTextBox();
-            this.Search = new System.Windows.Forms.TabPage();
-            this.bttSearchInterest = new System.Windows.Forms.Button();
-            this.bttSearchSexAge = new System.Windows.Forms.Button();
-            this.txtInterestsSearch = new System.Windows.Forms.TextBox();
-            this.txtSexAgeSearch = new System.Windows.Forms.TextBox();
-            this.label13 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
-            this.bttSearchUsername = new System.Windows.Forms.Button();
-            this.label11 = new System.Windows.Forms.Label();
-            this.txtUsernameSearch = new System.Windows.Forms.TextBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.txtResults = new System.Windows.Forms.TextBox();
             this.tabPage3.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage1.SuspendLayout();
-            this.Search.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -491,7 +478,6 @@
             this.tabControl.Controls.Add(this.tabPage1);
             this.tabControl.Controls.Add(this.tabPage2);
             this.tabControl.Controls.Add(this.tabPage3);
-            this.tabControl.Controls.Add(this.Search);
             this.tabControl.Location = new System.Drawing.Point(12, 12);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
@@ -508,127 +494,6 @@
             this.richWallTextBox.Size = new System.Drawing.Size(606, 136);
             this.richWallTextBox.TabIndex = 1;
             this.richWallTextBox.Text = "";
-            // 
-            // Search
-            // 
-            this.Search.Controls.Add(this.bttSearchInterest);
-            this.Search.Controls.Add(this.bttSearchSexAge);
-            this.Search.Controls.Add(this.txtInterestsSearch);
-            this.Search.Controls.Add(this.txtSexAgeSearch);
-            this.Search.Controls.Add(this.label13);
-            this.Search.Controls.Add(this.label12);
-            this.Search.Controls.Add(this.bttSearchUsername);
-            this.Search.Controls.Add(this.label11);
-            this.Search.Controls.Add(this.txtUsernameSearch);
-            this.Search.Controls.Add(this.label8);
-            this.Search.Controls.Add(this.txtResults);
-            this.Search.Location = new System.Drawing.Point(4, 22);
-            this.Search.Name = "Search";
-            this.Search.Padding = new System.Windows.Forms.Padding(3);
-            this.Search.Size = new System.Drawing.Size(642, 238);
-            this.Search.TabIndex = 3;
-            this.Search.Text = "Search";
-            this.Search.UseVisualStyleBackColor = true;
-            // 
-            // bttSearchInterest
-            // 
-            this.bttSearchInterest.Location = new System.Drawing.Point(221, 182);
-            this.bttSearchInterest.Name = "bttSearchInterest";
-            this.bttSearchInterest.Size = new System.Drawing.Size(75, 23);
-            this.bttSearchInterest.TabIndex = 10;
-            this.bttSearchInterest.Text = "Search";
-            this.bttSearchInterest.UseVisualStyleBackColor = true;
-            this.bttSearchInterest.Click += new System.EventHandler(this.bttSearchInterest_Click);
-            // 
-            // bttSearchSexAge
-            // 
-            this.bttSearchSexAge.Location = new System.Drawing.Point(221, 113);
-            this.bttSearchSexAge.Name = "bttSearchSexAge";
-            this.bttSearchSexAge.Size = new System.Drawing.Size(75, 23);
-            this.bttSearchSexAge.TabIndex = 9;
-            this.bttSearchSexAge.Text = "Search";
-            this.bttSearchSexAge.UseVisualStyleBackColor = true;
-            this.bttSearchSexAge.Click += new System.EventHandler(this.bttSearchSexAge_Click);
-            // 
-            // txtInterestsSearch
-            // 
-            this.txtInterestsSearch.Location = new System.Drawing.Point(11, 185);
-            this.txtInterestsSearch.Name = "txtInterestsSearch";
-            this.txtInterestsSearch.Size = new System.Drawing.Size(194, 20);
-            this.txtInterestsSearch.TabIndex = 8;
-            // 
-            // txtSexAgeSearch
-            // 
-            this.txtSexAgeSearch.Location = new System.Drawing.Point(11, 116);
-            this.txtSexAgeSearch.Name = "txtSexAgeSearch";
-            this.txtSexAgeSearch.Size = new System.Drawing.Size(194, 20);
-            this.txtSexAgeSearch.TabIndex = 7;
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Font = new System.Drawing.Font("Monotype Corsiva", 15.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label13.Location = new System.Drawing.Point(6, 145);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(87, 25);
-            this.label13.TabIndex = 6;
-            this.label13.Text = "Interests";
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Font = new System.Drawing.Font("Monotype Corsiva", 15.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.Location = new System.Drawing.Point(6, 78);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(85, 25);
-            this.label12.TabIndex = 5;
-            this.label12.Text = "Sex & Age";
-            // 
-            // bttSearchUsername
-            // 
-            this.bttSearchUsername.Location = new System.Drawing.Point(221, 55);
-            this.bttSearchUsername.Name = "bttSearchUsername";
-            this.bttSearchUsername.Size = new System.Drawing.Size(75, 23);
-            this.bttSearchUsername.TabIndex = 4;
-            this.bttSearchUsername.Text = "Search";
-            this.bttSearchUsername.UseVisualStyleBackColor = true;
-            this.bttSearchUsername.Click += new System.EventHandler(this.bttSearchUsername_Click);
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Font = new System.Drawing.Font("Monotype Corsiva", 15.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.Location = new System.Drawing.Point(1, 27);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(95, 25);
-            this.label11.TabIndex = 3;
-            this.label11.Text = "Username";
-            // 
-            // txtUsernameSearch
-            // 
-            this.txtUsernameSearch.Location = new System.Drawing.Point(6, 55);
-            this.txtUsernameSearch.Name = "txtUsernameSearch";
-            this.txtUsernameSearch.Size = new System.Drawing.Size(199, 20);
-            this.txtUsernameSearch.TabIndex = 2;
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Font = new System.Drawing.Font("Monotype Corsiva", 15.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label8.Location = new System.Drawing.Point(444, 13);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(75, 25);
-            this.label8.TabIndex = 1;
-            this.label8.Text = "Results";
-            // 
-            // txtResults
-            // 
-            this.txtResults.Location = new System.Drawing.Point(333, 41);
-            this.txtResults.Multiline = true;
-            this.txtResults.Name = "txtResults";
-            this.txtResults.ReadOnly = true;
-            this.txtResults.Size = new System.Drawing.Size(290, 178);
-            this.txtResults.TabIndex = 0;
             // 
             // UIClient
             // 
@@ -694,18 +559,6 @@
         private System.Windows.Forms.ComboBox friendsReqComboBox;
         private System.Windows.Forms.Button listContacts;
         private System.Windows.Forms.RichTextBox richWallTextBox;
-        private System.Windows.Forms.TabPage Search;
-        private System.Windows.Forms.TextBox txtResults;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.TextBox txtUsernameSearch;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.Button bttSearchUsername;
-        private System.Windows.Forms.TextBox txtInterestsSearch;
-        private System.Windows.Forms.TextBox txtSexAgeSearch;
-        private System.Windows.Forms.Button bttSearchInterest;
-        private System.Windows.Forms.Button bttSearchSexAge;
 
 
 
