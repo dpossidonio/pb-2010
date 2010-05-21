@@ -282,7 +282,6 @@ namespace Server
         /// </summary>
 
         #region INBOUND Replication Members
-
         public IList<string> StatusRequest(string addr) {
             Server.State.ReplicationServers = Server.State.ReplicationServers.Union(new List<string>() { addr }).ToList();
 
@@ -348,8 +347,38 @@ namespace Server
            // Server.State.VerifyFreeze();
             try
             {
+                //alteração disto implica alterações na procura!!
+                Profile previousProfile = Server.State.Profile;
+                
                 Server.State.CommitProfile(p);
                 Console.WriteLine("#Profile Commited!");
+
+                //verificar o que alterou e proceder à alteração
+                if (!previousProfile.UserName.Equals(p.UserName) && 
+                    Server.ReplicaState.GetReplicaState() == ServerStateMachine.Master)
+                {
+                    string ip = ServerClient.ServerServer.node.SucessorIP;
+                    ServerClient.ServerServer.ChordLeave();
+                    ServerClient.ServerServer.ChordJoin(ip);
+                }
+                if (Server.ReplicaState.GetReplicaState() == ServerStateMachine.Master &&
+                    (previousProfile.Gender != p.Gender || previousProfile.Age != p.Age))
+                {
+                    string old = string.Format("{0}{1}",previousProfile.Gender,previousProfile.Age);
+                    string news =string.Format("{0}{1}",p.Gender,p.Age);
+                    DeleteAndAddIDSexAgeEntry(old, news);
+                }
+                if (Server.ReplicaState.GetReplicaState() == ServerStateMachine.Master &&
+                    previousProfile.Interests.Count != p.Interests.Count)
+                {
+                    foreach(var v in previousProfile.Interests)
+                    {
+                        p.Interests.Remove(v);
+                    }
+
+                    AddIDsInterestEntry(p.Interests);
+
+                }
             }
             catch (ServiceNotAvailableException)
             {
