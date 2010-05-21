@@ -11,12 +11,13 @@ namespace CommonTypes
 
     }
 
-    public interface IServerServer {
+    public interface IServerServer
+    {
         void ReceiveFriendRequestOK(Contact c);
         void ReceiveFriendRequest(Contact c);
         void ReceiveMessage(Message msg);
         IList<Message> RequestMessages(int lastSeqNumber);
-  
+
         //Replicação
         void Ping();
         void StatusRequest(string ip);
@@ -25,8 +26,8 @@ namespace CommonTypes
         void UpdateMessages(Message msg);
         void UpdateProfile(Profile p);
         void UpdateContacts(Contact c);
-        void UpdateFriendRequest(Contact c,bool b);
-        void UpdatePendingInvitation(Contact c,bool b);
+        void UpdateFriendRequest(Contact c, bool b);
+        void UpdatePendingInvitation(Contact c, bool b);
 
         //ChordFunctions
         void PingNode();
@@ -90,20 +91,21 @@ namespace CommonTypes
         void ServiceAvailable(IList<string> servers);
     }
 
-    public enum Interest 
-    { 
-        Cars=1,Comics,Finance,Games,Hobbies,Jobs,Literature,Life,Medicine,
-        Movies,Music,Nature,Painting,Personal,Politics,Religion,Science,
-        Sports,Travel
+    public enum Interest
+    {
+        Cars = 1, Comics, Finance, Games, Hobbies, Jobs, Literature, Life, Medicine,
+        Movies, Music, Nature, Painting, Personal, Politics, Religion, Science,
+        Sports, Travel
     }
 
-    public enum Gender 
+    public enum Gender
     {
-        Male = 0, Female 
+        Male = 0, Female
     }
 
     [Serializable]
-    public class Profile {
+    public class Profile
+    {
 
         public string IP { get; set; }
         public string UserName { get; set; }
@@ -120,8 +122,14 @@ namespace CommonTypes
         }
     }
 
+    public enum ServerStateMachine
+    {
+        Unnavailable = 0, Slave, Master
+    }
+
     [Serializable]
-    public class Message {
+    public class Message
+    {
         public int SeqNumber { get; set; }
         public string FromUserName { get; set; }
         public string Post { get; set; }
@@ -129,12 +137,14 @@ namespace CommonTypes
     }
 
     [Serializable]
-    public class Contact {
+    public class Contact
+    {
         public int LastMsgSeqNumber { get; set; }
         public string IP { get; set; }
         public string Username { get; set; }
         public bool IsOnLine { get; set; }
-        public override string ToString() {
+        public override string ToString()
+        {
             return string.Format("{0}  ,  {1}", Username, IP);
         }
     }
@@ -171,7 +181,8 @@ namespace CommonTypes
         }
     }
 
-    public class NoServersAvailableException : Exception {
-    
+    public class NoServersAvailableException : Exception
+    {
+
     }
 }
