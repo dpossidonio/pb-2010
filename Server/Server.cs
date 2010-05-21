@@ -20,9 +20,6 @@ namespace Server
         /// </param>
         static void Main(string[] args)
         {
-            //forma de obter o endereço ip da máquina sem ser hardcoded :P
-            //System.Net.IPAddress[] a = System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName());
-            //Console.WriteLine(a[2].ToString());
             string address = "";
             int num_rep = 0;
             var rep_list = new List<string>();
@@ -32,7 +29,6 @@ namespace Server
                     //paiva-alterei isso para fazer debug mais rapido é so apagar isso e descomentar o que está em baixo.
                     Console.Write("Enter [Port] to run: ");
                     address = "127.0.0.1:" + Console.ReadLine();
-                    //num_rep = 0;
                     //Console.Write("Enter [IP:Port] to run: ");
                     //address = Console.ReadLine();
                     Console.Write("Enter number of Servers To Generate the Address:");
@@ -115,6 +111,9 @@ namespace Server
                 if (input.Equals("ring"))
                     Console.WriteLine(sc.ServerServer.PrintSucessores());
 
+                if (input.Equals("ringdata"))
+                    Console.WriteLine(sc.ServerServer.PrintInfoThatNodeIsResponsable());
+
                 if (input.Equals("lookup"))
                 {
                     Console.Write("Input name to search: ");
@@ -122,6 +121,8 @@ namespace Server
                     var s = sc.ServerServer.Lookup(sc.ServerServer.IDCreator(input));
                     Console.WriteLine(s);
                 }
+                if (input.Equals("finger"))
+                    Console.WriteLine(sc.ServerServer.PrintFingerTable());
             }
 
         }
