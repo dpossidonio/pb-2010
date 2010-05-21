@@ -142,5 +142,24 @@ namespace Client
         }
 
         #endregion
+
+        /// <summary>
+        /// Search Functions
+        /// </summary>
+        /// <param name="s"></param>
+        public void SearchByName(string s)
+        {
+            ClientForm.UpdateSearchResults(Server.SCSearchByName(s), "name");
+        }
+
+        public void SearchBySexAge(string s)
+        {
+            ClientForm.UpdateSearchResults(Server.SCSearchBySexAge(s), "sexage");
+        }
+
+        public void SearchByInterest(string s)
+        {
+            ClientForm.UpdateSearchResults(Server.SCSearchByInterest(s), "interests");
+        }
     }
 }

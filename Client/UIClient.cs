@@ -418,5 +418,64 @@ namespace Client
         }
 
         #endregion
+
+        /// <summary>
+        /// Search Content
+        /// </summary>
+        public void UpdateSearchResults(List<string> list, string type)
+        {
+            this.Invoke(new Action(delegate()
+            {
+                txtResults.Clear();
+                if (type.Equals("name"))
+                {
+                    foreach (var v in list)
+                    {
+                        var aux = v.Split('@');
+                        txtResults.Text += string.Format("Username: {0}\t Address: {1}\n", aux[0], aux[1]);
+                    }
+                    return;
+                }
+                if (type.Equals("sexage"))
+                {
+                    txtResults.Text = string.Format("\t\tSexAge:{0}\r\n\r\n", txtSexAgeSearch.Text);
+                    if (list.Count == 0) txtResults.Text += "No users found!";
+                    foreach (var v in list)
+                    {
+                        txtResults.Text += string.Format("Address: {0}\r\n", v);
+                    }
+                    return;
+                }
+                if (type.Equals("interests"))
+                {
+                    txtResults.Text = string.Format("\t\tInterests:{0}\r\n\r\n", txtInterestsSearch.Text);
+                    if (list.Count == 0) txtResults.Text += "No users found!";
+                    foreach (var v in list)
+                    {
+                        txtResults.Text += string.Format("Address: {0}\r\n", v);
+                    }
+                    return;
+                }
+            }));
+
+        }
+
+        private void bttSearchUsername_Click(object sender, EventArgs e)
+        {
+            Client.SearchByName(txtUsernameSearch.Text);
+        }
+
+        private void bttSearchSexAge_Click(object sender, EventArgs e)
+        {
+            Client.SearchBySexAge(txtSexAgeSearch.Text);
+        }
+
+        private void bttSearchInterest_Click(object sender, EventArgs e)
+        {
+            Client.SearchByInterest(txtInterestsSearch.Text);
+        }
+
+        
+
     }
 }

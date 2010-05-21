@@ -10,16 +10,24 @@ namespace Server
     public partial class ServerServer : MarshalByRefObject, IServerServer
     {
         public ServerClient ServerClient;
-        public ChordNode node;
-
-        //diz respeito à procura
-        Dictionary<string, List<string>> iddMSexo;
+       
 
         public ServerServer(ServerClient sc)
         {
             ServerClient = sc;
             node = new ChordNode();
-            iddMSexo = new Dictionary<string, List<string>>();
+            //coisas do chord
+            iddSex = new Dictionary<uint, List<string>>();
+            interest = new Dictionary<uint, List<string>>();
+            repiddSex = new Dictionary<uint, List<string>>();
+            repinterest = new Dictionary<uint, List<string>>();
+            //treads do chord
+            trdUpdateSearchInformation = new Thread(new ThreadStart(ThreadTODO_UpdateSearchInformation));
+            trdUpdateSearchInformation.IsBackground = true;
+            trdUpdateSearchInformation.Start();
+            trdVerifySucessorLife = new Thread(new ThreadStart(ThreadTODO_VerifySucessorLife));
+            trdVerifySucessorLife.IsBackground = true;
+            trdVerifySucessorLife.Start();
         }
 
         /// <summary>
@@ -108,7 +116,6 @@ namespace Server
         /// <summary>
         /// INBOUND
         /// </summary>
-        /// 
 
         public void ReceiveFriendRequest(Contact c)
         {

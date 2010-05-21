@@ -3,6 +3,13 @@ using System.Collections.Generic;
 
 namespace CommonTypes
 {
+    public static class Constants
+    {
+        //definido para 15min
+        public const int timeToUpdateNodesInformation = 15 * 60 * 1000;
+        public const int pingsucessor = 5 * 60 * 1000;
+
+    }
 
     public interface IServerServer {
         void ReceiveFriendRequestOK(Contact c);
@@ -22,8 +29,16 @@ namespace CommonTypes
         void UpdatePendingInvitation(Contact c,bool b);
 
         //ChordFunctions
+        void PingNode();
         object[] ChordNodeRequestingToJoin(string ip);
         void ChordNodeRequestingToLeave(string ips2);
+        void RegisterIDsFromOthers(uint ID, string ip, string type);
+        void DeleteIDsFromOthers(uint ID, string ip, string type);
+        void AddIDsSexIdd(uint ID, List<string> list);
+        void AddIDsInterest(uint ID, List<string> list);
+        string GetSucessorIP();
+        void ReplicateMyIDsOnSucessor(Dictionary<uint, List<string>> sexage, Dictionary<uint, List<string>> interests);
+        object[] GetReplicateMyIDsOnSucessor();
 
         void SetSucessor(string iss);
         void SetSucessor2(string iss);
@@ -39,6 +54,12 @@ namespace CommonTypes
         List<uint> GetServerIDInterest();
 
         string Lookup(uint id);
+        List<string> SearchByName(string name);
+        List<string> SearchBySexAge(string s);
+        List<string> SearchByInterest(string s);
+
+        List<string> GetIPsForSexAge(uint id);
+        List<string> GetIPsForInterests(uint id);
     }
 
     public interface IServerClient
@@ -56,6 +77,9 @@ namespace CommonTypes
         void RefreshView();
 
         //Search(string campo);
+        List<string> SCSearchByName(string s);
+        List<string> SCSearchBySexAge(string s);
+        List<string> SCSearchByInterest(string s);
     }
 
     public interface IClient
