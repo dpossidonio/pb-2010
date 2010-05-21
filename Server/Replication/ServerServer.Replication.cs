@@ -57,7 +57,7 @@ namespace Server
         }
 
 
-        private delegate void RemoteAsyncDelegateAll(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId);
+        private delegate void RemoteAsyncDelegateAll(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_versionId, List<string> replicas);
         private static void OurRemoteAsyncCallBackAll(IAsyncResult ar)
         {
             RemoteAsyncDelegateAll del = (RemoteAsyncDelegateAll)((AsyncResult)ar).AsyncDelegate;
@@ -75,11 +75,11 @@ namespace Server
 
         #endregion
 
-        public void InitReplication(List<string> destinations)
+        public void InitReplication()
         {
             Console.WriteLine("#REP: Looking for Replicated Servers");
             var failed_servers = new List<string>();
-            foreach (var item in destinations)
+            foreach (var item in Server.State.ReplicationServers)
             {
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
@@ -101,11 +101,11 @@ namespace Server
             Console.WriteLine("#End REP");
         }
 
-        public void ReplicateMessage(List<string> destinations, Message msg)
+        public void ReplicateMessage(Message msg)
         {
             Console.WriteLine("#REP: Message with SeqNumber:" + msg.SeqNumber);
             var failed_servers = new List<string>();
-            foreach (var item in destinations)
+            foreach (var item in Server.State.ReplicationServers)
             {
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
@@ -127,11 +127,11 @@ namespace Server
             Console.WriteLine("#End REP");
         }
 
-        public void SetSlave(List<string> replicas, CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_versionId)
+        public void SetSlave()
         {
             Console.WriteLine("#Start Replicas Setup ");
             var failed_servers = new List<string>();
-            foreach (var item in replicas)
+            foreach (var item in Server.State.ReplicationServers)
             {
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
@@ -139,7 +139,9 @@ namespace Server
                 {
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncCallBackAll);
                     RemoteAsyncDelegateAll RemoteDel = new RemoteAsyncDelegateAll(obj.UpdateSlave);
-                    IAsyncResult RemAr = RemoteDel.BeginInvoke(p, m, c, fr, pi,server_versionId, RemoteCallback, null);
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(Server.State.Profile, Server.State.Messages, Server.State.Contacts, 
+                        Server.State.FriendRequests, Server.State.PendingInvitations,Server.State.Server_version,Server.State.ReplicationServers,
+                        RemoteCallback, null);
                 }
                 catch (Exception)
                 {
@@ -152,12 +154,12 @@ namespace Server
             Console.WriteLine("#End Replicas Setup");
         }
 
-        public void SetProfile(List<string> replicas, CommonTypes.Profile p)
+        public void SetProfile(CommonTypes.Profile p)
         {
             Console.WriteLine("#REP: Profile");
             var failed_servers = new List<string>();
 
-            foreach (var item in replicas)
+            foreach (var item in Server.State.ReplicationServers)
             {
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
@@ -178,11 +180,11 @@ namespace Server
             Console.WriteLine("#End REP Profile");
         }
 
-        public void SetContact(List<string> replicas, CommonTypes.Contact c)
+        public void SetContact(CommonTypes.Contact c)
         {
             Console.WriteLine("#REP: Contact");
             var failed_servers = new List<string>();
-            foreach (var item in replicas)
+            foreach (var item in Server.State.ReplicationServers)
             {
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
@@ -203,12 +205,12 @@ namespace Server
             Console.WriteLine("#End REP Contact");
         }
 
-        public void SetFriendRequest(List<string> replicas, CommonTypes.Contact c, bool b)
+        public void SetFriendRequest(CommonTypes.Contact c, bool b)
         {
             Console.WriteLine("#REP: Friend Request");
             var failed_servers = new List<string>();
 
-            foreach (var item in replicas)
+            foreach (var item in Server.State.ReplicationServers)
             {
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
@@ -230,12 +232,12 @@ namespace Server
             Console.WriteLine("#End REP Friend Request");
         }
 
-        public void SetFriendInvitation(List<string> replicas, CommonTypes.Contact c, bool b)
+        public void SetFriendInvitation(CommonTypes.Contact c, bool b)
         {
             Console.WriteLine("#REP: FriendInvitation");
             var failed_servers = new List<string>();
 
-            foreach (var item in replicas)
+            foreach (var item in Server.State.ReplicationServers)
             {
                 var obj = (IServerServer)Activator.GetObject(
                 typeof(IServerServer), string.Format("tcp://{0}/IServerServer", item));
@@ -269,9 +271,10 @@ namespace Server
                  Server.State.Contacts, Server.State.FriendRequests, Server.State.PendingInvitations, Server.State.Server_version);
         }
 
-        public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi,long server_version_id)
+        public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_version_id, List<string> replicas)
         {
             Console.WriteLine("My Version-: {0} New Master Version: {1}", Server.State.Server_version,server_version_id);
+            Server.State.ReplicationServers = Server.State.ReplicationServers.Union(replicas).Except(new List<string>(){Server.State.ServerIP}).ToList();
             if (server_version_id > Server.State.Server_version)
             {
                 Server.ReplicaState.State = new SlaveState();
