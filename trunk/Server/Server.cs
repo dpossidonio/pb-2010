@@ -9,7 +9,6 @@ namespace Server
         public static ServerState State;
         public static StateContext ReplicaState;
         public static ServerClient sc;
-
         public static ChordNode node;
 
         /// <summary>
@@ -20,9 +19,6 @@ namespace Server
         /// </param>
         static void Main(string[] args)
         {
-            //forma de obter o endereço ip da máquina sem ser hardcoded :P
-            //System.Net.IPAddress[] a = System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName());
-            //Console.WriteLine(a[2].ToString());
             string address = "";
             int num_rep = 0;
             var rep_list = new List<string>();
@@ -35,15 +31,11 @@ namespace Server
                     //num_rep = 0;
                     //Console.Write("Enter [IP:Port] to run: ");
                     //address = Console.ReadLine();
-                    Console.Write("Enter number of Servers To Generate the Address:");
+                    Console.Write("Enter number of Servers: ");
                     num_rep = int.Parse(Console.ReadLine());
-                    Console.Write("or Enter address of one Server: 127.0.0.1:");
-                    var adr = Console.ReadLine();
-                    if (adr.Equals(""))
-                        rep_list = GenerateReplicsAddress(address, num_rep);
-                    else
-                        rep_list = new List<string>(){ "127.0.0.1:" + adr};
-                        break;
+                    rep_list = GenerateReplicsAddress(address, num_rep);
+
+                    break;
                 case 2:
                     address = args[0];
                     num_rep = int.Parse(args[1]);
@@ -76,25 +68,18 @@ namespace Server
                 var input = Console.ReadLine();
                 if (input.Equals("info"))
                     ReplicaState.RequestStateInfo();
-                if (input.Split(' ')[0].Equals("freeze"))
+                if (input.Equals("freeze"))
                 {
-                    // Console.WriteLine("Valores em segundos");
-                    //Console.Write("Freeze Period: ");
-                    //  input = Console.ReadLine();
-                    // Console.Write("Delay: ");
-                    //  var input2 = Console.ReadLine();
-                    try
-                    {
-                        State.Delay = int.Parse(input.Split(' ')[2]) * 1000;
-                        State.FreezePeriod = int.Parse(input.Split(' ')[1]);
-                        Console.Write("Freeze Period: {0}", State.FreezePeriod);
-                        Console.WriteLine(" Delay: {0}", State.Delay);
-                        State.FreezeTimeOver = DateTime.Now.AddSeconds(State.FreezePeriod);
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("freeze [freeze_Period] [delay]");
-                    }
+                    Console.WriteLine("Valores em segundos");
+                    Console.Write("Freeze Period: ");
+                    input = Console.ReadLine();
+                    Console.Write("Delay: ");
+                    var input2 = Console.ReadLine();
+                    State.Delay = int.Parse(input2)*1000;
+                    State.FreezePeriod = int.Parse(input);
+                    Console.Write("Freeze Period: {0}", State.FreezePeriod);
+                    Console.Write("Delay: {0}", State.Delay);
+                    State.FreezeTimeOver = DateTime.Now.AddSeconds(State.FreezePeriod);
                 }
 
                 //chord
@@ -102,7 +87,7 @@ namespace Server
                 {
                     Console.Write("Input ip: -porto in debug- ");
                     input = "127.0.0.1:" + Console.ReadLine();
-                    Console.WriteLine("Going to join a ChordRing! at {0}", input);
+                    Console.WriteLine("Going to join a ChordRing!");
                     ThreadPool.QueueUserWorkItem((object o) => Console.WriteLine(sc.ServerServer.ChordJoin(input)));
                 }
 
@@ -120,15 +105,21 @@ namespace Server
                     Console.Write("Input name to search: ");
                     input = Console.ReadLine();
                     var s = sc.ServerServer.Lookup(sc.ServerServer.IDCreator(input));
-                    Console.WriteLine(s);
+                    Console.WriteLine(s + " ** ID procurado: " + sc.ServerServer.IDCreator(input));
                 }
+
+                if (input.Equals("searchinfo"))
+                    Console.WriteLine(sc.ServerServer.PrintInfoThatNodeIsResponsable());
+
+                if (input.Equals("bug"))
+                sc.ServerServer.RegisterIDsOnOthers();
+
             }
 
         }
 
         //constroi uma lista com os end. das replicas servers
-        public static List<string> GenerateReplicsAddress(string address, int num_rep)
-        {
+        public static List<string> GenerateReplicsAddress(string address,int num_rep) {
             var rep_list = new List<string>();
             for (int i = 1; i < num_rep + 1; i++)
             {

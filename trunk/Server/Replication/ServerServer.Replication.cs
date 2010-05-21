@@ -89,7 +89,6 @@ namespace Server
                     AsyncCallback RemoteCallback = new AsyncCallback(ServerServer.OurRemoteAsyncDelegateInitQuorum);
                     RemoteAsyncDelegateInitQuorum RemoteDel = new RemoteAsyncDelegateInitQuorum(obj.StatusRequest);
                     IAsyncResult RemAr = RemoteDel.BeginInvoke(Server.State.ServerIP, RemoteCallback, null);
-                    Console.WriteLine("%%%%FOUND SERVER:"+item);
                 }
                 catch (Exception)
                 {
@@ -265,10 +264,9 @@ namespace Server
         /// </summary>
 
         public void Ping() {}
-        public void StatusRequest(string addr) {
-            Server.State.ReplicationServers = Server.State.ReplicationServers.Union(new List<string>() { addr }).ToList();
-            Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages,
-                 Server.State.Contacts, Server.State.FriendRequests, Server.State.PendingInvitations, Server.State.Server_version);
+        public void StatusRequest(string ip) {
+            Server.State.ReplicationServers.Add(ip);
+
         }
 
         public void UpdateSlave(CommonTypes.Profile p, IList<CommonTypes.Message> m, IList<CommonTypes.Contact> c, IList<CommonTypes.Contact> fr, IList<CommonTypes.Contact> pi, long server_version_id, List<string> replicas)
@@ -292,7 +290,7 @@ namespace Server
 
         public void UpdateMessages(Message msg)
         {
-            Server.State.VerifyFreeze();
+            //Server.State.VerifyFreeze();
             try
             {
                 Server.State.CommitMessage(msg);

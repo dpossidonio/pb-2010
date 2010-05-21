@@ -34,12 +34,12 @@ namespace Server
             Client = (IClient)Activator.GetObject(typeof(IClient),
                         string.Format("tcp://{0}/IClient", Server.State.Profile.IP));
             //REPLICAÇÂO -isto tb pode ir para a mesma classe ServerServer?
-           // ThreadPool.QueueUserWorkItem((object o) =>
-           // {
-              //  Server.ReplicaState.ChangeState();
-            //    Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages,
-            //        Server.State.Contacts, Server.State.FriendRequests, Server.State.PendingInvitations, Server.State.Server_version);
-           // });
+            ThreadPool.QueueUserWorkItem((object o) =>
+            {
+                Server.ReplicaState.ChangeState();
+                Server.ReplicaState.InitReplica(Server.State.Profile, Server.State.Messages,
+                    Server.State.Contacts, Server.State.FriendRequests, Server.State.PendingInvitations, Server.State.Server_version);
+            });
         }
 
         #region IServerClient Members
@@ -59,7 +59,7 @@ namespace Server
             }
             catch (ServiceNotAvailableException)
             {
-                Console.WriteLine("Post Error:Service Not Available");
+                Console.WriteLine("Service Not Available");
                 throw;
             }
             return m;
@@ -77,7 +77,7 @@ namespace Server
             }
             catch (ServiceNotAvailableException)
             {
-                Console.WriteLine("Error Friend Request:Service Not Available");
+                Console.WriteLine("Service Not Available");
                 throw;
             }
         }
@@ -96,7 +96,7 @@ namespace Server
                 }
                 catch (ServiceNotAvailableException)
                 {
-                    Console.WriteLine("Error Friend Request:Service Not Available");
+                    Console.WriteLine("Service Not Available");
                     throw;
                 }            
             }
@@ -129,23 +129,26 @@ namespace Server
             }
             catch (ServiceNotAvailableException)
             {
-                Console.WriteLine("Error RefreshView: Service Not Available");
+                Console.WriteLine("Service Not Available");
                 throw;
             }            
         }
 
         public void UpdateProfile(Profile profile)
         {
-               try
+            ThreadPool.QueueUserWorkItem((object o) =>
+            {
+                try
                 {
                     Console.WriteLine("Client: Update Profile");
                     Server.State.UpdateProfile(profile);
                 }
                 catch (ServiceNotAvailableException)
                 {
-                    Console.WriteLine("Error UpdateProfile:Service Not Available");
+                    Console.WriteLine("Service Not Available");
                     throw;
                 }
+            }); 
         }
 
         /// <summary>
@@ -182,8 +185,6 @@ namespace Server
         {
             Console.WriteLine("Client: Connect IP:" + ip);
             Server.State.Profile.IP = ip;
-            //Novo Master
-            Server.ReplicaState.ChangeState();
             ConnectClient();
         }
 
@@ -192,6 +193,22 @@ namespace Server
             return null;
         }
         #endregion
-    
+
+        /// <summary>
+        /// Searching Functions
+        /// </summary>
+        /// <param name="name"></param>
+        public List<string> SCSearchByName(string s)
+        {
+            return ServerServer.SearchByName(s);
+        }
+        public List<string> SCSearchBySexAge(string s)
+        {
+            return ServerServer.SearchBySexAge(s);
+        }
+        public List<string> SCSearchByInterest(string s)
+        {
+            return ServerServer.SearchByInterest(s);
+        }
     }
 }
